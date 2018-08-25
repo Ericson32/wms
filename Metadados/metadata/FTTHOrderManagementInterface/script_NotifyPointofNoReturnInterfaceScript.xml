@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.NotifyPointofNoReturnInterfaceScript">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel por:
+    </p>
+    <p style="margin-top: 0">
+      - Identificar o tipo de notifica&#231;&#227;o que deve ser enviada para o OM:
+      (Empedimento ou Libera&#231;&#227;o de cancelamento);
+    </p>
+    <p style="margin-top: 0">
+      - Montar o XML de notifica&#231;&#227;o de empedimento de cancelamento que deve
+      ser enviado para o OM;
+    </p>
+  ]]></description>
+  
+  <label>Notify Point of No Return Interface Script</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf_pm.PROCESS_ID</type>
+    </parameter>
+    <parameter name="msg" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.noReturnNotification</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Notify Point of No Return Interface Script');
+
+    var numeroOS =  FTTHCommon.getNumeroOs(ordem.OrderHeader.numeroPedido);
+    msg.idPedido = ordem.OrderHeader.numeroPedido;
+    //msg.idOrdemServico = ordem.OrderHeader.numeroOS;
+    msg.idOrdemServico = numeroOS;
+    msg.canCancel = '0';
+    msg.timestamp = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    return msg;
+  ]]></script>
+</script>

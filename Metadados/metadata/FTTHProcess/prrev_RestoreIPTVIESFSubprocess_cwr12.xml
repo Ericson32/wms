@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.RestoreIPTVIESFSubprocess_cwr12">
+  <activity name="RestoreIPTVIESFStart" type="seqActivity">
+    <guid>{e7516be2-f988-4923-817b-3963e2c5e51e}</guid>
+    <label>Restore IPTV IESF Start</label>
+    <x>27.868359</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="RestoreIPTVIESFAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.RestoreIPTVIESFAutomaticTask</element>
+        <guid>{d799fb34-ab6a-4567-86dd-eaee7bc551f2}</guid>
+        <label>Restore IPTV IESF Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{975cc2aa-2f66-4659-bba2-7ff7f6cd8a71}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{3fb008f5-b58d-43b4-b003-d84793c873a5}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_IESF");
+                  activityId = '%' + activityId;
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{c98b0898-be47-4709-80a7-1f2247fbebdb}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{ec1d3040-9a0b-4a5a-a3ae-720fccccb124}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="RestoreIPTVIESFHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.RestoreIPTVIESFHandleErrorTask_cwr7</element>
+                    <guid>{b896692a-71f0-48ff-9114-6aeed2836f1a}</guid>
+                    <label>Restore IPTV IESF Handle Error Task</label>
+                    <x>160.5719</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{3dd6611b-1dfd-4cda-af33-4df381b7d77d}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.808914</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{27d58559-098e-4e27-b465-3591b06e7687}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{0cbd41fe-6178-421c-857f-36b3253c0e01}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="SupendRestoreIPTVIESFSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.SuspendIPTVIESFHandleIssueSubprocess_cwr14</element>
+                                <guid>{5f365909-7939-4d5c-815b-c726cc4a0e6e}</guid>
+                                <label>Supend Restore IPTV IESF Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.RestoreIPTVIESFSubprocess_cwr12/seqActivity_RestoreIPTVIESFStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{e3c907fc-598a-4760-9c3d-4e4e60389488}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_IESF");
+                              activityId = '%' + activityId;
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{1fe35ba6-aa7d-445f-8747-df47fe0fe8f6}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.RestoreIPTVIESFSubprocess_cwr12/seqActivity_RestoreIPTVIESFStart</element>
+                            <guid>{849f70cb-e6b0-4ebd-b3dd-0ee51891b434}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Desbloquear IPTV&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de desbloqueio de IPTV. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de desbloqueio de IPTV para o sistema de rede. Ou poder&#225;
+      finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de Desbloquear
+      IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Restore IPTV IESF Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.RestoreIPTVIESFSubprocess</process>
+  <revision>12</revision>
+  <type>Sub-flow</type>
+</process__revision>

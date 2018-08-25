@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DissociateSTBSubprocess_cwr7">
+  <activity name="DissociateSTBStart" type="seqActivity">
+    <guid>{074bc016-ceea-4eec-8a88-4d894ccc3538}</guid>
+    <label>Dissociate STB Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="DissociateSTBAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DissociateSTBAutomaticTask</element>
+        <guid>{7331ccf7-bbbb-4d66-a347-86713ba1cc26}</guid>
+        <label>Dissociate STB Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{9d6973b8-2b72-433e-ae72-26a674abda3c}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{f25ed56f-97d0-4b71-bf2c-4e0180d91bc5}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DISSOCIAR_STB");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{5325e880-ad23-4877-a480-c9bf46af173f}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{ceb4056c-2182-4e42-bb92-6213062ad087}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="DissociateSTBHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DissociateSTBHandleErrorTask_cwr1</element>
+                    <guid>{c225d127-aa63-490d-84b7-5a2fce19c581}</guid>
+                    <label>Dissociate STB Handle Error Task</label>
+                    <x>160.46594</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{2287df25-f917-4509-a7f3-ca180c6200a7}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{b32f7e53-414e-4a73-bf5f-a9d0804db2c8}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{de3090e3-6449-4b5b-98a6-3cbd084eb2da}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="DissociateSTBSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.DissociateSTBHandleIssueSubprocess_cwr9</element>
+                                <guid>{438f20dc-7738-4b53-8668-973e544796f5}</guid>
+                                <label>Dissociate STB Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.DissociateSTBSubprocess_cwr7/seqActivity_DissociateSTBStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{f9c99b6a-23d9-4498-8457-a4b361509acb}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DISSOCIAR_STB");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{1f99e1a9-f1d4-4e3a-bf6d-1298bf804f44}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.DissociateSTBSubprocess_cwr7/seqActivity_DissociateSTBStart</element>
+                            <guid>{3d24143f-93d6-41ad-83b6-a32b42b1a48f}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica &quot;Dissociar
+      STB&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema
+      envia para o sistema de Rede a solicita&#231;&#227;o de Dissociar STB.
+      Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de dissocia&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Dissociar HSI - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Dissociate STB Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DissociateSTBSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DesconfigureInfraAPCHandleErrorTask_cwr1">
+  <activity name="startDesconfigureInfraAPCHandleError" type="seqActivity">
+    <guid>{77baf7cd-5332-46cd-a089-20938f86a29b}</guid>
+    <label>Start Desconfigure Infra APC Handle Error</label>
+    <x>90.952736</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureInfraAPCSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DesconfigureInfraAPCHandleError</element>
+        <guid>{094f7c18-3d77-4743-a009-73c601a60852}</guid>
+        <label>Desconfigure Infra APC Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>91.35254</x>
+        <y>130.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{fc37607f-a80a-4c4a-b0b4-154964402cff}</guid>
+        <label>Wait Manual Activity</label>
+        <x>42.675293</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="DesconfigureInfraAPCHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureInfraAPCHandleErrorIssue</element>
+            <guid>{0751c427-22c5-4c74-8ac0-9b192ca39368}</guid>
+            <label>Desconfigure Infra APC Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>162.47998</x>
+            <y>411.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="DesconfigureInfraAPCHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureInfraAPCHandleErrorResend</element>
+            <guid>{c2f50fcc-9c73-417c-bb44-fea8a4b72019}</guid>
+            <label>Desconfigure Infra APC Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>29.0</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{0e707bc9-9dfd-4b0d-8012-b972705d7177}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>134.04834</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227; de Infra autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Desconfigure Infra APC Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DesconfigureInfraAPCHandleErrorTask</process>
+  <type>Sub-flow</type>
+</process__revision>

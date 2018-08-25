@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureVoIPVMPSolveIssueTask_cwr3">
+  <activity name="startConfigureVoIPVMPSolveIssue" type="seqActivity">
+    <guid>{ec5509f6-d146-4f99-a0f3-204bfb92c530}</guid>
+    <label>Start Configure VoIP VMP Solve Issue</label>
+    <x>37.946877</x>
+    <y>28.0</y>
+    <childList>
+      <child name="ConfigureVoIPVMPSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureVoIPVMPSolveIssue</element>
+        <guid>{95571068-b9ca-47e7-a0dc-d7d8ba451618}</guid>
+        <label>Configure VoIP VMP Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>38.816406</x>
+        <y>124.76094</y>
+      </child>
+      <child name="ConfigureVoIPVMPSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureVoIPVMPSolveIssueSuccess</element>
+        <guid>{dc6bff67-9ac7-48f0-b8fa-691d92bf3b23}</guid>
+        <label>Configure VoIP VMP Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>36.816406</x>
+        <y>362.26678</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_VMP");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{67e1bfcf-e9f8-41ad-b8a5-acaf3d5d4a86}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>250.86444</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_VMP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar VoIP - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Configure VoIP VMP Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureVoIPVMPSolveIssueTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

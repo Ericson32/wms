@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHHandleIssueProcess.createPartialPointInstallPendency">
+  <label>createPartialPointInstallPendency</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var userDoc
+       ,matriculaUsuario
+       ,nomeUsuario
+       ,newPendencyDoc;
+
+    var searchDoc = new Document('FTTHOrder:IssueAdditionalPointData');
+    searchDoc.cwOrderId = order.id;
+    searchDoc.status = 'WAIT';
+    var pendencies = Finder.runSearch('FTTHCommon.AdditionalPointsIssueFinder', searchDoc);
+
+    if(!pendencies || (pendencies && pendencies.length == 0)){
+        return null;
+    }
+
+    if (pendencies[0].userId){
+        userDoc = UserProfile.getUserProfile(pendencies[0].userId);
+        if(userDoc){
+            matriculaUsuario = Global.trim(userDoc.profileId);
+            nomeUsuario = Global.trim(userDoc.userName);
+        } else{
+            searchDoc = new Document("FTTHOrder:ManualActivityData");
+            searchDoc.cwOrderId = order.id;
+
+            var result = Finder.runSearch("FTTHOrder:ManualActivityDataFinder", searchDoc);
+            if(result && result.length > 0){
+                var fieldActivity = result[result.length -1];
+                matriculaUsuario = fieldActivity.matriculaTecnico;
+                nomeUsuario = fieldActivity.nomeTecnico;
+            }
+        }
+    }
+
+    newPendencyDoc = new Document ("FTTHCommon.OpenIssuePopUp");
+
+    newPendencyDoc.codPendencia = pendencies[0].pendencyId;
+    newPendencyDoc.observacao = pendencies[0].pendencyObs;
+    newPendencyDoc.dataAbertura = new Date();
+    newPendencyDoc.matriculaUsuario = matriculaUsuario;
+    newPendencyDoc.nomeUsuario = nomeUsuario;
+    newPendencyDoc.idItem = pendencies[0].itemId;
+    newPendencyDoc.cwOrderId = order.id;
+    newPendencyDoc.possuiIdAtivoAssociado = true;
+
+    var orderIssueDataDoc = FTTHCommon.ParticipantIssueAction(newPendencyDoc);
+    return orderIssueDataDoc;
+  ]]></script>
+</script>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.RestoreVagoVMPHandleErrorTask">
+  <activity name="startRestoreVagoVMPHandleError" type="seqActivity">
+    <guid>{281b7b42-913b-4ea2-ba2b-7c5a519e741c}</guid>
+    <label>Start Restore Vago VMP Handle Error</label>
+    <x>77.436035</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RestoreVagoVMPHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVagoVMPHandleError</element>
+        <guid>{8c55e64b-89f9-4416-ace8-10d6ed44a7c1}</guid>
+        <label>Restore Vago VMP Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>85.84033</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{d72a5aed-8216-4f3e-a0bc-c35e30ffd6e7}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="RestoreVagoVMPHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVagoVMPHandleErrorIssue</element>
+                <guid>{eda94177-9cea-44ec-8ffb-237893166085}</guid>
+                <label>Restore Vago VMP Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>155.9082</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="RestoreVagoVMPHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVagoVMPHandleErrorResend</element>
+                <guid>{6c3ebf3b-2e22-47fe-bc25-86de0c1eb967}</guid>
+                <label>Restore Vago VMP Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>31.158691</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{30aec643-4317-4af7-b4fb-57aa89f2a41f}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{8c94b310-477a-4954-80e7-15c7b2564196}</guid>
+  <label>Restore Vago VMP Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHActivationInterface.ConfigureIPTVIESFProfileAutomaticTask">
+  <activity name="ConfigureIPTVIESFProfileAutomaticTaskStart" type="seqActivity">
+    <guid>{9f7fea6c-046c-4f86-bb7c-dbd71ca5c018}</guid>
+    <label>Configure IPTV IESF Profile Automatic Task Start</label>
+    <x>121.17877</x>
+    <y>962.51544</y>
+    <childList>
+      <child name="ConfigureIPTVIESFProfileSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{646be26e-542e-48fd-8465-5e877671d2d2}</guid>
+        <label>Configure IPTV IESF Profile Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>244.86047</x>
+        <y>1093.5293</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{812a75d1-d8e7-413e-8930-6a6dd9688646}</guid>
+            <label>Check Send Operation Result</label>
+            <x>253.75635</x>
+            <y>30.0</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{74aa124b-f392-4f5e-8c87-9b2e8bd39aa2}</guid>
+                <label>Success</label>
+                <x>271.4801</x>
+                <y>412.54962</y>
+                <childList>
+                  <child name="WaitAutomaticActivity" type="choiceActivity">
+                    <guid>{265a95a9-5e9d-470a-9ee2-54238affc1b0}</guid>
+                    <label>Wait Automatic Activity</label>
+                    <x>81.75244</x>
+                    <y>185.80469</y>
+                    <childList>
+                      <child name="TimeOutControl" type="timeoutActivity">
+                        <guid>{21cbf4e7-7994-4506-aadc-bbfbe27c8b50}</guid>
+                        <label>TimeOut Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>49.341797</x>
+                        <y>319.2588</y>
+                        <childList>
+                          <child name="TimeOutControl" type="scriptActivity">
+                            <guid>{2e198a98-7b5e-484c-b5a4-b07dc12d29e8}</guid>
+                            <label>TimeOutControl</label>
+                            <x>30.0</x>
+                            <y>467.41406</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure IPTV IESF Profile Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activity = Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF");
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                       Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                       Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"),
+                                                       status,
+                                                       errorType.errorCode,
+                                                       errorType.errorDescription,
+                                                       this.process.id,
+                                                       Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                             Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                             Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"));
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="ConfigureIPTVIESFProfileReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{9cd31837-97fe-4bb3-8836-117acda08472}</guid>
+                        <label>Configure IPTV IESF Profile Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>162.6914</x>
+                        <y>438.01172</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure IPTV IESF Profile Automatic Task", "Configure IPTV IESF Profile Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"), status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                   Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"),
+                                                   status,
+                                                   this.activityData.code,
+                                                   this.activityData.description,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                         Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"));
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF");
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT")){
+                          FTTHActivationInterface.createSignalToSemaphoreActivation(this.process.id);
+                          return true;
+                      }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{cf1816dc-569b-4b63-965d-d1acfe432b73}</guid>
+                <label>Error</label>
+                <x>323.93994</x>
+                <y>326.60938</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_ACTIVITY = Global.getConfigVariable("Configurar Perfil Cliente - iESF");
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+                              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure IPTV IESF Profile Automatic Task", "Configure IPTV IESF Profile Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                   Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"),
+                                   status,
+                                   this.activityData.code,
+                                   this.activityData.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                         Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{ff408d00-3ccb-47c3-935e-0abba1bd9644}</guid>
+        <label>exceptionHandler</label>
+        <x>94.8994</x>
+        <y>1122.9316</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id,Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="checkResend" type="seqActivity">
+        <guid>{0d4de45c-91ba-4d83-8bc5-ba5640c07ffe}</guid>
+        <label>check Resend</label>
+        <x>174.68811</x>
+        <y>608.5176</y>
+        <childList>
+          <child name="checkNeedToResend" type="switchActivity">
+            <guid>{39c4bf0c-b1b3-4c95-b3ed-973618bde117}</guid>
+            <label>check Need To Resend</label>
+            <x>156.04678</x>
+            <y>700.5176</y>
+            <childList>
+              <child name="NO" type="caseActivity">
+                <guid>{204da92c-a9e7-44d3-9781-33a8f93a42b1}</guid>
+                <label>NO</label>
+                <x>234.9479</x>
+                <y>833.9717</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"),  Global.getConfigVariable("ACTIVATION_SYSTEM")));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Yes" type="caseActivity">
+                <guid>{26f13825-20b0-45dd-8bd2-a4d86450da57}</guid>
+                <label>Yes</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"),  Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>440.13028</x>
+                <y>268.00006</y>
+                <childList>
+                  <child name="resendToStart" type="repeatActivity">
+                    <element>proc_FTTHActivationInterface.ConfigureIPTVIESFProfileAutomaticTask/seqActivity_ConfigureIPTVIESFProfileAutomaticTaskStart</element>
+                    <guid>{5e2451b9-9d29-4a8f-bf3f-990e8d7ddfb1}</guid>
+                    <label>resend To Start</label>
+                    <x>123.247696</x>
+                    <y>826.6211</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ConfigureIPTVAutomaticTaskComplete" type="completeActivity">
+        <guid>{d8cf6089-41c3-4799-9876-3cf457c2f543}</guid>
+        <label>Configure IPTV Automatic Task Complete</label>
+        <x>224.26236</x>
+        <y>938.02344</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHActivationInterface.deleteSignalFromSemaphoreActivation(this.process.id);
+              Global.logInfo('Atividade Automática SIS Completa e semaforo excluido');
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{6bc20588-e2b7-4502-9e3e-d969d198e056}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>216.19934</x>
+        <y>1249.0352</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{9542b823-57d2-46ba-a8e3-73bba9c66d13}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>161.93994</x>
+        <y>311.9082</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Configurar
+      IPTV IESF Profile. Inicialmente o fluxo envia para o sistema de Rede uma
+      solicita&#231;&#227;o de configura&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de
+      tempo pr&#233; determinado, ser&#227;o feitas mais algumas retentativas. A
+      quantidade de retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo
+      usu&#225;rio.
+    </p>
+  ]]></description>
+  <guid>{6c54014a-903d-4e85-956a-38dbc26150b9}</guid>
+  <label>Configure IPTV IESF Profile Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>9</revision>
+  <type>User</type>
+</process>

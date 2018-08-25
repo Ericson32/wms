@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema targetNamespace="http://oi.com.br/som/worklist"
+		xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:somWorklist="http://oi.com.br/som/worklist"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"	
+xmlns:cwf_system="http://www.conceptwave.com/com/conceptwave/system"
+	xmlns:cwf="http://www.conceptwave.com/system"
+	xmlns:somCommon="http://oi.com.br/som/common"
+	xmlns:cwf_pm="http://www.conceptwave.com/products/pm">
+
+
+	<import namespace="http://www.conceptwave.com/com/conceptwave/system" schemaLocation="cwf_system.xsd"/>
+	<import namespace="http://www.conceptwave.com/system" schemaLocation="cwf.xsd"/>
+	<import namespace="http://oi.com.br/som/common" schemaLocation="somCommon.xsd"/>
+	<import namespace="http://www.conceptwave.com/products/pm" schemaLocation="cwf_pm.xsd"/>
+
+	<annotation>
+		<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Namespace referente ao somWorklist.    &lt;/p&gt;</documentation>
+		<appinfo>
+			<label>SOM Worklist</label>
+		</appinfo>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<simpleType name="errorText">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Possiveis textos de erro.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Error Text</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="2048"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="ticketId">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      ID de um ticket.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Ticket ID</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="16"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="WorklistPrivileges">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Lista de privilegios de uma worklist.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Worklist Privileges</label>
+			</appinfo>
+		</annotation>
+		<restriction base="cwf:privilege">
+			<enumeration value="TechExPriv">
+				<annotation>
+					<documentation>Technical Exception Privilege</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="MedTaskPriv">
+				<annotation>
+					<documentation>Mediation Task Privilege</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="ProvTaskPriv">
+				<annotation>
+					<documentation>Provisioning Task Privilege</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="InvTaskPriv">
+				<annotation>
+					<documentation>Inventory Task Privilege</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="BilTaskPriv">
+				<annotation>
+					<documentation>Billing Task Privilege</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="errorCodes">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Possiveis codigos de erro.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Error Codes</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="128"/>
+		</restriction>
+	</simpleType>
+
+	<!-- Structures -->
+
+	<!-- Documents -->
+
+	<complexType name="TicketEntry">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Documento que armazena informações sobre o TicketEntry.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>TicketEntry</label>
+			</appinfo>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="ticketId" type="somWorklist:ticketId"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="Worklist">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Tabela que lista as tarefas manuais sendo executadas no sistema.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Worklist</label>
+			</appinfo>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_pm:BaseWorklist">
+					<sequence>
+						<element name="ticketId" type="somWorklist:ticketId"/>
+						<element name="errorCodes" type="somWorklist:errorCodes"/>
+						<element name="errorText" type="somWorklist:errorText"/>
+						<element name="system" type="somCommon:system"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="WorklistSearch">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Tabela que recebe as tarefas manuais no sistema de acordo com uma busca especifica.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Worklist Search</label>
+			</appinfo>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_pm:WorklistSearch">
+					<sequence>
+						<element name="ticketId" type="somWorklist:ticketId"/>
+						<element name="system" type="somCommon:system"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+</schema>

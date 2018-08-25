@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CancelOrderInterfaceScript">
+  <label>Cancel Order Interface Script</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <type>dstruct_FTTHOrderManagementInterface.WMSCancelRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var orderCanceling = false;
+    var returnCode = '0';
+    var returnDesc = 'Pedido em cancelamento';
+    var orderHeader;
+    var processId;
+    var ord;
+
+    Global.logInfo('Salva dados da requisicao no MsgLog');
+    var msgLogDoc = UserProfile.getMsgLogDoc();
+    if(msgLogDoc != null){
+        msgLogDoc.userData1 = requisicao.idPedido;
+        msgLogDoc.save();
+    }
+
+    var errors = requisicao.validate(20, true, true);
+    var hasErrors = errors!=null && errors.length>0;
+
+    if(!hasErrors) {
+        try {
+            var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+            ohs.numeroPedido = requisicao.idPedido;
+
+            Global.logInfo("Busca OSs do idPedido: " + requisicao.idPedido);
+            var result = Finder.runSearch('FTTHOrderManagementInterface:OSFinderByRequest', ohs);
+            if(result.size == 0) {
+                Global.logInfo("Ordem nao encontrada para idPedido " + requisicao.idPedido);
+                throw "Pedido inválido, não existe OS para o pedido " + requisicao.idPedido;
+            }
+
+            var dataMaior = new Date("1000/01/01");
+            for (var i = 0; i < result.size; i++) {
+                if (result[i].dataAbertura > dataMaior) {
+                    dataMaior = result[i].dataAbertura;
+                orderHeader = result[i];
+                }
+            }
+
+                ohs.numeroOS = orderHeader.cwOrderId;
+                var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                if(queryResult.size == 0) {
+                    throw "Não existe processo em execução para o pedido " + requisicao.idPedido;
+                }
+
+            processId = queryResult[0].idProcesso;
+            ord = Order.getOrderById(orderHeader.cwOrderId);
+
+                if(!ord) {
+                    throw "Não existe OS para o pedido " + requisicao.idPedido;
+                }
+
+                Global.logInfo("Valida se a ordem ja foi concluida");
+                if(ord.OrderHeader.estadoOS == Global.getConfigVariable("STATUS_ORDEM_CONCLUIDA")) {
+                    throw "OS já concluída para o pedido " + requisicao.idPedido;
+                }
+
+                Global.logInfo("Valida se a ordem ja foi cancelada");
+                if(ord.OrderHeader.estadoOS == Global.getConfigVariable("STATUS_ORDEM_CANCELADA")) {
+                    throw "OS já cancelada para o pedido " + requisicao.idPedido;
+                }
+
+                Global.logInfo("Valida se a ordem ja esta em cancelamento");
+                if(ord.OrderHeader.estadoOS == Global.getConfigVariable("STATUS_ORDEM_CANCELAMENTO")) {
+                    orderCanceling = true;
+                    // qdo já existe OS em cancelamento, apenas retorna ack com sucesso
+                }
+
+                Global.logInfo("Verifica flag de ponto de nao retorno");
+                if(!ord.OrderHeader.permiteCancelamento) {
+                    returnCode = '1';
+                    returnDesc = "OS alcançou ponto de não retorno para o pedido " + requisicao.idPedido;
+
+            }
+        } catch(e) {
+            returnCode = '-1';
+            returnDesc = e;
+        }
+
+    } else {
+        returnCode = '-1';
+        returnDesc = "Requisicao inválida: ";
+        for(var i=0; i < errors.length; i=i+2){
+            returnDesc = returnDesc + errors[i] + ' - ' + errors[i+1] + '\n';
+        }
+    }
+
+    if(returnCode==0 && !orderCanceling) {
+            ord.OrderHeader.estadoOS = Global.getConfigVariable("STATUS_ORDEM_CANCELAMENTO");
+        ord.OrderHeader.idProcesso = processId;
+            ord.save();
+
+            var activitiesFinder = new Finder ("FTTHCommon.statusActivityFinder");
+            activitiesFinder.searchDocument.orderId = ord.id;
+            activitiesFinder.searchDocument.activityId == "%DESIGNAR_FACILIDADE" //Como o finder usa like para comparar id da atividade. Valida para DESIGNAR E REDESIGNAR
+            var activities = activitiesFinder.search();
+            var waitForDesignationCompletion = false;
+
+            for(var actIndex = 0; actIndex < activities.length; actIndex++){
+                if (activities[actIndex].activityId == "DESIGNAR_FACILIDADE" || activities[actIndex].activityId == "REDESIGNAR_FACILIDADE")
+                    if(activities[actIndex].status == 'AUTOMATIC_ACTIVITY' || activities[actIndex].status == 'WAIT')
+                    waitForDesignationCompletion = true;
+            }
+
+        if (!waitForDesignationCompletion) {
+            var processId = processId;
+                    Process.terminateProcess(processId);
+                }
+
+                Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Cancel', ord.OrderHeader);
+    }
+
+    var output = new DataStructure('FTTHCommon.serviceOrderSyncResponse');
+    output.code = returnCode;
+    output.description = returnDesc;
+    return output;
+  ]]></script>
+</script>

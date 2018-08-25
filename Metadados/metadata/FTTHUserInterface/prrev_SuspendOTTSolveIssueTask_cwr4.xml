@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.SuspendOTTSolveIssueTask_cwr4">
+  <activity name="SuspendOTTSolveIssueTaskStart" type="seqActivity">
+    <guid>{65149a93-b0b1-4eb3-883e-0795b16c88bd}</guid>
+    <label>Suspend OTT Solve Issue Task Start</label>
+    <x>81.97353</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendOTTSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendOTTSolveIssue</element>
+        <guid>{93f61167-f72c-45d2-8b6a-80dc1fe5735b}</guid>
+        <label>Suspend OTT Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>85.84912</x>
+        <y>130.6414</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{624a1b85-19ef-46a0-bb02-6d973fadd868}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>30.0</x>
+        <y>256.74493</y>
+        <childList>
+          <child name="SuspendOTTSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendOTTSolveIssueChangeIssue</element>
+            <guid>{30a7de03-06c7-4b0b-80b4-145887884c93}</guid>
+            <label>Suspend OTT Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>155.91406</x>
+            <y>397.84845</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_OTT");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="SuspendOTTSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendOTTSolveIssueSuccess</element>
+            <guid>{c22c0c78-6cc7-4157-9970-3116f251e1b0}</guid>
+            <label>Suspend OTT Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>31.17627</x>
+            <y>405.19904</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_OTT");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{3e072f50-8ca3-41e5-82b9-6aa306cff227}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>122.0293</x>
+        <y>264.09552</y>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Bloquear OTT - Erro tenha sido
+      finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual ser&#225;
+      gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Suspend OTT Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.SuspendOTTSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

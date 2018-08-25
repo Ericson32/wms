@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.PartialRemoveAdditionalPointHandleIssueSubprocess_cwr2">
+  <activity name="removeAdditionalPointHandleIssueSubProcessStart" type="seqActivity">
+    <guid>{e8841b90-51ce-4fd5-b869-bb8535cd5da3}</guid>
+    <label>Remove Additional Point Handle Issue Sub Process Start</label>
+    <x>35.122852</x>
+    <y>30.0</y>
+    <childList>
+      <child name="openPartialRemoveAdditionalPointIssue" type="scriptActivity">
+        <guid>{f833be96-01c1-4d6c-b59c-69160a234ada}</guid>
+        <label>Open Partial Remove Additional Point Issue</label>
+        <x>39.3291</x>
+        <y>136.52188</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var newPendencyDoc = FTTHHandleIssueProcess.createPartialPointRemovalPendency(this.process.processOrder);
+
+              Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', newPendencyDoc);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="closeClientCancelIssueTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+        <guid>{9f1b554d-2bc4-4f37-8573-7cb6f492bb2c}</guid>
+        <label>Close Cliente/Cancel Issue task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>292.02774</y>
+      </child>
+    </childList>
+  </activity>
+  <label>PartialRemoveAdditionalPointHandleIssueSubprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.PartialRemoveAdditionalPointHandleIssueSubprocess</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

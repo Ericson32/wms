@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.InstallRemoveClientEquipmentSubprocessV1_1_cwr17">
+  <activity name="InstallRemoveClientEquipmentStart" type="seqActivity">
+    <guid>{22be8ccd-46ff-47eb-a0a6-9102142aeccb}</guid>
+    <label>Install Remove Client Equipment Start</label>
+    <x>165.8541</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InstallRemoveClientEquipmentManualTask" type="subflowActivity">
+        <element>prrev_FTTHUserInterface.InstallRemoveClientEquipmentManualTask_cwr10</element>
+        <guid>{33ec7fa2-d796-4d05-9959-8758abfbbc1d}</guid>
+        <label>Install Remove Client Equipment Manual Task</label>
+        <x>169.72266</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var isAutomaticTest = (Global.getConfigVariable("AUTOMATIC_TEST_MODE", "FALSE")=="TRUE");
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Install Remove Client Equipment Manual Task", "Assign Facility Send Operation", "cwOnProcActCond", isAutomaticTest);
+              if (isAutomaticTest) {
+                  this.process.processOrder.EquipmentData[0].BaseEquipmentData.numeroONT='1234567890';
+                  this.process.processOrder.EquipmentData[0].BaseEquipmentData.numeroHomeGateway='1234567890';
+                  FTTHCommon.setStatusActivity(process.processOrder.id, Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE"), Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"));
+              }
+              return !isAutomaticTest;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var status = Global.getConfigVariable("ACTIVITY_MANUAL");
+              FTTHCommon.setStatusOrder(orderId, status);
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId =  process.processOrder.OrderHeader.cwOrderId;
+              var docId =  process.processOrder.OrderHeader.cwDocId;
+              var ponta = null;
+              var equipmentData = null;
+
+              //12/04/2018 - Correção preenchimento da tabela BATIME
+              var ordem = this.process.processOrder;
+
+              if(ordem.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+                  if(ordem.OriginalData && ordem.OriginalData.length > 0 && ordem.OriginalData[0].EquipmentData && ordem.OriginalData[0].EquipmentData.length > 0){
+                      equipmentData = ordem.OriginalData[0].EquipmentData[0];
+                  }
+
+                  var equipRemovido;
+
+                  if(equipmentData && equipmentData.AddPointsEquipmentData){
+                      for(var i = 0; i < ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length; i++){
+                          var stb = ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData;
+
+                          equipRemovido                        = new Document("FTTHOrder:EquipmentDataBATime");
+                          equipRemovido.equipmentId            = stb.cwDocId;
+                          equipRemovido.cwOrderId              = ordem.OrderHeader.cwOrderId;
+                          equipRemovido.atividade              = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+                          equipRemovido.tipoEquipamento        = "STB";
+                          equipRemovido.numeroSerieSetTopBox   = stb.numeroSerieSetTopBox_Original;
+                          equipRemovido.codEquipamento         = stb.codEquipamento_Original;
+                          equipRemovido.nomeCPE                = stb.nomeCPE_Original;
+                          equipRemovido.foiDevolvidoSetTopBox  = stb.foiDevolvidoSetTopBox_Original;
+                          equipRemovido.idAtivo                = stb.idAtivo;
+                          equipRemovido.statusAcao             = 'A Remover';
+                          equipRemovido.status                 = 'wait';
+                          equipRemovido.save();
+                      }
+                  }
+
+                  var base = equipmentData.BaseEquipmentData;
+
+                  equipRemovido                       = new Document("FTTHOrder:EquipmentDataBATime");
+                  equipRemovido.equipmentId           = base.cwDocId;
+                  equipRemovido.cwOrderId             = ordem.OrderHeader.cwOrderId;
+                  equipRemovido.atividade             = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+                  equipRemovido.tipoEquipamento       = "ONT";
+                  equipRemovido.idAtivo               = null;
+                  equipRemovido.numeroSerieSetTopBox  = base.numeroSerieONT_Original;
+                  equipRemovido.codEquipamento        = base.codEquipamentoONT_Original;
+                  equipRemovido.nomeCPE               = base.nomeCPE_ONT_Original;
+                  equipRemovido.foiDevolvidoSetTopBox = base.foiDevolvidoONT_Original;
+                  equipRemovido.statusAcao            = 'A Remover';
+                  equipRemovido.status                = 'wait';
+                  equipRemovido.save();
+
+                  if (base.nomeCPE_ONT_Original !== 'ONT Integrada'){
+                      equipRemovido                       = new Document("FTTHOrder:EquipmentDataBATime");
+                      equipRemovido.equipmentId           = base.cwDocId;
+                      equipRemovido.cwOrderId             = ordem.OrderHeader.cwOrderId;
+                      equipRemovido.atividade             = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+                      equipRemovido.tipoEquipamento       = "HGW";
+                      equipRemovido.idAtivo               = null;
+                      equipRemovido.numeroSerieSetTopBox  = base.numeroSerieHGW_Original;
+                      equipRemovido.codEquipamento        = base.codEquipamentoHGW_Original;
+                      equipRemovido.nomeCPE               = base.nomeCPE_HGW_Original;
+                      equipRemovido.foiDevolvidoSetTopBox = base.foiDevolvidoHGW_Original;
+                      equipRemovido.statusAcao            = 'A Remover';
+                      equipRemovido.status                = 'wait';
+                      equipRemovido.save();
+                  }
+
+              } else {
+              //end 12/04/2018
+                  if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+                  equipmentData = process.processOrder.OriginalData[0].EquipmentData[0];
+              }
+              else{
+                  equipmentData =  process.processOrder.EquipmentData[0];
+              }
+
+              if(equipmentData.AddPointsEquipmentData != null){
+                  for (var i = 0; i < equipmentData.AddPointsEquipmentData.length; i++){
+                      if(equipmentData.AddPointsEquipmentData[i].EquipmentPointData.acao == 'remover'){
+                              ponta = buscaEquipamentoPonta(equipmentData.AddPointsEquipmentData[i].EquipmentPointData.idAtivo, orderId);
+                          if(ponta && ponta[0].numeroSerieSetTopBox){
+                              var equipRemovido = new Document("FTTHOrder:EquipmentDataBATime");
+                              equipRemovido.idAtivo = ponta[0].idAtivo;
+                              equipRemovido.numeroSerieSetTopBox = ponta[0].numeroSerieSetTopBox;
+                              equipRemovido.codEquipamento = ponta[0].codEquipamento;
+                              equipRemovido.cwOrderId =orderId;
+                              equipRemovido.atividade = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+                              equipRemovido.foiDevolvidoSetTopBox = ponta[0].foiDevolvidoSetTopBox;
+                              equipRemovido.statusAcao = 'A Remover';
+                              equipRemovido.status = 'wait';
+                              equipRemovido.save();
+                          }
+                      }
+                  }
+              }
+
+              }
+
+              //12/04/2018 - Correção na inserção na tabela BATIME
+              function buscaEquipamentoPonta(idAtivo, orderId) {
+                  var searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentData");
+                  searchDoc.cwOrderId = orderId;
+              //end 12/04/2018
+
+                  if(idAtivo){
+                      searchDoc.idAtivo = idAtivo
+                      return Finder.runSearch("FTTHOrder:equipamentoPontaFinder",searchDoc);
+                  }
+                  else{
+                      return null;
+                  }
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{c3e06978-d929-4b81-82a9-15416e9b2784}</guid>
+        <label>Check Task Result</label>
+        <x>181.40039</x>
+        <y>300.84848</y>
+        <childList>
+          <child name="Issue" type="caseActivity">
+            <guid>{4b7d1109-4b13-4f13-a36c-375a20732f8c}</guid>
+            <label>Issue</label>
+            <x>135.0166</x>
+            <y>426.95197</y>
+            <childList>
+              <child name="SolveIssue" type="seqActivity">
+                <guid>{5c5c74bf-bef3-4ee4-8c53-83488d55d276}</guid>
+                <label>Solve Issue</label>
+                <x>258.76172</x>
+                <y>451.35434</y>
+                <childList>
+                  <child name="InstallRemoveClientEquipmentSolveIssueTask2" type="subflowActivity">
+                    <element>prrev_FTTHHandleIssueProcess.InstallRemoveClientEquipmentHandleIssueSubprocess_cwr13</element>
+                    <guid>{d814b537-02a5-4513-9347-0b3e2873b5fc}</guid>
+                    <label>Install Remove Client Equipment Solve Issue Task</label>
+                    <x>249.74512</x>
+                    <y>567.7567</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          process.processOrder.OrderHeader.flagEquipmentIssue = true;
+                          process.processOrder.save();
+                          var status = Global.getConfigVariable("ACTIVITY_MANUAL");
+                          FTTHCommon.setStatusOrder(orderId, status);
+                        ]]></script>
+                      </method>
+                      <method name="cwOnProcActAfter" type="action">
+                        <category>script</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ord = this.process.processOrder;
+                          ord.ManualActivityData[ord.ManualActivityData.length -1].ManualActivityData.dataFechamento = new Date();
+                          ord.ManualActivityData[ord.ManualActivityData.length -1].ManualActivityData.statusAtividade = 1;
+                          ord.save();
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="success" type="caseActivity">
+            <guid>{f307eae5-dba1-43be-9186-faeeb5f6707c}</guid>
+            <label>Success</label>
+            <x>198.21143</x>
+            <y>171.10352</y>
+            <childList>
+              <child name="checkAdditionalPointsIssue" type="switchActivity">
+                <guid>{5e6e5189-3936-498f-ab90-00ed891611c3}</guid>
+                <label>Check Additional Points Issue</label>
+                <x>89.69238</x>
+                <y>426.952</y>
+                <childList>
+                  <child name="installAdditionalPoints" type="caseActivity">
+                    <guid>{d9d3186c-dd84-4a3c-b74e-240ee8da60bb}</guid>
+                    <label>Install</label>
+                    <x>165.38477</x>
+                    <y>567.7566</y>
+                    <childList>
+                      <child name="installAdditionalPoint" type="seqActivity">
+                        <guid>{6794ea6f-ddd7-4014-a5a6-7249d4543eb7}</guid>
+                        <label>Install Additional Point</label>
+                        <x>144.79044</x>
+                        <y>605.47974</y>
+                        <childList>
+                          <child name="partialInstallAdditionalPointHandleIssueSubprocess" type="subflowActivity">
+                            <element>prrev_FTTHHandleIssueProcess.PartialInstallAdditionalPointHandleIssueSubprocess_cwr3</element>
+                            <guid>{3f821db8-1c3d-4767-b2d7-3e38c46c25c0}</guid>
+                            <label>Partial Install Additional Point Handle Issue Subprocess</label>
+                            <x>173.89893</x>
+                            <y>737.96375</y>
+                          </child>
+                          <child name="sendToInstallAdditionalPoint" type="repeatActivity">
+                            <element>prrev_FTTHProcess.InstallRemoveClientEquipmentSubprocessV1_1_cwr17/seqActivity_InstallRemoveClientEquipmentStart/switchActivity_CheckTaskResult/caseActivity_success/switchActivity_checkAdditionalPointsIssue/caseActivity_installAdditionalPoints/seqActivity_installAdditionalPoint</element>
+                            <guid>{987ef879-6671-4149-a922-881f17c0f6fa}</guid>
+                            <label>Send To Install Additional Point</label>
+                            <x>149.38477</x>
+                            <y>922.87195</y>
+                            <methodList>
+                              <method name="cwOnProcActCond" type="action">
+                                <category>cond</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var searchDoc = new Document('FTTHOrder:IssueAdditionalPointData');
+                                  searchDoc.cwOrderId = process.processOrder.id;
+                                  searchDoc.status = 'WAIT';
+                                  var pendencies = Finder.runSearch('FTTHCommon.AdditionalPointsIssueFinder', searchDoc);
+                                  var hasPendencyToSend = (pendencies != null && pendencies.length > 0);
+
+                                  return hasPendencyToSend;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[return FTTHHandleIssueProcess.validateAdditionalPointIssue('INSTALL', process);]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="Remove" type="caseActivity">
+                    <guid>{28f394d1-ee54-45a5-89eb-456427031cf9}</guid>
+                    <label>Remove</label>
+                    <x>29.999985</x>
+                    <y>611.86017</y>
+                    <childList>
+                      <child name="removeAdditionalPoint" type="seqActivity">
+                        <guid>{fab02190-e84c-49fd-88b4-20c86014ad35}</guid>
+                        <label>Remove Additional Point</label>
+                        <x>26.997852</x>
+                        <y>605.47974</y>
+                        <childList>
+                          <child name="partialRemoveAdditionalPointHandleIssueSubprocess" type="subflowActivity">
+                            <element>prrev_FTTHHandleIssueProcess.PartialRemoveAdditionalPointHandleIssueSubprocess_cwr3</element>
+                            <guid>{3f821db8-1c3d-4767-b2d7-3e38c46c25c0}</guid>
+                            <label>Partial Remove Additional Point Handle Issue Subprocess</label>
+                            <x>54.51416</x>
+                            <y>737.96375</y>
+                          </child>
+                          <child name="sendToRemoveAdditionalPoint" type="repeatActivity">
+                            <element>prrev_FTTHProcess.InstallRemoveClientEquipmentSubprocessV1_1_cwr17/seqActivity_InstallRemoveClientEquipmentStart/switchActivity_CheckTaskResult/caseActivity_success/switchActivity_checkAdditionalPointsIssue/caseActivity_Remove/seqActivity_removeAdditionalPoint</element>
+                            <guid>{987ef879-6671-4149-a922-881f17c0f6fa}</guid>
+                            <label>Send To Remove Additional Point</label>
+                            <x>30.0</x>
+                            <y>922.87195</y>
+                            <methodList>
+                              <method name="cwOnProcActCond" type="action">
+                                <category>cond</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var searchDoc = new Document('FTTHOrder:IssueRemoveAdditionalPointData');
+                                  searchDoc.cwOrderId = process.processOrder.id;
+                                  searchDoc.status = 'NEW';
+                                  var pendencies = Finder.runSearch('FTTHCommon.RemoveAdditionalPointsIssueFinder', searchDoc);
+                                  var hasPendencyToSend = (pendencies != null && pendencies.length > 0);
+
+                                  return hasPendencyToSend;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[return FTTHHandleIssueProcess.validateAdditionalPointIssue('REMOVE', process);]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var activityId;
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                  if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+                      activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                  }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+                      activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                  }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+
+                      var statusAtividadeAlterar = FTTHCommon.getStatusActivity(orderId, Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE"));
+                      //var statusAtividadeInstalar = FTTHCommon.getStatusActivity(orderId, Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE"));
+                      var statusAtividadeRetirar = FTTHCommon.getStatusActivity(orderId, Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE"));
+
+                      if(statusAtividadeAlterar != null){
+                          activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+                      } else if(statusAtividadeRetirar == Global.getConfigVariable("ACTIVITY_STATUS_NEW")){
+                          activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                      } else {
+                          activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                      }
+                  }
+
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  return (result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"));
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo gerenciamento da atividade manual de
+      Instalar/Retirar Equipamento. A atividade manual &#233; gerada para que possa
+      ser realizada pelo usu&#225;rio WMS. Caso a atividade seja finalizada com
+      pend&#234;ncia, uma atividade manual &quot;Instalar/Retirar Equipamento -
+      pend&#234;ncia&quot; &#233; gerada. O usu&#225;rio dever&#225; fechar a pend&#234;ncia e uma nova
+      atividade de Instalar/Retirar Equipamento dever&#225; ser criada. Caso o
+      usu&#225;rio finalize a atividade com sucesso, o subprocesso &#233; encerrado e
+      volta para o ponto do processo que o chamou.
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Esse subprocesso representa tanto a Instala&#231;&#227;o quanto a Retirada do
+      equipamento na casa do Cliente.
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Esse subprocesso tamb&#233;m ser&#225; respons&#225;vel por notificar os impedimentos
+      de cancelamento ao OM. Imediatamente antes da realiza&#231;&#227;o da atividade
+      manual de Intala&#231;&#227;o/Retirada de Equipamento dever&#225; ser envia a
+      notifica&#231;&#227;o de empedimento de cancelamento para o OM.
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Casos de excess&#227;o:
+    </p>
+    <p style="margin-top: 0">
+       - Caso a ordem em quest&#227;o seja uma modifica&#231;&#227;o de endere&#231;o, apenas
+      antes da Instala&#231;&#227;o do Equipamento no endere&#231;o Novo dever&#225; ser enviada
+      essa notifica&#231;&#227;o de empedimento de cancelamento. Na retirada do
+      equipamento no endere&#231;o antigo a notifica&#231;&#227;o n&#227;o dever&#225; ser enviada.
+    </p>
+    <p style="margin-top: 0">
+       - Caso a atividade de Instalar/Retirar Equipamento seja finalizada com
+      pend&#234;ncia, deve ser enviada para o OM uma notifica&#231;&#227;o de possibilidade
+      de cancelamento.
+    </p>
+  ]]></description>
+  <label>Install Remove Client Equipment Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.InstallRemoveClientEquipmentSubprocessV1_1</process>
+  <revision>17</revision>
+  <type>Sub-flow</type>
+</process__revision>

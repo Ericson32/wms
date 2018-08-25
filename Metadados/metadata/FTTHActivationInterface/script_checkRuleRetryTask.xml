@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.checkRuleRetryTask">
+  
+  <label>Check Rule to Retry Task</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderid" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <type>dtype_FTTHCommon.atividade</type>
+    </parameter>
+    <parameter name="sistemaOrigem" type="rifp">
+      <type>dtype_cwf.String64</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        REGRA para o ponto de decisão "Check need to resend" para os processos de automatic tasks.
+        AUTOR: FELIPE MACHADO
+        DATA: 28/11/2016
+        DESCRICAO: ESTE SCRIPT VERIFICA A NECESSIDADE DE REENVIO DE ATIVIDADE AUTOMÁTICA E NO CASO DE NECESSIDADE A QUANTIDADE DE REENVIO DA ATIVIDADE.
+
+    */
+    var atividadeError = null; // Parâmetros para a consulta do código de erro da atividade em processamento.
+    var atividadeFinder = null; // Query que irá verificar qual o código de erro da atividade em processamento.
+    var error = null;
+    var parametroErro = null; // Parâmetros para a consulta de parâmetros do código de erro da atividade em processamento.
+    var errorFinder = null; // Query que irá verificar quais são os parâmetros do erro encontrado na atividade em processamento.
+    var atividadeReenvio = null;
+    var qtdReenvioFinder = null;
+    var reenvioAtividade = null;
+    var qtdReenvioAtividade = null;
+    var qtdReenvio = null;
+    var resendAutomaticTaskDoc = null;
+    var result = false;
+
+        atividadeError  = new Document('FTTHCommon:Event');
+        atividadeError.cwOrderId = orderid;
+        atividadeError.atividade = '%' + atividade;
+        atividadeFinder = Finder.runSearch('FTTHActivationInterface.getErrorActivityFinder', atividadeError);
+        try {
+            if ((atividadeFinder.length > 0) && (atividadeFinder[0].codigo == 0  || atividadeFinder[0].codigo == '0.0')) {
+                    return true;
+            }
+            parametroErro = new Document ('FTTHActivationInterface:ParameterErrorAutomaticTask');
+            parametroErro.origSystem = sistemaOrigem;
+            parametroErro.activity =  '%' + atividade;
+            parametroErro.errorCode = atividadeFinder? '-1' : atividadeFinder[0].codigo;
+            errorFinder = Finder.runSearch('FTTHActivationInterface.getErrorParameter', parametroErro);
+            if (errorFinder.size == 0){
+                    return true;
+            }
+            if (errorFinder[0].numberRetries == null || errorFinder[0].active == 0) {
+                    return true;
+            }
+            reenvioAtividade = new Document ('FTTHActivationInterface:ResendAutomaticTask');
+            reenvioAtividade.orderId = orderid;
+            qtdReenvioFinder = Finder.runSearch('FTTHActivationInterface.getAmountResend', reenvioAtividade);
+            if (qtdReenvioFinder.length == 0){
+                    qtdReenvioAtividade = new Document ('FTTHActivationInterface:ResendAutomaticTask');
+                    qtdReenvioAtividade.orderId = orderid;
+                    qtdReenvioAtividade.save();
+                    result = verificaAtualizaReenvioAtividade (atividade, errorFinder, qtdReenvioAtividade, orderid);
+                    return result;
+            }
+            result = verificaAtualizaReenvioAtividade (atividade, errorFinder, qtdReenvioFinder[0], orderid);
+             return result;
+        } catch(e){
+            error = e;
+        }
+
+        function verificaAtualizaReenvioAtividade (atividade, errorFinder, qtdReenvio, orderid){
+              var doc = Document.readDoc("FTTHActivationInterface:ResendAutomaticTask",orderid);
+              if (doc[atividade] < errorFinder[0].numberRetries){
+                    doc[atividade] = doc[atividade] + 1;
+                    doc.save();
+                    return false;
+              }else if ((atividade == 'INSTALAR_EQUIPAMENTO_CLIENTE') || (atividade == 'ALTERAR_EQUIPAMENTO_CLIENTE')) {
+                    doc[atividade] = 0;
+                    doc.save();
+             }
+             return true;
+    }
+  ]]></script>
+</script>

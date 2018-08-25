@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.DesconfigureHSIHandleErrorTask">
+  <activity name="startDesconfigureHSIHandleError" type="seqActivity">
+    <guid>{c0b0f51f-25c7-4439-bc7f-4e86f0af2329}</guid>
+    <label>Start Desconfigure HSI Handle Error</label>
+    <x>90.952736</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureHSISolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIHandleError</element>
+        <guid>{098c4073-6aa5-42d6-a347-54783b9cd516}</guid>
+        <label>Desconfigure HSI Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>91.35254</x>
+        <y>124.76094</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{bf56191a-2501-4354-9cdf-4543d5613319}</guid>
+        <label>Wait Manual Activity</label>
+        <x>42.675293</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="DesconfigureHSIHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIHandleErrorIssue</element>
+            <guid>{d3d72c7d-70cc-4ec7-9b71-f5f58093a511}</guid>
+            <label>Desconfigure HSI Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>163.47998</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="DesconfigureHSIHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIHandleErrorResend</element>
+            <guid>{7d3280e3-63aa-4b49-aa2a-016421e5c7b3}</guid>
+            <label>Desconfigure HSI Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>30.0</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{adc5227e-9692-41d8-88fb-f2492d4d66d2}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>134.04834</x>
+        <y>265.5656</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a desconfigurar HSI autom&#225;tica n&#227;o tenha sido realizada com
+      sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{465d59d6-76bf-424f-a00a-63e5207e17ad}</guid>
+  <label>Desconfigure HSI Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process>

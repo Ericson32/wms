@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.PartialInstallAdditionalPointHandleIssueSubprocess_cwr1">
+  <activity name="installAdditionalPointHandleIssueSubProcessStart" type="seqActivity">
+    <guid>{203edbe0-643d-479d-ab36-f295198b577b}</guid>
+    <label>Install Additional Point Handle Issue Sub Process Start</label>
+    <x>38.06582</x>
+    <y>30.0</y>
+    <childList>
+      <child name="createInstallAdditionalPointIssue" type="scriptActivity">
+        <guid>{24da9880-5aaf-47be-8cfc-5fab2ea5e2f6}</guid>
+        <label>Create Install Additional Point Issue</label>
+        <x>39.3291</x>
+        <y>136.52188</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var order = process.processOrder;
+              var pendenciesObs = {rf: 'Inclusão de ponto adicional RF Overlay',
+                  dvr: 'Inclusão de ponto adicional STB DVR Grátis',
+                  hdFree: 'Inclusão de ponto adicional STB HD Grátis',
+                  hdPay: 'Inclusão de ponto adicional STB HD Pago'
+              };
+              var pendencyConfig;
+
+              if(existsAdditionalPointsIssue(process.processOrder)){
+                  return;
+              }
+
+              if(order.ProductData){
+                  var userId = order.ProductData.updatedBy;
+
+                  if(order.ProductData.qtdPontosRFExtra != null && order.ProductData.qtdPontosRFExtra > 0){
+                      pendencyConfig = FTTHHandleIssueProcess.getPendenciesByCode("7025");
+                      createIssues(order.id, pendencyConfig[0].cwDocId, pendenciesObs.rf, order.ProductData.idPromocao, userId, order.ProductData.qtdPontosRFExtra);
+                  }
+
+                  if (order.ProductData.qtdPontosDVRGratisExtra != null && order.ProductData.qtdPontosDVRGratisExtra > 0){
+                      pendencyConfig = FTTHHandleIssueProcess.getPendenciesByCode("7026");
+                      createIssues(order.id, pendencyConfig[0].cwDocId, pendenciesObs.dvr, order.ProductData.idPromocao, userId, order.ProductData.qtdPontosDVRGratisExtra);
+                  }
+
+                  if(order.ProductData.qtdPontosHDGratisExtra != null && order.ProductData.qtdPontosHDGratisExtra > 0){
+                      pendencyConfig = FTTHHandleIssueProcess.getPendenciesByCode("7027");
+                      createIssues(order.id, pendencyConfig[0].cwDocId, pendenciesObs.hdFree, order.ProductData.idPromocao, userId, order.ProductData.qtdPontosHDGratisExtra);
+                  }
+
+                  if(order.ProductData.qtdPontosHDPagoExtra != null && order.ProductData.qtdPontosHDPagoExtra > 0){
+                      pendencyConfig = FTTHHandleIssueProcess.getPendenciesByCode("7028");
+                      createIssues(order.id, pendencyConfig[0].cwDocId, pendenciesObs.hdPay, order.ProductData.idPromocao, userId, order.ProductData.qtdPontosHDPagoExtra);
+                  }
+              }
+
+              function createIssues(orderId, pendencyId, pendencyObs, itemId, userId, quantityOfExtrapoints){
+                  for(var i = 0; i < quantityOfExtrapoints; i ++){
+                      createIssueAdditionalPointData(orderId, pendencyId, pendencyObs, itemId, userId);
+                  }
+              }
+
+              function createIssueAdditionalPointData(orderId, pendencyId, pendencyObs, itemId, userId){
+                  var doc = new Document('FTTHOrder:IssueAdditionalPointData');
+                  doc.cwOrderId = orderId;
+                  doc.pendencyId = pendencyId;
+                  doc.pendencyObs = pendencyObs;
+                  doc.itemId = itemId;
+                  doc.userId = userId;
+                  doc.status = 'WAIT';
+
+                  doc.save();
+              }
+
+              function existsAdditionalPointsIssue(order){
+                  var searchDoc = new Document('FTTHOrder:IssueAdditionalPointData');
+                  searchDoc.cwOrderId = order.id;
+                  var pendencies = Finder.runSearch('FTTHCommon.AdditionalPointsIssueFinder', searchDoc);
+                  return (pendencies != null && pendencies.length > 0);
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="openPartialInstallAdditionalPointIssue" type="scriptActivity">
+        <guid>{08f8efd5-35f7-4773-88f2-14ab375763cf}</guid>
+        <label>Open Partial Install Additional Point Issue</label>
+        <x>39.3291</x>
+        <y>277.32657</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var newPendencyDoc = FTTHHandleIssueProcess.createPartialPointInstallPendency(this.process.processOrder);
+              Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', newPendencyDoc);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="closeClientCancelIssueTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+        <guid>{089018ae-a8a8-41c2-9c5e-2d2fe2caa98e}</guid>
+        <label>Close Cliente/Cancel Issue task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>432.83246</y>
+      </child>
+    </childList>
+  </activity>
+  <label>PartialInstallAdditionalPointHandleIssueSubprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.PartialInstallAdditionalPointHandleIssueSubprocess</process>
+  <type>Sub-flow</type>
+</process__revision>

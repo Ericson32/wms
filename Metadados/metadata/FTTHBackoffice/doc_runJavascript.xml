@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document filenameHash="4719d226271ccb122778aa88d46eb51f" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHBackoffice.runJavascript">
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{6c59f017-53ae-4014-9c0a-60383b5ea3a1}</guid>
+  <label>Run Javascript</label>
+  <metaVersion>3</metaVersion>
+  <variableList>
+    <variable name="javascript" type="leaf">
+      <label>String</label>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+    </variable>
+    <variable name="feedBack" type="leaf">
+      <label>String</label>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+    </variable>
+  </variableList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHBackoffice.runJavascript</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="VerticalLayout" type="elvlt">
+                <fillSpace>true</fillSpace>
+                <elementList>
+                  <element name="GridLayout" type="elgrd">
+                    <colWidths>195px,195px,195px,195px</colWidths>
+                    <fillSpace>true</fillSpace>
+                    <numOfCols>4</numOfCols>
+                    <useDefaultHeight>true</useDefaultHeight>
+                    <width>780px</width>
+                    <elementList>
+                      <element name="javascript" type="eltxtArea">
+                        <cellAlignment></cellAlignment>
+                        <columnSpan>4</columnSpan>
+                        <height>300px</height>
+                        <label>Javascript</label>
+                        <removeLabelLine>true</removeLabelLine>
+                        <showLabel>false</showLabel>
+                        <startRow>true</startRow>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHBackoffice.runJavascript/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHBackoffice.runJavascript/leaf_javascript</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>100%</width>
+                      </element>
+                      <element name="runButton" type="elbtn">
+                        <clickMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHBackoffice.runJavascript/ui_UserInterface/usrActionMethod_runScript</variablePath>
+                          </variablePathList>
+                        </clickMethod>
+                        <label>Run</label>
+                      </element>
+                      <element name="feedback" type="eltxtArea">
+                        <columnSpan>4</columnSpan>
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <height>120px</height>
+                        <label>Output:</label>
+                        <removeLabelLine>true</removeLabelLine>
+                        <startRow>true</startRow>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHBackoffice.runJavascript/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHBackoffice.runJavascript/leaf_feedBack</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>100%</width>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="runScript" type="usrActionMethod">
+        <script><![CDATA[
+          var value = "";
+          var codeToTest = this.model.javascript.toUpperCase();
+
+          if((codeToTest.indexOf("AUDIT")!=-1)||(codeToTest.indexOf("BACKOFFICEUSER")!=-1)){//operation not allowed
+              this.model.feedBack = 'UTILIZAÇÃO NÃO PERMITIDA! Foram usados scripts não permitidos.';
+              FTTHBackoffice.addAuditEntry( Global.getUserId(), 'RUN_JAVASCRIPT', 'RUN_JAVASCRIPT', this.model.javascript, 'FAILEDHACK');
+              this.model.dirty = false;
+              return;
+          }
+
+          if(!FTTHBackoffice.isBackofficeUser()){
+              FTTHBackoffice.addAuditEntry( Global.getUserId(), 'RUN_JAVASCRIPT', 'RUN_JAVASCRIPT', this.model.javascript, 'FAILEDACCESS');
+              this.model.feedBack = 'Este utilizador não tem permissões para execução de scripts. É favor pedir permissões.';
+              return; //not allowed user
+          }
+
+          var script = this.model.javascript;
+
+          try
+          {
+              value += eval(script);
+          }
+          catch(e)
+          {
+              value += e;
+          }
+
+          this.model.feedBack = value.toString();
+          this.model.dirty = false;
+          FTTHBackoffice.addAuditEntry( Global.getUserId(), 'RUN_JAVASCRIPT', 'RUN_JAVASCRIPT', this.model.javascript, 'SUCESS');
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

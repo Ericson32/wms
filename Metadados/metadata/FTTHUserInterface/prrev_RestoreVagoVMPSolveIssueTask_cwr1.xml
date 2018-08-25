@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.RestoreVagoVMPSolveIssueTask_cwr1">
+  <activity name="startRestoreVagoVMPSolveIssue" type="seqActivity">
+    <guid>{6be4ee95-2424-42fe-af9d-112aa3379910}</guid>
+    <label>Start Restore Vago VMP Solve Issue</label>
+    <x>70.28711</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RestoreVagoVMPSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreVagoVMPSolveIssue</element>
+        <guid>{45b87f63-2ee6-479d-a2de-b87ce0bf8249}</guid>
+        <label>RestoreVagoVMPSolveIssue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>30.0</x>
+        <y>130.6414</y>
+      </child>
+      <child name="RestoreVagoVMPSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreVagoVMPSolveIssueSuccess</element>
+        <guid>{040b5c65-0f58-4cf0-8e84-f1af03f5d307}</guid>
+        <label>Restore Vago VMP SolveI ssue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>76.356445</x>
+        <y>338.74493</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{225106e6-c59a-4afe-8347-c137cfa2a995}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>92.87305</x>
+        <y>227.34259</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Restore Vago VMP Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.RestoreVagoVMPSolveIssueTask</process>
+  <type>Sub-flow</type>
+</process__revision>

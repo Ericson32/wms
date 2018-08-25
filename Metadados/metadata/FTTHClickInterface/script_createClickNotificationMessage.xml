@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHClickInterface.createClickNotificationMessage">
+  
+  <label>Create Click Notification Message</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="validationRequest" type="rifp">
+      <type>doc_FTTHClickInterface.ValidateEquipmentDoc</type>
+    </parameter>
+    <parameter name="sistemaConsultado" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="lastActivity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="request" type="rifp">
+      <type>dstruct_FTTHClickNotificarValidacaoEquipamentoFTTH.NotificarValidacaoEquipamentoFTTHRequest</type>
+    </parameter>
+    <parameter name="isValidate" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="originSystem" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="sucesso" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var formattedDate = getformattedDate();
+    var incrementoEvento = validationRequest.orderId + formattedDate;
+    incrementoEvento = pad(incrementoEvento, 25, '0');
+
+    request.MessageHeader.TransactionId = request.MessageHeader.Credentials.AppId + ":" + Global.getConfigVariable("CLICK_VERSION") + ":" + formattedDate + ":000:" + incrementoEvento;
+    request.MessageHeader.CorrelationId = validationRequest.correlationId;
+    request.MessageHeader.Timestamp = new Date();
+    request.MessageHeader.Credentials.AppId = Global.getConfigVariable("APPID");
+
+    request.ParametrosOperacao.CorrelationTransactionId = validationRequest.transactionId;
+
+    if (sucesso) {
+        request.ParametrosOperacao.originSystem = 'OM'
+        request.ParametrosOperacao.code = "0";
+        request.ParametrosOperacao.description = "Sucesso";
+        request.ParametrosOperacao.detail = "SUCCESS";
+    } else {
+        request.ParametrosOperacao.originSystem = originSystem;
+
+        var searchEvent = new Document('FTTHCommon:Event');
+        searchEvent.cwOrderId = validationRequest.orderId;
+        searchEvent.sistema = sistemaConsultado;
+        searchEvent.atividade = lastActivity;
+
+        var events = Finder.runSearch('FTTHCommon:LastEventFinder', searchEvent);
+        if(events &&  events.length > 0) {
+            var event = events[0];
+            request.ParametrosOperacao.code = ifSuccessRetunrOneZero(event.codigo);
+            request.ParametrosOperacao.description = event.descricao;
+            request.ParametrosOperacao.detail = event.status;
+        } else{
+            request.ParametrosOperacao.code = "1";
+            request.ParametrosOperacao.description = "ERRO";
+            request.ParametrosOperacao.detail = "Sistema destino da validação está inacessível";
+        }
+    }
+
+    return request;
+
+    function getformattedDate(){
+        return new Date().toISOString().replace(/[^0-9]/g, '');
+    }
+
+    function ifSuccessRetunrOneZero(number){
+        var myNumber = parseInt(number);
+        var isMyNumberNaN = isNaN(myNumber);
+
+        if(isMyNumberNaN || myNumber != 0){
+            return myNumber.toString();
+        }
+
+        return '0';
+    }
+
+    function pad(n, width, z) {
+        z = z || '0';
+        n = n + '';
+        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+    }
+  ]]></script>
+</script>

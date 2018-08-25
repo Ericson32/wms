@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.InsertFranchiseSubprocess_cwr6">
+  <activity name="InsertFranchiseStart" type="seqActivity">
+    <guid>{caf3d44d-45f5-4def-b708-15049cabc3b9}</guid>
+    <label>Insert Franchise Start</label>
+    <x>27.133202</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="InsertFranchiseAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.InsertFrachiseAutomaticTask</element>
+        <guid>{a059d5d2-6e19-4caa-ab98-2cc9a7b0fa88}</guid>
+        <label>Insert Franchise Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{8106818a-160a-4795-8ac1-75da190c873a}</guid>
+        <label>Check Task Result</label>
+        <x>66.66113</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{ab90a448-44e4-48d3-aeba-d6209b3a2793}</guid>
+            <label>Success</label>
+            <x>34.74292</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = "INSERIR_FRANQUIA_IN";
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{4b83aa7c-d216-4d77-8e96-1c7954084fc2}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{d068190b-db84-4745-b90a-0189e5573cfd}</guid>
+                <label>Handle Error Start</label>
+                <x>119.41323</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="InsertFranchiseHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.InsertFranchiseHandleErrorTask_cwr3</element>
+                    <guid>{6a62b89b-8d62-446a-853c-a29a176d5e52}</guid>
+                    <label>Insert Franchise Handle Error Task</label>
+                    <x>158.73035</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{79b508f6-9b04-44a9-a433-4ee485e4cdd7}</guid>
+                    <label>Check Error Handling</label>
+                    <x>120.47591</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{0669afbb-4265-4a07-9eac-70aa32cb4cc7}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{eb286a9c-c34f-4171-82e9-a9a0678638a2}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.77109</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="InsertFranchiseSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.InsertFranchiseHandleIssueSubprocess_cwr8</element>
+                                <guid>{53930d9d-f2e6-4a4f-b606-804238de6429}</guid>
+                                <label>Insert Franchise Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.InsertFranchiseSubprocess_cwr6/seqActivity_InsertFranchiseStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{9ac4e23c-ae19-47d5-86e0-64de8fa4be6a}</guid>
+                                <label>Repeat</label>
+                                <x>152.6748</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = "INSERIR_FRANQUIA_IN";
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{13872a20-e80c-4275-91c4-d4472c6eb085}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.InsertFranchiseSubprocess_cwr6/seqActivity_InsertFranchiseStart</element>
+                            <guid>{bba618f8-ae8d-4a13-b9da-637783699f97}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Insert Franchise Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.InsertFranchiseSubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

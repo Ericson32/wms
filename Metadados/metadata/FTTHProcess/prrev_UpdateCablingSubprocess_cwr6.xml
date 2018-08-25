@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.UpdateCablingSubprocess_cwr6">
+  <activity name="UpdateCablingStart" type="seqActivity">
+    <guid>{bc9d5ae8-8044-4f17-9080-a3c188c8b72f}</guid>
+    <label>Update Cabling Start</label>
+    <x>27.596485</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="UpdateCablingAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.UpdateCablingAutomaticTask</element>
+        <guid>{fd2eba7d-7024-47bd-944a-690291aca183}</guid>
+        <label>Update Cabling Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{69a35ea6-92c1-4ff3-92ff-c6dd4b9b518e}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{d646480f-6c29-4434-a25f-6722fe7c990a}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{bf1ce400-d753-41f1-b1b6-991817eeaebb}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{af5d9a19-1b1e-4e5b-97fa-cfc5babd1d86}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="UpdateCablingHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.UpdateCablingHandleErrorTask_cwr5</element>
+                    <guid>{957a2ceb-b19b-4030-bd85-86c44adfa309}</guid>
+                    <label>Update Cabling Handle Error Task</label>
+                    <x>160.5719</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{d47b7283-925d-4360-9c28-c18ad2a7e55b}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.808914</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{11414c99-133d-4a09-9155-132ef22b0025}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{74db3598-0353-4ea5-87b1-be0001f1246e}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="UpdateCablingSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.UpdateCablingHandleIssueSubprocess_cwr9</element>
+                                <guid>{8289d63e-f136-4f91-a3bc-49a31eaecc4c}</guid>
+                                <label>Update Cabling Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.UpdateCablingSubprocess_cwr6/seqActivity_UpdateCablingStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{26341e66-c4ba-44b8-b402-e12904d87f6b}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{a9e74fda-314b-4ebf-a3f8-2a4b0b3e30c5}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.UpdateCablingSubprocess_cwr6/seqActivity_UpdateCablingStart</element>
+                            <guid>{e28f4851-e619-4c5a-8770-fb01c9754179}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Atualizar
+      Facilidades&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio
+      sistema envia para o sistema de Invent&#225;rio a solicita&#231;&#227;o de atualiza&#231;&#227;o
+      de facilidades. Caso o Invent&#225;rio retorne algum erro, uma atividade
+      manual &#233; gerada para que o usu&#225;rio de tratamento de erro possa definir
+      uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar a atividade com reenvio, nesse
+      caso o sistema enviar&#225; uma nova solicita&#231;&#227;o de atualiza&#231;&#227;o de facilidade
+      para o sistema de Invent&#225;rio. Ou poder&#225; finalizar a atividade com
+      pend&#234;ncia e ent&#227;o o subprocesso de Atualizar Facilidade - Pend&#234;ncia ser&#225;
+      executado.
+    </p>
+  ]]></description>
+  <label>Update Cabling Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.UpdateCablingSubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

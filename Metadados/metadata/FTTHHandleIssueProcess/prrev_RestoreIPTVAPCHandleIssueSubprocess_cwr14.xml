@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.RestoreIPTVAPCHandleIssueSubprocess_cwr14">
+  <activity name="RestoreIPTVAPCHandleIssueStart" type="seqActivity">
+    <guid>{319b385f-da80-4322-a1f7-e07163738b92}</guid>
+    <label>Restore IPTV APC Handle Issue Start</label>
+    <x>118.02069</x>
+    <y>612.0117</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{2ccf2ff0-b966-4a24-a878-c806240ecdc4}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>119.88162</x>
+        <y>706.77264</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{cfd502bf-c60e-4db2-906b-ae08bfebbad9}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>240.69725</x>
+            <y>801.5336</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{8e9a31a4-1a4a-4614-bacc-ded267c409e8}</guid>
+        <label>Check Issue Type</label>
+        <x>235.36978</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{67d5ca44-1207-44c8-b042-b32fc24e9afa}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{6a8e8a62-8ed1-4474-a156-996825c2bb8d}</guid>
+                <label>Technical Issue</label>
+                <x>76.675674</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="RestoreIPTVAPCSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.RestoreIPTVAPCSolveIssueTask_cwr6</element>
+                    <guid>{1c3a319c-7f28-42dc-be19-f843c6bbb63b}</guid>
+                    <label>Restore IPTV APC Solve Issue Task</label>
+                    <x>75.008286</x>
+                    <y>248.40234</y>
+                  </child>
+                  <child name="AnyIssueOpen" type="switchActivity">
+                    <guid>{93c2d004-4636-42ec-b35c-8bd7206a2506}</guid>
+                    <label>Any Issue Open?</label>
+                    <x>79.670395</x>
+                    <y>389.20703</y>
+                    <childList>
+                      <child name="Yes" type="caseActivity">
+                        <guid>{8046510b-b4ef-4279-92f2-4e0bcbdec172}</guid>
+                        <label>Yes</label>
+                        <x>201.73535</x>
+                        <y>803.99567</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.RestoreIPTVAPCHandleIssueSubprocess_cwr14/seqActivity_RestoreIPTVAPCHandleIssueStart</element>
+                            <guid>{0d490e86-9dcf-4b0d-8ef8-382078531b90}</guid>
+                            <label>Repeat To Start</label>
+                            <x>29.999985</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_APC");
+                              if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              {
+                                  return true;
+                              }
+                              return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="No" type="caseActivity">
+                        <guid>{5b8d5568-fe18-4c66-9eb6-863f4242475e}</guid>
+                        <label>No</label>
+                        <x>138.03319</x>
+                        <y>507.95996</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{0bce1ec7-aeb7-4758-b52e-4b67c6007d69}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{e4471c67-407b-40f4-b437-faadd70df5b3}</guid>
+                <label>Client Issue</label>
+                <x>276.05807</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{65d06329-9a4d-4599-86cf-70224863aeb0}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>259.03757</x>
+                    <y>256.75293</y>
+                  </child>
+                  <child name="OpenIssue" type="switchActivity">
+                    <guid>{6ab2d1b1-722a-4830-add6-8d544717b927}</guid>
+                    <label>Open Issue</label>
+                    <x>267.37253</x>
+                    <y>396.55762</y>
+                    <childList>
+                      <child name="No" type="caseActivity">
+                        <guid>{3fc194fe-bb19-4f02-83c0-fc8be121f470}</guid>
+                        <label>No</label>
+                        <x>330.0664</x>
+                        <y>507.95996</y>
+                      </child>
+                      <child name="YEs" type="caseActivity">
+                        <guid>{400a4435-cdc8-4990-bcd0-53641e2e5390}</guid>
+                        <label>Yes</label>
+                        <x>222.1842</x>
+                        <y>799.9439</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.RestoreIPTVAPCHandleIssueSubprocess_cwr14/seqActivity_RestoreIPTVAPCHandleIssueStart</element>
+                            <guid>{1799f340-966f-4d65-82cb-e1caac6fab58}</guid>
+                            <label>Repeat To Start</label>
+                            <x>222.03319</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                              pendencyFinder.searchDocument.cwOrderId = orderId;
+                              var pendRes = pendencyFinder.search();
+                              var status;
+                                  for (var i =0;i < pendRes.length;i++){
+                                      if (pendRes[i].flagIssueStatus == 0){
+                                          return true;
+                                      }
+                                  }
+                              //var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+                              //if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              //{
+                              //   return true;
+                              //}
+                              //return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Bloquear IPTV&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de bloqueio de IPTV. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de bloqueio de IPTV para o sistema de rede. Ou poder&#225;
+      finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de Bloquear
+      IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Restore IPTV APC Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.RestoreIPTVAPCHandleIssueSubprocess</process>
+  <revision>14</revision>
+  <type>Sub-flow</type>
+</process__revision>

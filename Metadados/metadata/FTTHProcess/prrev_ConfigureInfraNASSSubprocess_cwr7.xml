@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureInfraNASSSubprocess_cwr7">
+  <activity name="ConfigureInfraNASSStart" type="seqActivity">
+    <guid>{3277fd07-5e37-493f-95b1-789967d35d11}</guid>
+    <label>Configure Infra NASS Start</label>
+    <x>28.934765</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureInfraNASSAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureInfraNASSAutomaticTask</element>
+        <guid>{f42b6901-0a91-4760-b3ae-7138ae3ca696}</guid>
+        <label>Configure Infra NASS Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{10d259bd-1f04-4dda-b5dc-c7d7fa0cf323}</guid>
+        <label>Check Task Result</label>
+        <x>65.762695</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{c5f366ed-c717-4b1c-9032-0b161cc2dd48}</guid>
+            <label>Success</label>
+            <x>33.844482</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_NASS");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{c9e918aa-4fba-443f-83d3-b334603d2ea5}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{416bb2fb-16be-48d3-8769-efd5d1e0a5be}</guid>
+                <label>Handle Error Start</label>
+                <x>118.51479</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="ConfigureInfraNASSHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureInfraNASSHandleErrorTask_cwr3</element>
+                    <guid>{13d1e1dd-dd90-4b5b-9c92-d644f52267d1}</guid>
+                    <label>Configure Infra NASS Handle Error Task</label>
+                    <x>157.83191</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{b127459d-d98d-47e9-b3ea-ad9d01b36f30}</guid>
+                    <label>Check Error Handling</label>
+                    <x>119.80208</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{6ae4b310-feb8-4675-a8dd-9d3ec3e92d47}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{e041344a-c2fb-4023-a177-dfe8c1925b63}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.09726</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureInfraNASSSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConfigureInfraNASSHandleIssueSubprocess_cwr9</element>
+                                <guid>{311f3a3a-d242-4117-b4b9-79ed0f856093}</guid>
+                                <label>Configure Infra NASS Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConfigureInfraNASSSubprocess_cwr7/seqActivity_ConfigureInfraNASSStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{e19ae7ca-37be-4497-b390-1457b5450a87}</guid>
+                                <label>Repeat</label>
+                                <x>151.77637</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_NASS");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{18a8d160-47db-4fd6-97ae-a49e13ce4ed0}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConfigureInfraNASSSubprocess_cwr7/seqActivity_ConfigureInfraNASSStart</element>
+                            <guid>{ff0a3a01-f1de-4317-8eee-73a63b400732}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar Infra&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      Infra. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de Infra autom&#225;tica para o sistema de Rede,
+      ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar Infra - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure Infra NASS Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureInfraNASSSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision filenameHash="f277d8bd280d9344961812d9de6d34dc" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHHandleIssueProcess.ConfirmActionHandleIssueSubprocess_cwr8">
+  <activity name="ConfirmActionHandleIssueStart" type="seqActivity">
+    <guid>{6f356a71-8e67-4d2b-80dd-ef7e3d3564bb}</guid>
+    <label>Confirm Action Handle Issue Start</label>
+    <x>94.555466</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{b4b52988-28ad-45a0-93d5-727682004480}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>95.8914</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{1d9d5f2d-b517-48c8-8fc4-fdf6acb99eb7}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>98.69043</x>
+            <y>219.52188</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{703d06fd-eb86-484f-bbf3-a6ba09f39a0d}</guid>
+        <label>Check Issue Type</label>
+        <x>100.69629</x>
+        <y>345.6254</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{a3a0fdf6-3a52-4e66-b0ce-a8b333311ab3}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="SolveTechnicalIssue" type="seqActivity">
+                <guid>{8a80e842-8258-4e87-ba1e-61f081343f15}</guid>
+                <label>Solve Technical Issue</label>
+                <x>161.18184</x>
+                <y>457.02774</y>
+                <childList>
+                  <child name="ConfirmActionSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfirmActionSolveIssueTask_cwr2</element>
+                    <guid>{85365506-77d7-47d3-ab03-282ac424a3c4}</guid>
+                    <label>Confirm Action Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>551.7887</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{2d0cabc1-b102-42d5-aee8-85f4c7af6dff}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>159.71289</x>
+                    <y>692.5934</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{61a54247-0335-43be-b0cc-fe4e351f5c4a}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{33e0b35c-d94e-4e16-b62a-f556f0b01355}</guid>
+                <label>Client Issue</label>
+                <x>47.020508</x>
+                <y>458.4082</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{22cb57d6-f0ed-4d85-8d9a-d195acb10eed}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.0</x>
+                    <y>560.1393</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Atualizar CPE&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Invent&#225;rio a solicita&#231;&#227;o de atualiza&#231;&#227;o de CPE. Caso o
+      Invent&#225;rio retorne algum erro, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de atualiza&#231;&#227;o de CPE para o sistema de Invent&#225;rio.
+      Ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Atualizar CPE - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Confirm Action Handle Issue Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ConfirmActionHandleIssueSubprocess</process>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process__revision>

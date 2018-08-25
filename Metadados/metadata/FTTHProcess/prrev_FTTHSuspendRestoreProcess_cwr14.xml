@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.FTTHSuspendRestoreProcess_cwr14">
+  <activity name="FTTHSuspendRestoreProcessStart" type="seqActivity">
+    <guid>{d4b255ff-9ff4-4074-b53c-c68360fe0422}</guid>
+    <label>FTTH Suspend Restore Process Start</label>
+    <x>30.204884</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultOriginalFacilitySubprocess" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.ConsultOriginalFacilityAutomaticTask1</element>
+        <guid>{5c02a474-cbe1-4ef9-8f36-9e624b5b848f}</guid>
+        <label>Consult Original Facility Subprocess</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>130.6414</y>
+      </child>
+      <child name="SuspendRestoreFacilitySubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendFacilitySubprocess_cwr13</element>
+        <guid>{7b804870-c2cf-476c-8efc-dd27f9d1f4dc}</guid>
+        <label>Suspend Restore Facility Subprocess</label>
+        <x>30.0</x>
+        <y>269.4461</y>
+      </child>
+      <child name="NotifyClosingSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.NotifyClosingSubprocess_cwr6</element>
+        <guid>{6a8161cd-717e-4e0a-8ced-5994c188ad23}</guid>
+        <label>Notify Closing Subprocess</label>
+        <x>30.0</x>
+        <y>410.2508</y>
+      </child>
+      <child name="FTTHSupendProcessComplete" type="completeActivity">
+        <guid>{23da75be-49cb-412f-8288-125a29e22246}</guid>
+        <label>FTTH Suspend Process Complete</label>
+        <x>36.00586</x>
+        <y>536.3543</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;;
+              var status = Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE");
+              FTTHCommon.setStatusExecution(orderId, status);
+
+              FTTHCommon.setStatusOrder(orderId,  Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE"));
+
+              process.processOrder.OrderHeader.dataFechamento = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+              process.processOrder.save();
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Processo respons&#225;vel pela execu&#231;&#227;o da OS de Bloqueio. Esse processo
+      chamar sequencialmente os seguintes subprocessos:
+    </p>
+    <p style="margin-top: 0">
+      - Consultar Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Bloquear Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Atualizar Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Atualizar OM
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Um processo s&#243; poder&#225; ser inicializado ap&#243;s a finaliza&#231;&#227;o com sucesso do
+      seu antecessor.
+    </p>
+  ]]></description>
+  <label>FTTH Suspend Restore Process</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.FTTHSuspendRestoreProcess</process>
+  <revision>14</revision>
+  <type>User</type>
+</process__revision>

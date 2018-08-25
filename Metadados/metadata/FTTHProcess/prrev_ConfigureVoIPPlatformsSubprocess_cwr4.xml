@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureVoIPPlatformsSubprocess_cwr4">
+  <activity name="ConfigureVoIPStart" type="seqActivity">
+    <guid>{294343b8-ba79-430c-b16e-064bbcd78345}</guid>
+    <label>Configure VoIP Start</label>
+    <x>78.132225</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureVoIPVMPSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConfigureVoIPVMPSubprocess_cwr5</element>
+        <guid>{8b92c976-e8cd-490d-b602-c9f62c3f5a09}</guid>
+        <label>Configure VoIP VMP Subprocess</label>
+        <x>75.0</x>
+        <y>124.760925</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "CONFIGURAR_VOIP_VMP";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConfigureVoIPIMSSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConfigureVoIPIMSSubprocess_cwr5</element>
+        <guid>{5d6778e9-b823-46a4-a75b-c0a96e8a18b1}</guid>
+        <label>Configure VoIP IMS Subprocess</label>
+        <x>75.0</x>
+        <y>250.86444</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "CONFIGURAR_VOIP_IMS";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="BundleChangeConfiguration" type="seqActivity">
+        <guid>{d82ac539-062b-4b17-a4e1-452cd5fb0a02}</guid>
+        <label>Bundle Change Configuration</label>
+        <x>77.59082</x>
+        <y>376.96796</y>
+        <childList>
+          <child name="BundleChange" type="switchActivity">
+            <guid>{5fe28859-e574-430a-b077-2c98d9179efa}</guid>
+            <label>Bundle Change</label>
+            <x>85.66699</x>
+            <y>471.72888</y>
+            <childList>
+              <child name="No" type="caseActivity">
+                <guid>{44ffd8cf-c78a-4f9a-9e0d-660e4f77299e}</guid>
+                <label>No</label>
+                <x>135.68457</x>
+                <y>583.1312</y>
+              </child>
+              <child name="Yes" type="caseActivity">
+                <guid>{a9d48f43-b75c-489a-9437-6ee2d89b9fcd}</guid>
+                <label>Yes</label>
+                <x>99.66699</x>
+                <y>571.7289</y>
+                <childList>
+                  <child name="ConfigureVoIPSequence" type="seqActivity">
+                    <guid>{deeee16d-733a-4682-98dc-eb0dfdcf60e1}</guid>
+                    <label>ConfigureVoIPSequence</label>
+                    <x>12.847069</x>
+                    <y>585.4818</y>
+                    <childList>
+                      <child name="ConfigureVoIPAPCSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHProcess.ConfigureVoIPAPCSubprocess_cwr5</element>
+                        <guid>{fa382851-541e-4aa5-b097-0745751c1d64}</guid>
+                        <label>Configure VoIP APC Subprocess</label>
+                        <x>30.0</x>
+                        <y>679.8324</y>
+                      </child>
+                      <child name="ConfigureVoIPHDMSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHProcess.ConfigureVoIPHDMSubprocess_cwr5</element>
+                        <guid>{83198330-6426-41c7-a6fa-4000d08096b4}</guid>
+                        <label>Configure VoIP HDM Subprocess</label>
+                        <x>30.0</x>
+                        <y>805.9359</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderSolicitacoes = new Finder('FTTHCommon.RequestFinder');
+                      orderSolicitacoes.searchDocument.cwOrderId = process.processOrderId;
+                      var orderSolicitacoesResult = orderSolicitacoes.search();
+                      for (var x=0; x<orderSolicitacoesResult.length; x++) {
+                          switch(orderSolicitacoesResult[x].requestId) {
+                              case ('MUDANCA_PACOTE') :
+                                  return true;
+                          }
+                      }
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de infra de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <label>Configure VoIP Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureVoIPPlatformsSubprocess</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

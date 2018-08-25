@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureHSISolveIssueTask_cwr2">
+  <activity name="startConfigureHSISolveIssue" type="seqActivity">
+    <guid>{6d26666d-0431-4130-bd9c-923af026bd4d}</guid>
+    <label>Start Configure HSI Solve Issue</label>
+    <x>38.351562</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureHSISolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureHSISolveIssue</element>
+        <guid>{5f7324c9-00a5-4f82-96de-a4368662ce8e}</guid>
+        <label>Configure HSI Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>39.490234</x>
+        <y>124.76094</y>
+      </child>
+      <child name="ConfigureHSISolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureHSISolveIssueSuccess</element>
+        <guid>{edd3c664-cea8-4ab5-8466-1cf0b2922a9b}</guid>
+        <label>Configure HSI Solve Issue - Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>41.822266</x>
+        <y>362.26678</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("CONFIGURAR_HSI");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{1095e569-5949-4266-a0f4-e18062137601}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>250.86444</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_HSI");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar HSI - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Configure HSI Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureHSISolveIssueTask</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.RestoreIPTVAPCSubprocess_cwr10">
+  <activity name="RestoreIPTVAPCStart" type="seqActivity">
+    <guid>{7ddd7b18-a4b8-45f6-a43c-dcda3ed9677a}</guid>
+    <label>Restore IPTV APC Start</label>
+    <x>27.868359</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="RestoreIPTVAPCAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.RestoreIPTVAPCAutomaticTask</element>
+        <guid>{7beee17e-1373-435c-ab6f-984a20623f15}</guid>
+        <label>Restore IPTV APC Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{1d6c99f0-394e-413d-9b19-925a323f1878}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{fdf84bf1-bbe4-4caf-a676-a989f1c68808}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_APC");
+                  activityId = '%' + activityId;
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{b05abb4b-aa59-4699-ac49-8437b3030b87}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{93899bda-1961-478a-8044-03bc31220986}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="RestoreIPTVAPCHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.RestoreIPTVAPCHandleErrorTask_cwr7</element>
+                    <guid>{b331d107-6da6-4988-8242-7d79ee84223f}</guid>
+                    <label>Restore IPTV APC Handle Error Task</label>
+                    <x>160.5719</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{73051ab8-00d5-458d-944d-148d8a46cbf1}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.808914</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{04efb5b3-1a25-4d3d-a963-cdd38d459018}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{93a53c0e-62ab-499b-95ac-97e818b567b0}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="SupendRestoreIPTVAPCSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.SuspendIPTVAPCHandleIssueSubprocess_cwr12</element>
+                                <guid>{5014566d-60dd-4a1e-8b02-7dedd8afb050}</guid>
+                                <label>Supend Restore IPTV APC Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.RestoreIPTVAPCSubprocess_cwr10/seqActivity_RestoreIPTVAPCStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{ff504627-5ca1-4c50-9338-cf8ff10616a5}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_APC");
+                              activityId = '%' + activityId;
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{f8ddebad-d50d-4913-a58a-0a2357333889}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.RestoreIPTVAPCSubprocess_cwr10/seqActivity_RestoreIPTVAPCStart</element>
+                            <guid>{1f3d2424-5850-4542-af8f-a209daf21f96}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Desbloquear IPTV&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de desbloqueio de IPTV. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de desbloqueio de IPTV para o sistema de rede. Ou poder&#225;
+      finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de Desbloquear
+      IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Restore IPTV APC Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.RestoreIPTVAPCSubprocess</process>
+  <revision>10</revision>
+  <type>Sub-flow</type>
+</process__revision>

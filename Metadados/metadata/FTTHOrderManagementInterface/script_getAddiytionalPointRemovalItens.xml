@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.getAddiytionalPointRemovalItens">
+  <label>getAddiytionalPointRemovalItens</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var listaIds = new Array();
+
+    if (order.ProductData.idPromocao)
+        listaIds.push(order.ProductData.idPromocao);
+
+    var searchDoc = new Document('FTTHOrder:IssueRemoveAdditionalPointData');
+    searchDoc.cwOrderId = order.id;
+    searchDoc.status = 'WAIT';
+    var pendencies = Finder.runSearch('FTTHCommon.RemoveAdditionalPointsIssueFinder', searchDoc);
+
+    for (var i = 0;i < order.EquipmentData.length;i++){
+        for (var j = 0; j < order.EquipmentData[i].AddPointsEquipmentData.length;j++){
+            if (!order.EquipmentData[i].AddPointsEquipmentData[j].EquipmentPointData.instalado && pendencies[0].itemId == order.EquipmentData[i].AddPointsEquipmentData[j].EquipmentPointData.idAtivo){
+                listaIds.push(order.EquipmentData[i].AddPointsEquipmentData[j].EquipmentPointData.idAtivo);
+            }
+        }
+    }
+
+    return listaIds;
+  ]]></script>
+</script>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConsultEquipmentInventoryHandleErrorTask_cwr1">
+  <activity name="ConsultEquipmentInventoryHandleErrorStart" type="seqActivity">
+    <guid>{654f674c-55a3-4934-b57c-adf9efde4c8f}</guid>
+    <label>Consult Equipment Inventory Handle Error Start</label>
+    <x>78.78134</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultEquipmentInventoryHandleError" type="opActivity">
+        <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultEquipmentInventoryHandleError</element>
+        <guid>{39a40714-5517-40d7-9bae-590a00b5609a}</guid>
+        <label>Consult Equipment Inventory Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>85.526855</x>
+        <y>136.52188</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{d3ab63f6-167c-4db2-9299-8b6f479a22d6}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>292.02774</y>
+            <childList>
+              <child name="ConsultEquipmentInventoryHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultEquipmentInventoryHandleErrorResend</element>
+                <guid>{5239378f-8c1c-4ead-a505-e482d070d6ca}</guid>
+                <label>Consult Equipment Inventory Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>155.69922</x>
+                <y>433.13123</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="ConsultEquipmentInventoryHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultEquipmentInventoryHandleErrorIssue</element>
+                <guid>{354e0159-f6ab-4bf6-aaa2-336f363275b3}</guid>
+                <label>Consult Equipment Inventory Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>30.531738</x>
+                <y>433.13123</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryHandleError" type="participantActivity">
+        <guid>{c633e551-8790-4a67-91cb-effc445b6e9b}</guid>
+        <label>Inventory Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>122.0293</x>
+        <y>292.02774</y>
+      </child>
+    </childList>
+  </activity>
+  <label>Consult Equipment Inventory Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConsultEquipmentInventoryHandleErrorTask</process>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureInfraNASSHandleErrorTask_cwr3">
+  <activity name="startConfigureInfraNASSHandleError" type="seqActivity">
+    <guid>{29454288-b1b6-4338-ab10-747ab0ccf071}</guid>
+    <label>Start Configure Infra NASS Handle Error</label>
+    <x>79.46953</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureInfraNASSSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraNASSHandleError</element>
+        <guid>{7b81848a-3283-43af-aeb8-96513e601b7c}</guid>
+        <label>Configure Infra NASS Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>86.01172</x>
+        <y>131.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{132738a8-43ad-4e8e-93fe-ff47d7aaea87}</guid>
+        <label>Wait Manual Activity</label>
+        <x>31.993652</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ConfigureInfraNASSHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraNASSHandleErrorIssue</element>
+            <guid>{ddf4b71b-dfa8-4f41-88dc-c5942fac0dd1}</guid>
+            <label>Configure Infra NASS Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>155.35889</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_NASS");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureInfraNASSHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraNASSHandleErrorResend</element>
+            <guid>{40c7cc1e-2314-40a5-b1e8-ed3f271cf10f}</guid>
+            <label>Configure Infra NASS Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>30.0</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_NASS");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{c22f7308-341b-40b3-bdf8-729f3240324a}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>123.3667</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_NASS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227; de Infra autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Configure Infra NASS Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureInfraNASSHandleErrorTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

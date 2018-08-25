@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.RestoreVoIPIMSSolveIssueTask">
+  <activity name="RestoreVoIPIMSSolveIssueTaskStart" type="seqActivity">
+    <guid>{d19f0715-4530-4658-bb5a-4f6c689df420}</guid>
+    <label>Restore VoIP IMS Solve Issue Task Start</label>
+    <x>83.61914</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RestoreVoIPIMSSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreVoIPIMSSolveIssue</element>
+        <guid>{de7665c6-25d2-4632-9b4e-86451b7f86de}</guid>
+        <label>Restore VoIP IMS Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>87.0166</x>
+        <y>130.6414</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{4d812e0e-19e4-4dee-8644-a3614320a496}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.51123</x>
+        <y>256.74493</y>
+        <childList>
+          <child name="RestoreVoIPIMSSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreVoIPIMSSolveIssueChangeIssue</element>
+            <guid>{fb610eda-92d3-409c-91ca-6fe2ad33086b}</guid>
+            <label>Restore VoIP IMS Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>157.8628</x>
+            <y>397.84845</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{a499de9b-831a-4b0c-80cc-8f435f8e5a51}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>142.70605</x>
+                <y>561.7049</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESBLOQUEAR_VOIP_IMS");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="RestoreVoIPIMSSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreVoIPIMSSolveIssueSuccess</element>
+            <guid>{4a323955-d4bc-47f9-8021-154e0d3d5111}</guid>
+            <label>Restore VoIP IMS Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>405.19904</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{ae27f713-4a52-4c9c-85ab-d3214cc50e79}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.331055</x>
+                <y>553.3543</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.dataFechamento = new Date();
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESBLOQUEAR_VOIP_IMS");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{de3c2d81-1a58-443a-994e-012c5ee73232}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>125.54053</x>
+        <y>264.09552</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESBLOQUEAR_VOIP_IMS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE"){
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Bloquear VoIP - Erro tenha sido
+      finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual ser&#225;
+      gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <guid>{74ef59ef-85d1-45c7-a7ac-30e40a249fc9}</guid>
+  <highlight>70</highlight>
+  <label>Restore VoIP IMS Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process>

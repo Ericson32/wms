@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.mandatoryFieldsManualActivitiesInstallationData">
+  <label>Mandatory Fields Manual Activities Installation Data</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="activity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="installationData" type="rifp">
+      <type>doc_FTTHOrder.InstallationData</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var campo;
+    var msg = "";
+    var i;
+    var camposObrigatoriosResult;
+    var searchDoc = new Document("FTTHCommon:MandatoryFields");
+
+    searchDoc.nomeAtividade = activity; //esse campo deve dizer se e Instalar ou Remover Equipamento
+    camposObrigatoriosResult  = Finder.runSearch ("FTTHCommon.MandatoryFieldsFinder", searchDoc);
+
+    for (i = 0; i < camposObrigatoriosResult.length; i++){
+        if(camposObrigatoriosResult[i].getValueByName("nomeDocument") == "InstallationData"){
+                campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+                if(installationData.getValueByName(campo) == null)
+                    msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+        }
+    }
+    return msg;
+  ]]></script>
+</script>

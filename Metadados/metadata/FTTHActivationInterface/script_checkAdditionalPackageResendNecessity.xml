@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.checkAdditionalPackageResendNecessity">
+  <label>Check Additional Package Resend Necessity</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderid" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="acao" type="rifp">
+      <type>dtype_FTTHOrderManagementInterface.acaoType</type>
+    </parameter>
+    <parameter name="flagIsOriginal" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var additionalPackageDoc =  new Document('FTTHOrder:AdditionalPackage');
+    additionalPackageDoc.cwOrderId = orderid;
+    //additionalPackageDoc.cwProcessId = processid;
+    additionalPackageDoc.flagDadoOriginal = flagIsOriginal;
+    additionalPackageDoc.acao = acao;
+    additionalPackageDoc.statusAcao = "pendente";
+
+    var additionalPackageFinder = Finder.runSearch('FTTHActivationInterface.AdditionalPackageFinder', additionalPackageDoc);
+    return (additionalPackageFinder && additionalPackageFinder.length > 0);
+  ]]></script>
+</script>

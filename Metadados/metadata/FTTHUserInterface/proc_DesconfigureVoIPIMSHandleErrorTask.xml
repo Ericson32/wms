@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.DesconfigureVoIPIMSHandleErrorTask">
+  <activity name="startDesconfigureVoIPIMSHandleError" type="seqActivity">
+    <guid>{8e97678c-a42e-4436-824c-f2bfec428259}</guid>
+    <label>Start Desconfigure VoIP IMS Handle Error</label>
+    <x>90.952736</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureVoIPIMSSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPIMSHandleError</element>
+        <guid>{ab155bc8-0d5a-4f3b-9332-c714ef12d02d}</guid>
+        <label>Desconfigure VoIP IMS Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>91.35254</x>
+        <y>130.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{400aa30b-0465-40f2-9b08-a3c9d244d7a0}</guid>
+        <label>Wait Manual Activity</label>
+        <x>42.675293</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="DesconfigureVoIPIMSHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPIMSHandleErrorIssue</element>
+            <guid>{ae927a3f-87ec-4f60-999b-34d6713212fe}</guid>
+            <label>Desconfigure VoIP IMS Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>162.47998</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_IMS");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="DesconfigureVoIPIMSHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPIMSHandleErrorResend</element>
+            <guid>{7f9a0c42-8c58-430e-8017-d36fe1fbf919}</guid>
+            <label>Desconfigure VoIP IMS Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>29.0</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_IMS");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{7949a9c4-b24d-4942-ba01-b13af39262a4}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>134.04834</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_IMS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a desconfigurar VoIP autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{df586252-9807-4de1-be69-bedca2cfe049}</guid>
+  <label>Desconfigure VoIP IMS Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

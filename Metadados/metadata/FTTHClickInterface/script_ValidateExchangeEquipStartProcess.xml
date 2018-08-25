@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHClickInterface.ValidateExchangeEquipStartProcess">
+  <label>Validate Exchange Equipment Start Process</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="input" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Mensagem recebida pelo Click na Valida&amp;#231;&amp;#227;o/Troca de Equipamento&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dstruct_FTTHClickInterface.validateChangeAssociateRequest</type>
+    </parameter>
+    <parameter name="output" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Mensagem s&amp;#237;ncrona enviada para o Click&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dstruct_FTTHClickInterface.acknowledge</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    AUTHOR:        Manoella Cordeiro - manogpc@br.ibm.com
+    DESCRIPTION:
+    Script Responsável pelo processamento da mensagem recebida de validacao/troca/associacao de equipamento
+    enviada pelo CLICK
+    */
+    var i;
+    var atividadeSIS = null;
+    var atividadeNETWIN = null;
+    var atividadeSAP = null;
+    var ValidateEquipmentDoc = new Document("FTTHClickInterface.ValidateEquipmentDoc");
+    var output = new DataStructure('FTTHClickInterface.acknowledge');
+
+    var ord;
+    try{
+        ord = Order.getOrderById(input.header.orderId);
+    } catch(e){
+
+        output.codigo = "0001";
+        output.descricao = "Requisição Inválida - OrderId incorreto";
+        return output;
+    }
+
+    try {
+        var msgLogDoc = UserProfile.getMsgLogDoc();
+        if(msgLogDoc != null){
+            msgLogDoc.userData1 = input.header.numPedido;
+            msgLogDoc.userData3 = input.header.orderId;
+            msgLogDoc.userData2 = input.header.correlationId;
+            msgLogDoc.save();
+        }
+    } catch (e) {
+        output.codigo = "0001";
+        output.descricao = e.message;
+        return output;
+    }
+
+    var isExternalActivityOpen = false;
+    isExternalActivityOpen = FTTHCommon.verifyWorklistOperation(ord.OrderHeader.cwOrderId, "FTTHUserInterface.ClickManualActivityInterface/BAOpenningOperation");
+
+    if(!isExternalActivityOpen){
+
+        output.codigo = "0004";
+        output.descricao = "Não existe BA aberto no OM\n";
+        return output;
+    }
+
+
+
+    var qtdEquip = input.equipamentList.equipmentData.length;
+
+    if(ord == null){
+
+        output.codigo = "0001";
+        output.descricao = "Requisição Inválida - OrderId incorreto";
+        return output;
+    }
+
+
+    ValidateEquipmentDoc.codPSR = input.header.codPSR;
+    ValidateEquipmentDoc.nomePSR = input.header.nomePSR;
+    ValidateEquipmentDoc.numPedido = input.header.numPedido;
+    ValidateEquipmentDoc.operacao = input.header.operacao;
+    ValidateEquipmentDoc.transactionId = input.header.transactionId;
+    ValidateEquipmentDoc.orderId = input.header.orderId;
+    ValidateEquipmentDoc.correlationId = input.header.correlationId;
+
+    if(ValidateEquipmentDoc.operacao != "Validar CPE" && ValidateEquipmentDoc.operacao != "Associar CPE" && ValidateEquipmentDoc.operacao != "Trocar CPE"){
+        output.codigo = "0014";
+        output.descricao = "Requisição Inválida - Operação Inválida!";
+        return output;
+    }
+
+
+    if(ord.OrderHeader.tipoOS == "TIPO_ORDEM_RETIRADA"){
+        output.codigo = "0009";
+        output.descricao = "Requisição Inválida - Operação não permitida para ordens de Retirada!";
+        return output;
+
+    }
+
+
+    var searchDoc = new Document("override_cwf_pm:processSearch");
+    searchDoc.ORDER_ID = ValidateEquipmentDoc.orderId;
+    searchDoc.PROCESS_ID = ValidateEquipmentDoc.correlationId;
+
+    var result = Finder.runSearch("override_cwf_pm:processFinder", searchDoc);
+
+    if(result && result.length == 0){
+
+        output.codigo = "0002";
+        output.descricao = "Requisição Inválida - OrderId ou Process ID não conferem com o processo no OM";
+        return output;
+    }
+
+    for(i = 0; i <  input.equipamentList.equipmentData.length; i++){
+        if (input.equipamentList.equipmentData[i].tipoEquipamento != "ONT" && input.equipamentList.equipmentData[i].tipoEquipamento!= "HGW" && input.equipamentList.equipmentData[i].tipoEquipamento != "STB") {
+            output.codigo = "0005";
+            output.descricao = "Equipamento inválido - Campo tipoEquipamento incorreto";
+            return output;
+        } else {
+            result = buscarEquipamento(input.equipamentList.equipmentData[i]);
+
+            //Caso seja uma troca de CPE o equipamento original deve estar validado
+            if(result && result.length > 0 && result.start.flgValidado == 0 && ValidateEquipmentDoc.operacao == "Trocar CPE") {
+                output.codigo = "0014";
+                output.descricao = "Equipamento original não foi validado previamente";
+                return output;
+            }
+
+            if(input.equipamentList.equipmentData[i].acao == "adicionar"){
+                if(ValidateEquipmentDoc.operacao == "Validar CPE" || ValidateEquipmentDoc.operacao == "Associar CPE"){
+                    //Validando se existe algum equipamento já Associado nas operações Validar CPE e Associar CPE
+                    if(input.equipamentList.equipmentData[i].tipoEquipamento == "ONT"){
+                        searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                        searchDoc.clearData();
+                        searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+
+                        result = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                        if(result && result.length > 0){
+                            if(result.start.isNETWIN && result.start.isSAP){
+                                output.codigo = "0006";
+                                output.descricao = "Já existe um equipamento ONT associado " + " Serial: " + result.start.numeroSerieONT + " Codigo do Material: " +  result.start.codEquipamento;
+                                return output;
+                            }
+                        }
+                    }
+                    else if(input.equipamentList.equipmentData[i].tipoEquipamento == "HGW"){
+                        searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                        searchDoc.clearData();
+                        searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+
+                        result = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                        if(result && result.length > 0){
+                            if(result.start.isNETWINHGW && result.start.isSAPHGW){
+                                output.codigo = "0006";
+                                output.descricao = "Já existe um equipamento HGW associado " + " Serial: " + result.start.numeroSerieHomeGateway + " Codigo do Material: " +result.start.codEquipamentoHGW;
+                                return output;
+                            }
+                        }
+                    }
+                    else if(input.equipamentList.equipmentData[i].tipoEquipamento == "STB"){
+                        //ID ativo é nulo, então está adicionando um ponto adicional
+                        if(!input.equipamentList.equipmentData[i].idAtivo){
+                            var validaPonto = validaPontoAdicional(ord);
+                            if(!validaPonto){
+                                output.codigo = "0008";
+                                output.descricao = "O numero de pontos adicionais foi excedido";
+                                return output;
+                            }
+                        }
+                        else{
+                            searchDoc = new Document("FTTHOrder:EquipmentData");
+                            searchDoc.clearData();
+                            searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+                            searchDoc.idAtivo = input.equipamentList.equipmentData[i].idAtivo;
+                            result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                            if(result && result.length > 0){
+                                if(result.start.isNETWIN && result.start.isSAP)
+                                {
+                                    output.codigo = "0006";
+                                    output.descricao = "Já existe um equipamento STB associado " + " Serial: " + result.start.numeroSerieSetTopBox + " Codigo do Material: " +result.start.codEquipamento;
+                                    return output;
+                                }
+                            }else{
+                                output.codigo = "0007";
+                                output.descricao = "O idAtivo: " + input.equipamentList.equipmentData[i].idAtivo + " não existe na OS";
+                                return output;
+                            }
+                        }
+                    }
+                }
+                ValidateEquipmentDoc.numeroSerieEquipamentoNovo      = input.equipamentList.equipmentData[i].numeroSerieEquipamento;
+                ValidateEquipmentDoc.tipoEquipamentoNovo       = input.equipamentList.equipmentData[i].tipoEquipamento;
+                ValidateEquipmentDoc.idAtivoNovo = input.equipamentList.equipmentData[i].idAtivo;
+                ValidateEquipmentDoc.acaoNovo = input.equipamentList.equipmentData[i].acao;
+                ValidateEquipmentDoc.codMaterialNovo = input.equipamentList.equipmentData[i].codMaterial;
+            }
+            else if(input.equipamentList.equipmentData[i].acao == "remover"){
+                if(ValidateEquipmentDoc.operacao == "Validar CPE" || ValidateEquipmentDoc.operacao == "Associar CPE"){
+                    output.codigo = "0010";
+                    output.descricao = "Requisição Inválida - Operação não permitida para a ação deste equipamento";
+                    return output;
+                }
+
+                ValidateEquipmentDoc.numeroSerieEquipamentoOriginal      = input.equipamentList.equipmentData[i].numeroSerieEquipamento;
+                ValidateEquipmentDoc.tipoEquipamentoOriginal = input.equipamentList.equipmentData[i].tipoEquipamento;
+                ValidateEquipmentDoc.idAtivoOriginal = input.equipamentList.equipmentData[i].idAtivo;
+                ValidateEquipmentDoc.codMaterialOriginal = input.equipamentList.equipmentData[i].codMaterial;
+                ValidateEquipmentDoc.acaoOriginal = input.equipamentList.equipmentData[i].acao;
+
+            } else{
+                output.codigo = "0004";
+                output.descricao = "Requisição Inválida - Campo ação incorreto";
+                return output;
+            }
+
+            //DATE: 27/03/2018
+            if(result && result.start
+                && FTTHOrder.isEquipmentLocked(
+            //resumo do if: se for STB, envia o idAtivo. Se o idAtivo for nulo, envia o numero de serie. Se for ONT ou HGW, envia o tipo do equipamento (isto é 'ONT' ou 'HGW')
+            (input.equipamentList.equipmentData[i].tipoEquipamento == 'STB') ? ((input.equipamentList.equipmentData[i].idAtivo == null) ? input.equipamentList.equipmentData[i].numeroSerieEquipamento : input.equipamentList.equipmentData[i].idAtivo) : input.equipamentList.equipmentData[i].tipoEquipamento, //equipmentId
+            input.equipamentList.equipmentData[i].tipoEquipamento, //equipType
+            ord.OrderHeader.cwOrderId //orderId
+            )
+            ){
+                output.codigo = "0008";
+                output.descricao = "A Requisição encontra-se em processamento operação: " + ValidateEquipmentDoc.operacao + " orderId: " + ord.OrderHeader.cwOrderId;
+                return output;
+            }
+
+            ord.save();
+        }
+    }
+
+
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = ord.OrderHeader.cwOrderId;
+
+    var isMudancaEndereco = false;
+    var isReparo = false;
+
+    var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+
+    if (orderRequest.size > 0) {
+        for (var i = 0; i < orderRequest.size; i++) {
+            var solicitacao = orderRequest[i];
+            if(solicitacao.idSolicitacao == "MUDANCA_ENDERECO"){
+                isMudancaEndereco = true;
+            }
+            if(solicitacao.tipoOrdemServico == "TIPO_ORDEM_REPARO"){
+                isReparo = true;
+            }
+        }
+    }
+
+    if((ValidateEquipmentDoc.operacao == "Validar CPE" || ValidateEquipmentDoc.operacao == "Associar CPE") && (isReparo || isMudancaEndereco)){
+        output.codigo = "0012";
+        output.descricao = "Requisição Inválida - Operação não permitida para este tipo de pedido";
+        return output;
+    }
+
+    if((ValidateEquipmentDoc.numeroSerieEquipamentoOriginal == ValidateEquipmentDoc.numeroSerieEquipamentoNovo)){
+        if(!isMudancaEndereco){
+            output.codigo = "0011";
+            output.descricao = "Requisição Inválida - Número de série dos equipamentos são iguais";
+            return output;
+        } else{
+            if(ValidateEquipmentDoc.tipoEquipamentoOriginal != "ONT" || ValidateEquipmentDoc.tipoEquipamentoNovo != "ONT"){
+                output.codigo = "0013";
+                output.descricao = "Requisição Inválida - Número de série dos equipamentos são iguais para equipamentos não ONT";
+                return output;
+            }
+        }
+    }
+
+
+
+    if(input.header.operacao == "Trocar CPE" &&  input.equipamentList.equipmentData.length != 2){
+
+        output.codigo = "0003";
+        output.descricao = "Requisição Inválida - Quantidade de Equipamentos recebida insuficiente";
+        return output;
+    }
+
+    if(ValidateEquipmentDoc.operacao == "Trocar CPE" || ValidateEquipmentDoc.operacao == "Associar CPE"){
+        if(ValidateEquipmentDoc.acaoNovo == "adicionar"){
+            atividadeSIS = "ASSOCIAR_ONT_APC";
+            createOrUpdateAtividade(ValidateEquipmentDoc.orderId, atividadeSIS);
+        }
+        if(ValidateEquipmentDoc.tipoEquipamentoOriginal == "STB" && ValidateEquipmentDoc.acaoOriginal == "remover"){
+            atividadeSIS = "DISSOCIAR_STB";
+            createOrUpdateAtividade(ValidateEquipmentDoc.orderId, atividadeSIS);
+        }
+
+        createOrUpdateAtividade(ValidateEquipmentDoc.orderId, "ATUALIZAR_EQUIPAMENTO_CLIENTE");
+
+        //MS - marcossouza@br.ibm.com - 16/12/2017 - correção do defeito PRJ14008#570
+        createOrUpdateAtividade(ValidateEquipmentDoc.orderId, "ATUALIZAR_ESTOQUE");
+        //end MS
+
+
+    }
+
+    createOrUpdateAtividade(ValidateEquipmentDoc.orderId, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"));
+
+    //Montagem do plano de execução do CLICK (validação, associação e troca de equipamentos)
+    switch (ValidateEquipmentDoc.operacao){
+        case "Validar CPE":
+        atividadeSAP = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+        createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeSAP, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+        ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, true));
+        break;
+        case "Associar CPE":
+        atividadeSAP = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+        atividadeNETWIN = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+        createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeNETWIN, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+        ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, true));
+        createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeSAP, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+        ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, true));
+
+        if(ValidateEquipmentDoc.tipoEquipamentoNovo == "ONT"){
+            atividadeSIS = "ASSOCIAR_ONT_APC";
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeSIS, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoNovo, 'ONT');
+        }
+
+        break;
+        case "Trocar CPE":
+        if (ValidateEquipmentDoc.tipoEquipamentoOriginal == "STB"){
+            atividadeSIS = "DISSOCIAR_STB";
+            atividadeNETWIN = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeSIS, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoOriginal, handleEquipmentId(ValidateEquipmentDoc, false));
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeNETWIN, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoOriginal, handleEquipmentId(ValidateEquipmentDoc, false));
+
+            atividadeNETWIN = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+            atividadeSAP = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeSAP, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, true));
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeNETWIN, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, true));
+
+        } else if(ValidateEquipmentDoc.tipoEquipamentoOriginal == "ONT"){
+            atividadeNETWIN = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeNETWIN, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoOriginal, 'ONT');
+
+            atividadeSIS = "ASSOCIAR_ONT_APC";
+            atividadeNETWIN = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+            atividadeSAP = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeSIS, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoNovo, 'ONT');
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeNETWIN, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoNovo, 'ONT');
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeSAP, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoNovo, 'ONT');
+
+        } else if (ValidateEquipmentDoc.tipoEquipamentoOriginal == "HGW"){
+            atividadeNETWIN = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeNETWIN, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoOriginal, 'HGW');
+
+            atividadeNETWIN = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+            atividadeSAP = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeNETWIN, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoNovo, 'HGW');
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, atividadeSAP, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+            ValidateEquipmentDoc.tipoEquipamentoNovo, 'HGW');
+        }
+
+        break;
+    }
+
+    try {
+    Process.startSubProcess("FTTHProcess.ValidateChangeAssociateEquipmentsProcess", input.header.correlationId, ValidateEquipmentDoc);
+    } catch (e) {
+        Global.logError('Erro ao iniciar o subprocesso: [FTTHProcess.ValidateChangeAssociateEquipmentsProcess]');
+        Global.logError(e);
+        output.codigo = "9999";
+        output.descricao = "Erro ao executar a requisição";
+        return output;
+    }
+
+    var tipoEquipamento = ValidateEquipmentDoc.tipoEquipamentoNovo?ValidateEquipmentDoc.tipoEquipamentoNovo:ValidateEquipmentDoc.tipoEquipamentoOriginal;
+    var idAtivo =  ValidateEquipmentDoc.acaoNovo? ValidateEquipmentDoc.acaoNovo:ValidateEquipmentDoc.idAtivoOriginal;
+
+    output.codigo = "0000";
+    output.descricao = "Requisição em processamento";
+    return output;
+
+
+    /*****************************************/
+    /**************FUNCTIONS******************/
+    /*****************************************/
+
+
+    function createOrUpdateAtividade(orderId, atividadeId ){
+
+        var atividade = new Document("FTTHCommon:Activity");
+        atividade.orderId = orderId;
+        atividade.activityId = atividadeId;
+        var docAtividade = Finder.runSearch('FTTHClickInterface:RecuperarAtividade', atividade);
+
+
+        if(docAtividade.size > 0){
+            docAtividade[0].status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            docAtividade[0].indCancelamento = false;
+            docAtividade[0].save();
+        }else{
+            atividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            atividade.indCancelamento = false;
+            atividade.save();
+        }
+    }
+
+    function createOrUpdateAtividadeClick(orderId, atividadeId, operacao, numeroPedido, tipo, equipId){
+
+        var atividade = new Document("FTTHCommon:ActivityClick");
+        atividade.cwOrderId = orderId;
+        atividade.activityClickId = atividadeId;
+        atividade.operacao = operacao;
+        atividade.numeroPedido = numeroPedido;
+        atividade.initialDate = new Date();
+        atividade.endDate = null;
+        atividade.equipmentType = tipo;
+        atividade.equipmentId = equipId;
+
+        var docAtividade = Finder.runSearch('FTTHCommon:activityClickFinder', atividade);
+
+        if(docAtividade.size > 0){
+            docAtividade[0].status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            docAtividade[0].save();
+        }else{
+            atividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            atividade.save();
+        }
+    }
+
+
+    function validaPontoAdicional(ord){
+        if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")) {
+            var productData = ord.OriginalData[0].ProductData;
+        } else {
+            var productData = ord.ProductData;
+        }
+        productData.qtdPontosHDPago          = (productData.qtdPontosHDPago == null)         ? 0 :  productData.qtdPontosHDPago;
+        var qtdPontosHDPago          = (productData.qtdPontosHDPago == null)         ? 0 :  productData.qtdPontosHDPago;
+        var qtdPontosHDGratisExtra   = (productData.qtdPontosHDGratisExtra == null)  ? 0 :  productData.qtdPontosHDGratisExtra;
+        var qtdPontosSTBHDGratis     = (productData.qtdPontosSTBHDGratis == null)    ? 0 :  productData.qtdPontosSTBHDGratis;
+        productData.qtdPontosHDGratisExtra   = (productData.qtdPontosHDGratisExtra == null)  ? 0 :  productData.qtdPontosHDGratisExtra;
+        productData.qtdPontosSTBHDGratis     = (productData.qtdPontosSTBHDGratis == null)    ? 0 :  productData.qtdPontosSTBHDGratis;
+        var qtdPontosHDPagoExtra     = (productData.qtdPontosHDPagoExtra == null)    ? 0 :  productData.qtdPontosHDPagoExtra;
+        var qtdPontosSTBHDPago       = (productData.qtdPontosSTBHDPago == null)      ? 0 :  productData.qtdPontosSTBHDPago;
+        var tipoPontoAdicional = "STB_HD_PAGO";//verificar DE/PARA para o tipo de equipamento ponta
+        if (tipoPontoAdicional == "STB_HD_PAGO"){
+            if (qtdPontosHDPago + qtdPontosHDPagoExtra < qtdPontosSTBHDPago){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+
+    function buscarEquipamento(equipmentData){
+        var equipamento;
+        var searchDoc;
+
+        var ops = FTTHCommon.createEmptyDoc('FTTHOrderManagementInterface:OrderParametersSearch');
+        ops.cwOrderId = ord.OrderHeader.cwOrderId;
+        var isMudancaEndereco = false;
+
+        var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+        if (orderRequest.size > 0) {
+            for (var i = 0; i < orderRequest.size; i++) {
+                var solicitacao = orderRequest[i];
+
+                if(solicitacao.idSolicitacao == "MUDANCA_ENDERECO"){
+                    isMudancaEndereco = true;
+                }
+            }
+        }
+
+        if(equipmentData.tipoEquipamento == "ONT") {
+            searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:BaseEquipmentData");
+            searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+
+            if (isMudancaEndereco){
+                searchDoc.flagDadoOriginal = 'O';
+            }
+
+            equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+        } else if(equipmentData.tipoEquipamento == "HGW") {
+            searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:BaseEquipmentData");
+            searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+
+            if (isMudancaEndereco){
+                searchDoc.flagDadoOriginal = 'O';
+            }
+
+            equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+        } else if(equipmentData.tipoEquipamento == "STB"){
+            searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentData");
+            searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+            searchDoc.idAtivo = equipmentData.idAtivo;
+
+            if (isMudancaEndereco) {
+                searchDoc.flagDadoOriginal = 'O';
+            }
+
+            equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+        }
+
+        return equipamento;
+    }
+    function handleEquipmentId(equip, isNovo) {
+        /* Identificação do equipamento na tabela TBI_ORDEM_ATIVIDADE_CLICK */
+        /* equip =>  ValidateEquipmentDoc                                  */
+        /* return => "ONT" ou "HGW" ou [idAtivo]                          */
+
+        if (isNovo) {
+            if (equip.tipoEquipamentoNovo == 'STB'){
+                if (!equip.idAtivoNovo) { //Inclusão de ponto adicional
+                    return equip.numeroSerieEquipamentoNovo;
+                } else {
+                    return equip.idAtivoNovo;
+                }
+            } else {
+                return equip.tipoEquipamentoNovo;
+            }
+        } else {
+            if (equip.tipoEquipamentoOriginal == 'STB'){
+                if (!equip.idAtivoOriginal) {
+                    return equip.numeroSerieEquipamentoOriginal;
+                } else {
+                    return equip.idAtivoOriginal;
+                }
+            } else {
+                return equip.tipoEquipamentoOriginal;
+            }
+        }
+    }
+  ]]></script>
+</script>

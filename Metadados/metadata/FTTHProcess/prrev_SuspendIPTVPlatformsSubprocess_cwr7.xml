@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.SuspendIPTVPlatformsSubprocess_cwr7">
+  <activity name="SuspendIPTVStart" type="seqActivity">
+    <guid>{fd65d3d2-bcf3-404d-b374-44cd62730d78}</guid>
+    <label>Suspend IPTV Start</label>
+    <x>68.890724</x>
+    <y>30.0</y>
+    <childList>
+      <child name="HDTVSuspend" type="seqActivity">
+        <guid>{0cb5bcf7-9f25-4c3a-90fc-7a19d846f817}</guid>
+        <label>HD TV Suspend</label>
+        <x>65.15947</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="IsHDTV" type="switchActivity">
+            <guid>{09208f00-6f41-46af-86b9-f5d64e405361}</guid>
+            <label>Is HD TV?</label>
+            <x>68.17139</x>
+            <y>216.76096</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{ca25924e-5eac-49c7-bcf1-304b18f37d60}</guid>
+                <label>Yes</label>
+                <x>181.29028</x>
+                <y>672.6466</y>
+                <childList>
+                  <child name="SuspendIPTVIESFSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.SuspendIPTVIESFSubprocess_cwr10</element>
+                    <guid>{c6bfa9d3-87a6-447f-87f3-2adfa967af3b}</guid>
+                    <label>Suspend IPTV IESF Subprocess</label>
+                    <x>113.0</x>
+                    <y>312.4621</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return FTTHOrderManagementInterface.checkNeedTVIESF(this.process.processOrder.OrderHeader.cwOrderId, "bloqueio");
+
+                      /*
+
+
+                      if(process.processOrder.ProductData.needTVIESF){
+                          if(process.processOrder.OriginalData && process.processOrder.OriginalData[0] && process.processOrder.OriginalData[0].ProductData){
+                              if(process.processOrder.OriginalData[0].ProductData.needTVIESF != false){
+                                  return true;
+                              } else{
+                                  return false;
+                              }
+                          } else{
+                              return true;
+                          }
+                      } else if(process.processOrder.ProductData.needTVIESF == null){
+                          if (process.processOrder.OriginalData && process.processOrder.OriginalData[0] && process.processOrder.OriginalData[0].ProductData){
+                              if(process.processOrder.OriginalData[0].ProductData.needTVIESF){
+                                  return true;
+                              }
+                          }
+                      }
+                      return false;
+                      */
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{bb64f78b-e0bd-49f6-8eac-d2c0f75fcd54}</guid>
+                <label>No</label>
+                <x>30.0</x>
+                <y>328.16327</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="SuspendIPTVAPCSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendIPTVAPCSubprocess_cwr10</element>
+        <guid>{3e30f3e6-e7d3-45b8-809b-ea85209c522e}</guid>
+        <label>Suspend IPTV APC Subprocess</label>
+        <x>64.157715</x>
+        <y>439.5656</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "%BLOQUEAR_IPTV_APC";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de infra de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <label>Suspend IPTV Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.SuspendIPTVPlatformsSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

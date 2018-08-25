@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.ConfigureVoIPAutomaticTask_cwr6">
+  <activity name="ConfigureVoIPAutomaticTaskStart" type="seqActivity">
+    <guid>{df1c8a2c-98c9-48a2-80c0-65aac0e5a4a8}</guid>
+    <label>Configure VoIP Automatic Task Start</label>
+    <x>111.30459</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureVoIPSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{1a0121f3-007d-4465-a4c9-7c150ac46a49}</guid>
+        <label>Configure VoIP Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>175.39258</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{0972603f-a207-48c9-ae1f-8ef4b37b3e89}</guid>
+            <label>Check Send Operation Result</label>
+            <x>267.96353</x>
+            <y>271.74493</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{b7a02528-b914-4374-8324-b5442de8d98f}</guid>
+                <label>Success</label>
+                <x>271.4801</x>
+                <y>412.54962</y>
+                <childList>
+                  <child name="WaitAutomaticActivity" type="choiceActivity">
+                    <guid>{bea445c8-05f7-4ed6-9874-ae607dfd3070}</guid>
+                    <label>Wait Automatic Activity</label>
+                    <x>385.37857</x>
+                    <y>412.54962</y>
+                    <childList>
+                      <child name="TimeOutControl" type="timeoutActivity">
+                        <guid>{dc585f27-e614-4dfb-be74-9102cb636de1}</guid>
+                        <label>TimeOut Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>425.8356</x>
+                        <y>546.0037</y>
+                        <childList>
+                          <child name="TimeOutControl" type="scriptActivity">
+                            <guid>{c9ab45bb-ca5f-4f09-b8a9-9205d2b409ff}</guid>
+                            <label>TimeOutControl</label>
+                            <x>406.4938</x>
+                            <y>686.8084</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure VoIP Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activity = Global.getConfigVariable("CONFIGURAR_VOIP");
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                       Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                       Global.getConfigVariable("CONFIGURAR_VOIP"),
+                                                       status,
+                                                       errorType.errorCode,
+                                                       errorType.errorDescription,
+                                                       this.process.id,
+                                                       Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                             Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                             Global.getConfigVariable("CONFIGURAR_VOIP"));
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="ConfigureVoIPReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{5b036c94-40aa-4b5b-b514-e125de585e71}</guid>
+                        <label>Configure VoIP Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>304.11685</x>
+                        <y>664.75665</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure VoIP Automatic Task", "Configure VoIP Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONFIGURAR_VOIP"), status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                   Global.getConfigVariable("CONFIGURAR_VOIP"),
+                                                   status,
+                                                   this.activityData.code,
+                                                   this.activityData.description,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                         Global.getConfigVariable("CONFIGURAR_VOIP"));
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("CONFIGURAR_VOIP");
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"))
+                      return true;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{0cb1553d-61e6-4b5b-bc5e-abfd664218fc}</guid>
+                <label>Error</label>
+                <x>183.34991</x>
+                <y>553.3543</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_ACTIVITY = "Configurar VoIP";
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+                              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure VoIP Automatic Task", "Configure VoIP Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONFIGURAR_VOIP"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                   Global.getConfigVariable("CONFIGURAR_VOIP"),
+                                   status,
+                                   this.activityData.code,
+                                   this.activityData.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                         Global.getConfigVariable("CONFIGURAR_VOIP"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConfigureVoIPAutomaticTaskComplete" type="completeActivity">
+        <guid>{550e5ae1-35a8-4277-9a51-643c36d0c4d0}</guid>
+        <label>Configure VoIP Automatic Task Complete</label>
+        <x>292.71124</x>
+        <y>820.56134</y>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{e2d5e3ba-5a03-47f9-bba1-4da67142d554}</guid>
+        <label>exceptionHandler</label>
+        <x>30.0</x>
+        <y>145.34258</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id,Global.getConfigVariable("CONFIGURAR_VOIP"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{e6a9760f-2637-49a8-aa0d-6149c051631f}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>101.96353</x>
+        <y>279.09552</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{48ae0812-92cd-4c82-a12d-353bd19d9ea8}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>263.3499</x>
+        <y>538.65314</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_VOIP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_VOIP");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Configurar
+      VoIP. Inicialmente o fluxo envia para o sistema de Rede uma solicita&#231;&#227;o
+      de configura&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de tempo pr&#233;
+      determinado, ser&#227;o feitas mais algumas retentativas. A quantidade de
+      retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Configure VoIP Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.ConfigureVoIPAutomaticTask</process>
+  <revision>6</revision>
+  <type>User</type>
+</process__revision>

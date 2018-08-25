@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema elementFormDefault="qualified" targetNamespace="FTTHServiceRequest"	
+	xmlns="http://www.w3.org/2001/XMLSchema"	
+	xmlns:FTTHServiceRequest="FTTHServiceRequest"	
+	xmlns:FTTHCommon="FTTHCommon"	
+	xmlns:cwf="http://www.conceptwave.com/system"	
+	xmlns:FTTHSolicitarAberturaBARequest="http://alsb.telemar/xsd/WTT/SolicitarAberturaBA"	
+	xmlns:FTTHSolicitarAberturaBAResponse="http://alsb.telemar/xsd/TroubleTicket/SolicitarAberturaBAResponse"	
+	xmlns:FTTHClickInterface="FTTHClickInterface"	
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+
+	<import namespace="FTTHCommon" schemaLocation="FTTHCommon.xsd"/>
+	<import namespace="http://www.conceptwave.com/system" schemaLocation="cwf.xsd"/>
+	<import namespace="http://alsb.telemar/xsd/WTT/SolicitarAberturaBA" schemaLocation="FTTHSolicitarAberturaBARequest.xsd"/>
+	<import namespace="http://alsb.telemar/xsd/TroubleTicket/SolicitarAberturaBAResponse" schemaLocation="FTTHSolicitarAberturaBAResponse.xsd"/>
+	<import namespace="FTTHClickInterface" schemaLocation="FTTHClickInterface.xsd"/>
+
+
+	<annotation>
+		<documentation>FTTH Service Request</documentation>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<!-- Structures -->
+
+	<complexType name="ticketActivityData">
+		<annotation>
+			<documentation>ticketActivityData</documentation>
+		</annotation>
+			<sequence>
+				<element name="tipoAtiv" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="areaTec" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="atividade" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="prioridadeBA" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoProg" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="codTecnico" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="descLivre" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="codReclamacao" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="dataIniProblema" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="horaIniProblema" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="dataAgendamento" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<element name="serviceRequest">
+		<complexType >
+		<annotation>
+			<documentation>serviceRequest</documentation>
+		</annotation>
+			<sequence>
+				<element name="idMensagem" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="correlationId" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="operacoes" minOccurs="1" maxOccurs="1" type="FTTHServiceRequest:listaDeOperacoesType"/>
+				<element name="atributos" minOccurs="0" maxOccurs="1" type="FTTHServiceRequest:listaDeAtributos"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="listaDeOperacoesType">
+		<annotation>
+			<documentation>listaDeOperacoesType</documentation>
+		</annotation>
+			<sequence>
+				<element name="operacao" minOccurs="0" maxOccurs="unbounded" type="FTTHServiceRequest:operacao_req"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="facilityData">
+		<annotation>
+			<documentation>facilityData</documentation>
+		</annotation>
+			<sequence>
+				<element name="idAcesso" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="addressData">
+		<annotation>
+			<documentation>addressData</documentation>
+		</annotation>
+			<sequence>
+				<element name="tipoLogradouro" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="nomeLogradouro" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="numeroLogradouro" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="bairro" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="complemento" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="uf" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="localidade" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="productData">
+		<annotation>
+			<documentation>productData</documentation>
+		</annotation>
+			<sequence>
+				<element name="nomePlanoTV" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="nomePlanoBL" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="nomePlanoVOIP" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="nomeBundle" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="idBL" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="idBundle" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="idTV" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="idVOIP" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="atributo">
+		<annotation>
+			<documentation>atributo</documentation>
+		</annotation>
+			<sequence>
+				<element name="nome" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="valor" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="operacao_req">
+		<annotation>
+			<documentation>operacao_req</documentation>
+		</annotation>
+			<sequence>
+				<element name="operacao" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idAtivo" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoProduto" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="header">
+		<annotation>
+			<documentation>header</documentation>
+		</annotation>
+			<sequence>
+				<element name="sistema" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoInfo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="ufInfo" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="descProblema" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="docAssoc" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="clientData">
+		<annotation>
+			<documentation>clientData</documentation>
+		</annotation>
+			<sequence>
+				<element name="tipoCliente" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="nomeCliente" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="telCliente" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="nomeContato" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="telContato" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="dataPromessa" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="horaPromessa" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="listaDeAtributos">
+		<annotation>
+			<documentation>listaDeAtributos</documentation>
+		</annotation>
+			<sequence>
+				<element name="atributo" minOccurs="0" maxOccurs="unbounded" type="FTTHServiceRequest:atributo"/>
+			</sequence>
+		</complexType>
+
+	<!-- Documents -->
+
+	<complexType name="SRClientData">
+		<annotation>
+			<documentation>Service Request Client Data</documentation>
+		</annotation>
+			<sequence>
+				<element name="tipoCliente" type="FTTHCommon:string40"/>
+				<element name="nomeCliente" type="FTTHCommon:string68"/>
+				<element name="telCliente" type="FTTHCommon:string11"/>
+				<element name="nomeContato" type="FTTHCommon:string60"/>
+				<element name="telContato" type="FTTHCommon:string11"/>
+				<element name="dataPromessa" type="FTTHCommon:string8"/>
+				<element name="horaPromessa" type="FTTHCommon:string4"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="SRTicketActivityData">
+		<annotation>
+			<documentation>Service Request Ticket Activity Data</documentation>
+		</annotation>
+			<sequence>
+				<element name="areaTec" type="FTTHCommon:string4"/>
+				<element name="atividade" type="FTTHCommon:string8"/>
+				<element name="codEncerramento" type="FTTHCommon:string5"/>
+				<element name="codReclamacao" type="FTTHCommon:string7"/>
+				<element name="codTecnico" type="FTTHCommon:string12"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="dataAgendamento" type="FTTHCommon:string30"/>
+				<element name="dataEncerramento" type="FTTHCommon:string8"/>
+				<element name="dataIniProblema" type="FTTHCommon:string8"/>
+				<element name="descLivre" type="FTTHCommon:string4000"/>
+				<element name="docAssoc" type="FTTHSolicitarAberturaBARequest:DocAssocType"/>
+				<element name="horaEncerramento" type="FTTHCommon:string4"/>
+				<element name="horaIniProblema" type="FTTHCommon:string4"/>
+				<element name="informacoes" type="FTTHCommon:string4000"/>
+				<element name="numBA" type="FTTHSolicitarAberturaBAResponse:numBA"/>
+				<element name="numBADuplicado" type="FTTHCommon:string3"/>
+				<element name="prioridadeBA" type="FTTHCommon:string2"/>
+				<element name="tipoAtiv" type="FTTHCommon:string1"/>
+				<element name="tipoProg" type="FTTHCommon:string2"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="Observacao" type="FTTHClickInterface:observacao"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="SRHeader">
+		<annotation>
+			<documentation>Service Request Header</documentation>
+		</annotation>
+			<sequence>
+				<element name="sistema" type="FTTHCommon:string30"/>
+				<element name="tipoInfo" type="FTTHCommon:string3"/>
+				<element name="ufInfo" type="FTTHCommon:string2"/>
+				<element name="descProblema" type="FTTHCommon:string80"/>
+				<element name="docAssoc" type="FTTHCommon:string30"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="SRFacilityData">
+		<annotation>
+			<documentation>Service Request Facility Data</documentation>
+		</annotation>
+			<sequence>
+				<element name="idAcesso" type="FTTHCommon:string30"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="SRProductData">
+		<annotation>
+			<documentation>Service Request Product Data</documentation>
+		</annotation>
+			<sequence>
+				<element name="nomePlanoTV" type="FTTHCommon:string30"/>
+				<element name="nomePlanoBL" type="FTTHCommon:string30"/>
+				<element name="nomePlanoVOIP" type="FTTHCommon:string30"/>
+				<element name="nomeBundle" type="FTTHCommon:string30"/>
+				<element name="idBL" type="FTTHCommon:string30"/>
+				<element name="idBundle" type="FTTHCommon:string30"/>
+				<element name="idTV" type="FTTHCommon:string30"/>
+				<element name="idVOIP" type="FTTHCommon:string30"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="SRAddressData">
+		<annotation>
+			<documentation>Service Request Address Data</documentation>
+		</annotation>
+			<sequence>
+				<element name="tipoLogradouro" type="FTTHCommon:string3"/>
+				<element name="nomeLogradouro" type="FTTHCommon:string57"/>
+				<element name="numeroLogradouro" type="FTTHCommon:string5"/>
+				<element name="bairro" type="FTTHCommon:string20"/>
+				<element name="complemento" type="FTTHCommon:string35"/>
+				<element name="uf" type="FTTHCommon:string2"/>
+				<element name="localidade" type="FTTHCommon:string6"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+			</sequence>
+		</complexType>
+
+</schema>

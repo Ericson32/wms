@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.notifyIssueProcess">
+  <activity name="NotifyIssueStart" type="seqActivity">
+    <guid>{50f21464-cfcc-4f78-b7f1-de9033f7920a}</guid>
+    <label>Notify Issue Start</label>
+    <x>49.114647</x>
+    <y>30.0</y>
+    <childList>
+      <child name="notifyIssueAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.NotifyIssueAutomaticTask</element>
+        <guid>{2c5d86d0-cf68-477c-9ea5-62e70341f2d3}</guid>
+        <label>Notify Issue Automatic Task</label>
+        <syc>true</syc>
+        <x>103.84717</x>
+        <y>122.0</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{4045f328-7b88-4f77-928f-355148ad4a73}</guid>
+        <label>Check Task Result</label>
+        <x>117.18506</x>
+        <y>246.10352</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{b40ba46c-0e18-477b-9133-56d97712e252}</guid>
+            <label>Success</label>
+            <x>159.854</x>
+            <y>372.20703</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  //var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  //var activityId = Global.getConfigVariable("NOTIFICAR_ERRO");
+                  //var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  //if(this.process.children[0].processDocument.erroNotificado)
+
+                  if(this.process.children[0].processDocument.pendenciaNotificada)
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{fd1d5482-9d71-4cbb-803c-5cd4f02c822c}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{ad5350b7-a0f3-4ada-8878-b07961388ec4}</guid>
+                <label>Handle Error Start</label>
+                <x>55.172752</x>
+                <y>374.55762</y>
+                <childList>
+                  <child name="NotifyIssueHandleErrorTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.NotifyIssueHandleErrorTask</element>
+                    <guid>{dc1d4838-1d6a-4911-a3af-442e3966c7b4}</guid>
+                    <label>Notify Issue Handle Error Task</label>
+                    <x>59.51709</x>
+                    <y>468.9082</y>
+                  </child>
+                  <child name="sendToAutomaticActivity" type="repeatActivity">
+                    <element>proc_FTTHProcess.notifyIssueProcess/seqActivity_NotifyIssueStart</element>
+                    <guid>{93d5b894-52a0-4b7b-a650-4eec6b855b26}</guid>
+                    <label>send To Automatic Activity</label>
+                    <x>30.0</x>
+                    <y>595.0117</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="OMSenderParticipant" type="participantActivity">
+        <guid>{7b930bd7-9a8e-4dc1-984e-be23a96d936e}</guid>
+        <label>OM Sender Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>102.955734</x>
+        <y>248.40234</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          //Associar o orderId ao processo para facilitar a pesquisa dos processos da ordem
+          process.processOrderId = process.processDocument.cwOrderId;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <document>doc_FTTHOrderManagementInterface.IssueNotification</document>
+  <guid>{ec1767af-aa71-4795-a3f8-b3c77d13a46e}</guid>
+  <label>Notify Issue Process</label>
+  <metaVersion>3</metaVersion>
+  <parentProcessDoc>true</parentProcessDoc>
+  <priority>8</priority>
+  <revision>5</revision>
+  <type>User</type>
+</process>

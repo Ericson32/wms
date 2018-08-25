@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ConfigureVoIPSolveIssueTask">
+  <activity name="startConfigureVoIPSolveIssue" type="seqActivity">
+    <guid>{5dd71878-8218-4655-8e76-b4b770462c9c}</guid>
+    <label>Start Configure VoIP Solve Issue</label>
+    <x>82.814064</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureVoIPSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureVoIPSolveIssue</element>
+        <guid>{608b2319-eaba-478c-9289-c96072bb1d02}</guid>
+        <label>Configure VoIP Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>85.68359</x>
+        <y>124.76094</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{4ea77b5a-e95a-443c-935c-01b473d0eec2}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>30.845215</x>
+        <y>250.86444</y>
+        <childList>
+          <child name="ConfigureVoIPSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureVoIPSolveIssueChangeIssue</element>
+            <guid>{c2d9f5f6-37ed-4cd4-a447-03300b26afcc}</guid>
+            <label>Configure VoIP Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>156.08545</x>
+            <y>391.96796</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_VOIP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureVoIPSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureVoIPSolveIssueSuccess</element>
+            <guid>{15c1960c-f5d1-4a3f-9b5b-976598762cab}</guid>
+            <label>Configure VoIP Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>399.31854</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_VOIP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{8a0baeca-c11e-46f2-947f-2eb41171ff31}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>122.87451</x>
+        <y>258.21503</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_VOIP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar VoIP - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <guid>{c2c8eff0-800a-4cff-8215-a27c35802831}</guid>
+  <highlight>22</highlight>
+  <label>Configure VoIP Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process>

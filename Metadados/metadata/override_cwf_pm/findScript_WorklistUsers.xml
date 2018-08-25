@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findScript name="override_cwf_pm.WorklistUsers">
+  <doubleClickSelect>true</doubleClickSelect>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <getOutput>doc_cwf_pm.User</getOutput>
+  <input>doc_cwf_pm.WorklistUserSearch</input>
+  <label>Worklist Users</label>
+  <metaVersion>3</metaVersion>
+  <output>doc_cwf_pm.User</output>
+  <type>script</type>
+  <uiQueryTimeout>0</uiQueryTimeout>
+  <vDetailForm>doc_cwf_pm.User/ui_UserInterface/frmui_Forms/vform_Default</vDetailForm>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderGet" type="action">
+      <system>true</system>
+      <script>return document;</script>
+    </method>
+    <method name="cwOnFinderSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        function addWhere(where, toadd) {
+              if (where) {
+                    return where + ' and ' + toadd;
+              }
+              return ' where ' + toadd;
+        }
+        function addHaving(having, toadd) {
+              if (having) {
+                    return having + ' and ' + toadd;
+              }
+              return ' having ' + toadd;
+        }
+        var n = searchData.NAME;
+        //searchData is temp
+        searchData = searchData.copyDocument();
+        searchData.NAME = n;
+        var cols = 'ui.userid name,to_char(ui.available),';
+        var where = ' where wl.user_id (+) = ui.userid and wl.disable (+) = 0 ';
+        var having = '';
+        if (searchData.NAME != null) {
+              where = addWhere(where, 'ui.userid like ?');
+        }
+        if (searchData.Available != null) {
+              where = addWhere(where, 'ui.Available=?');
+        }
+        // add tasks, overdue, alerts columns
+        if (searchData.CURRENT_TASKSGT != null)
+              having = addHaving(having, 'count(case when wl.FLAGS = 0 then 1 else null end)>='+searchData.CURRENT_TASKSGT);
+        if (searchData.CURRENT_TASKSLT != null)
+              having = addHaving(having, 'count(case when wl.FLAGS = 0 then 1 else null end)<='+searchData.CURRENT_TASKSLT);
+        if (searchData.OverdueGT != null)
+              having = addHaving(having, 'count(case when wl.DUE_DATE < SYSDATE and wl.FLAGS = 0 then 1 else null end)>='+searchData.OverdueGT);
+        if (searchData.OverdueLT != null)
+              having = addHaving(having, 'count(case when wl.DUE_DATE < SYSDATE and wl.FLAGS = 0 then 1 else null end)<='+searchData.OverdueLT);
+        if (searchData.AlertsGT != null)
+                    having = addHaving(having, 'count(case when wl.FLAGS = 2 then 1 else null end)>='+searchData.AlertsGT);
+        if (searchData.AlertsLT != null)
+                    having = addHaving(having, 'count(case when wl.FLAGS = 2 then 1 else null end)<='+searchData.AlertsLT);
+        searchData.OverdueGT = null;
+        searchData.OverdueLT = null;
+        searchData.AlertsGT = null;
+        searchData.AlertsLT = null;
+        searchData.CURRENT_TASKSGT = null;
+        searchData.CURRENT_TASKSLT = null;
+        cols += 'count(case when wl.FLAGS = 0 then 1 else null end),' +
+                    'count(case when wl.DUE_DATE < SYSDATE and wl.FLAGS = 0 then 1 else null end),' +
+                    'count(case when wl.FLAGS = 2 then 1 else null end)';
+        if (searchData.Participant != null) {
+              searchData.Privilege = UserProfile.getPrivilegeForParticipant(searchData.Participant);
+              searchData.Participant = null;
+              where = addWhere(where, ' exists(select * from cwusergroupprivilege p,cwuserrole r  where p.privilege=? '+
+              'and p.usergroup=r.roleid and r.active=1 and r.userid=ui.userid)');
+        }
+        var sql = '';
+        if (!searchData.NoAssigned) {
+              sql = "select '<assigned>' name, null, (select count(*) from cwpworklist where user_id is not null and flags=0 and disable=0)," +
+                  '(select count(*) from cwpworklist where user_id is not null and flags=0 and due_date < sysdate and disable=0),' +
+                  '(select count(*) from cwpworklist where user_id is not null and flags=2 and disable=0) ' +
+                  'from dual union ';
+        }
+        sql += "select '<unassigned>' name, null, (select count(*) from cwpworklist where user_id is null and flags=0 and disable=0)," +
+            '(select count(*) from cwpworklist where user_id is null and flags=0 and due_date < sysdate and disable=0),' +
+            '(select count(*) from cwpworklist where user_id is null and flags=2 and disable=0) ' +
+            'from dual union ' +
+            'select ' + cols + ' from cwpworklist wl,cwuser ui' + where + ' group by ui.userid,ui.available' +
+               having + ' order by name';
+        if (searchData.NAME && searchData.NAME.indexOf('%') == -1) {
+              searchData.NAME += '%';
+        }
+        searchData.NoAssigned = null;
+        return Global.runSQLQuery('ORDER', 'cwf_pm:User', 250, searchData, sql);
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="finder" type="uivar">
+        <label>Finder User Interface</label>
+        <valueType>ui_com.conceptwave.system.FinderUserInterface</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <label>Worklist User Search</label>
+        <valueType>doc_cwf_pm.WorklistUserSearch/ui_UserInterface</valueType>
+      </variable>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>Worklist User Document</label>
+        <valueType>doc_cwf_pm.User</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <label>Worklist User Document</label>
+        <valueType>doc_cwf_pm.User/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="_defForm_" type="vform">
+            <label>_defForm_</label>
+            <root name="result" type="eltabl">
+              <showDetailColumn>false</showDetailColumn>
+              <variable type="varPath">
+                <variablePathList>
+                  <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_result</variablePath>
+                </variablePathList>
+              </variable>
+              <elementList>
+                <element name="imageCalculate" type="elimg">
+                  <label>Av</label>
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/action_imageCalculate</variablePath>
+                    </variablePathList>
+                  </variable>
+                  <width>30px</width>
+                </element>
+                <element name="USER_ID" type="elfld">
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_result</variablePath>
+                      <variablePath>doc_cwf_pm.User/leaf_USER_ID</variablePath>
+                    </variablePathList>
+                  </variable>
+                  <width>55%</width>
+                </element>
+                <element name="TaskCount" type="elfld">
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_result</variablePath>
+                      <variablePath>doc_cwf_pm.User/leaf_TaskCount</variablePath>
+                    </variablePathList>
+                  </variable>
+                  <width>15%</width>
+                </element>
+                <element name="OverdueTaskCount" type="elfld">
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_result</variablePath>
+                      <variablePath>doc_cwf_pm.User/leaf_OverdueTaskCount</variablePath>
+                    </variablePathList>
+                  </variable>
+                  <width>15%</width>
+                </element>
+                <element name="AlertCount" type="elfld">
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_result</variablePath>
+                      <variablePath>doc_cwf_pm.User/leaf_AlertCount</variablePath>
+                    </variablePathList>
+                  </variable>
+                  <width>15%</width>
+                </element>
+              </elementList>
+            </root>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</base>
+            <extends>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfAdd" type="eldel"/>
+              <override name="cwfCopy" type="eldel"/>
+              <override name="cwfDelete" type="eldel"/>
+              <override name="cwfDetail" type="eldel"/>
+              <override name="cwfSelect" type="elmnu">
+                <menuAccel type="mAccelP"/>
+                <clickMethod type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uimthd_cwAssignUser</variablePath>
+                  </variablePathList>
+                </clickMethod>
+                <icon>/cwf/MenuIconSelect.gif</icon>
+                <label>Select</label>
+                <tooltip>Assign</tooltip>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/permMethod_show</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="cwfUpdate" type="eldel"/>
+              <override name="detailMenu" type="eldel"/>
+              <override name="finderMenuLayout" type="elext"/>
+            </overrideList>
+          </overlay>
+          <overlay name="ReferenceForm" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_ReferenceForm</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_ReferenceForm</extends>
+            <label>ReferenceForm</label>
+            <overrideList>
+              <override name="topStack" type="elsectnstck">
+                <height>100%</height>
+                <visibilityMode>multiple</visibilityMode>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.UserInterface/uivar_model</variablePath>
+                    <variablePath>mdl_com.conceptwave.system.Model/permMethod_visiblePerm</variablePath>
+                  </variablePathList>
+                </visible>
+                <width>100%</width>
+                <elementList>
+                  <element name="topSection" type="elsect">
+                    <expandMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                      </variablePathList>
+                    </expandMethod>
+                    <header type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/leaf_header</variablePath>
+                      </variablePathList>
+                    </header>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                      </variablePathList>
+                    </visible>
+                    <elementList>
+                      <element name="finderHeader" type="elsecth">
+                        <label>Finder</label>
+                        <elementList>
+                          <element name="back" type="elmnu">
+                            <clickMethod type="varPath">
+                              <variablePathList>
+                                <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_hideDetailAction</variablePath>
+                              </variablePathList>
+                            </clickMethod>
+                            <icon>/cwfv/nav_left_blue.png</icon>
+                            <tooltip>Back to results</tooltip>
+                            <visible type="varPath">
+                              <variablePathList>
+                                <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                              </variablePathList>
+                            </visible>
+                          </element>
+                          <element name="pref" type="elmnu">
+                            <icon>/cwt/images/16/preferences.png</icon>
+                            <showMenuDropDown>true</showMenuDropDown>
+                            <elementList>
+                              <element name="toggleMenu" type="elmnu">
+                                <clickMethod type="varPath">
+                                  <variablePathList>
+                                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_toggleSearchAction</variablePath>
+                                  </variablePathList>
+                                </clickMethod>
+                                <icon>/cwfv/funnel.png</icon>
+                                <label>Show/hide search</label>
+                                <tooltip>Show/hide search</tooltip>
+                                <visible type="varPath">
+                                  <variablePathList>
+                                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/permMethod_toggleVisible</variablePath>
+                                  </variablePathList>
+                                </visible>
+                              </element>
+                              <element name="openView" type="elmnu">
+                                <clickMethod type="varPath">
+                                  <variablePathList>
+                                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/usrActionMethod_findCustomView</variablePath>
+                                  </variablePathList>
+                                </clickMethod>
+                                <icon>/cwf/user_view.gif</icon>
+                                <label>Open Custom View</label>
+                              </element>
+                              <element name="addView" type="elmnu">
+                                <clickMethod type="varPath">
+                                  <variablePathList>
+                                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/usrActionMethod_addCustomView</variablePath>
+                                  </variablePathList>
+                                </clickMethod>
+                                <icon>/cwf/table_add.gif</icon>
+                                <label>Add Custom View</label>
+                              </element>
+                              <element name="Separator" type="elsep"/>
+                              <element name="Iterator" type="eliter">
+                                <variable type="varPath">
+                                  <variablePathList>
+                                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/leaf_views</variablePath>
+                                  </variablePathList>
+                                </variable>
+                                <elementList>
+                                  <element name="viewItem" type="elmnu">
+                                    <clickMethod type="varPath">
+                                      <variablePathList>
+                                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/leaf_views</variablePath>
+                                        <variablePath>ui_com.conceptwave.system.FinderViewIteratedItem/uimthd_changeView</variablePath>
+                                      </variablePathList>
+                                    </clickMethod>
+                                    <label>a</label>
+                                    <variable type="varPath">
+                                      <variablePathList>
+                                        <variablePath>ui_com.conceptwave.system.FinderViewIteratedItem/leaf_view</variablePath>
+                                      </variablePathList>
+                                    </variable>
+                                  </element>
+                                </elementList>
+                              </element>
+                            </elementList>
+                          </element>
+                        </elementList>
+                      </element>
+                      <element name="sStack" type="elsectnstck">
+                        <visible type="varPath">
+                          <variablePathList>
+                            <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_topSectionVisible</variablePath>
+                          </variablePathList>
+                        </visible>
+                        <width>100%</width>
+                        <elementList>
+                          <element name="detailSection" type="elsect">
+                            <formReference type="varPath">
+                              <variablePathList>
+                                <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_detail</variablePath>
+                                <variablePath>doc_cwf_pm.User/ui_UserInterface/frmui_Forms</variablePath>
+                                <variablePath>doc_cwf_pm.User/ui_UserInterface/frmui_Forms/vform_Default</variablePath>
+                              </variablePathList>
+                            </formReference>
+                            <variable type="varPath">
+                              <variablePathList>
+                                <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_detail</variablePath>
+                              </variablePathList>
+                            </variable>
+                            <visible type="varPath">
+                              <variablePathList>
+                                <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                              </variablePathList>
+                            </visible>
+                          </element>
+                          <element name="searchFormSection" type="elsect">
+                            <formReference type="varPath">
+                              <variablePathList>
+                                <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                              </variablePathList>
+                            </formReference>
+                            <variable type="varPath">
+                              <variablePathList>
+                                <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_search</variablePath>
+                              </variablePathList>
+                            </variable>
+                            <visible type="varPath">
+                              <variablePathList>
+                                <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                              </variablePathList>
+                            </visible>
+                          </element>
+                        </elementList>
+                      </element>
+                      <element name="resStack" type="elsectnstck">
+                        <height>100%</height>
+                        <visible type="varPath">
+                          <variablePathList>
+                            <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_resultVisible</variablePath>
+                          </variablePathList>
+                        </visible>
+                        <elementList>
+                          <element name="resSection" type="elsect">
+                            <visible type="varPath">
+                              <variablePathList>
+                                <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_resultVisible</variablePath>
+                              </variablePathList>
+                            </visible>
+                            <elementList>
+                              <element name="resultFrame" type="elovf">
+                                <formReference type="varPath">
+                                  <variablePathList>
+                                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_resultForm</variablePath>
+                                  </variablePathList>
+                                </formReference>
+                              </element>
+                            </elementList>
+                          </element>
+                        </elementList>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <onEnter type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_searchAction</variablePath>
+                  </variablePathList>
+                </onEnter>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="eltabl">
+                <onSelectChange type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                  </variablePathList>
+                </onSelectChange>
+                <showDetailColumn>false</showDetailColumn>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/uivar_result</variablePath>
+                  </variablePathList>
+                </variable>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="imageCalculate" type="action">
+        <parameterList>
+          <parameter name="document" type="rifp">
+            <mandatory>true</mandatory>
+            <type>doc_cwf_pm.User</type>
+          </parameter>
+        </parameterList>
+        <valueType>dtype_com.conceptwave.system.String</valueType>
+        <script><![CDATA[
+          if (document.Available == null) {
+                return null;
+          }
+          return document.Available ? '/cwf/MenuIconTaskAvail.gif' :
+                '/cwf/MenuIconTaskUnavail.gif';
+        ]]></script>
+      </method>
+      <method name="cwAssignUser" type="uimthd">
+        <script><![CDATA[
+          if(this.result.selected == null)
+                return;
+
+          var sel = this.result.selected[0];
+          if(!sel)
+                return;
+
+          var selUser = sel.USER_ID;
+          if(selUser=="<unassigned>"){
+                selUser = null;
+          }
+
+          var finder = Global.getWorkListFinder();      // from user worklist
+          if(finder==null)                                          // from worklist manager
+                finder = this.parent.owner.model;
+          if(finder!=null)
+                finder.changeWLItem(this.parent.owner.result.selected, selUser, null, null);
+
+          //this.parent.owner.searchAction();
+
+          this.parent.owner.cwRefreshWL();
+          this.parent.owner.selectTask(null);
+          Global.closeDialog(this.parent);
+        ]]></script>
+      </method>
+      <method name="show" type="permMethod">
+        <script><![CDATA[
+          if(this.parent.metadata instanceof  com.conceptwave.system.Dialog)
+          return true;
+          else
+          return false;
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+  <viewList>
+    <view name="default" type="findVView">
+      <inputOverlay>doc_cwf_pm.WorklistUserSearch/ui_UserInterface/frmui_Forms/vform_Default</inputOverlay>
+      <label>Worklist Users</label>
+      <outputOverlay>findScript_override_cwf_pm.WorklistUsers/ui_UserInterface/frmui_Forms/vform__defForm_</outputOverlay>
+      <searchImmediately>true</searchImmediately>
+      <showSearchForm>true</showSearchForm>
+    </view>
+  </viewList>
+</findScript>

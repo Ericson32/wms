@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureVoIPAPCHandleErrorTask_cwr3">
+  <activity name="startConfigureVoIPAPCHandleError" type="seqActivity">
+    <guid>{1304d89b-3d9a-4c0f-9039-81ec4d41200b}</guid>
+    <label>Start Configure VoIP APC Handle Error</label>
+    <x>79.079</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureVoIPAPCSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPAPCHandleError</element>
+        <guid>{bd744f5c-9232-43cd-9bc6-f7443231a667}</guid>
+        <label>Configure VoIP APC Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>85.02783</x>
+        <y>125.76094</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{d40488e9-2dab-4a12-82e1-ddf64fbd0920}</guid>
+        <label>Wait Manual Activity</label>
+        <x>30.0</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="ConfigureVoIPAPCHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPAPCHandleErrorIssue</element>
+            <guid>{fb6100a8-4528-47b6-876c-5584b771aea8}</guid>
+            <label>Configure VoIP APC Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>157.0293</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureVoIPAPCHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPAPCHandleErrorResend</element>
+            <guid>{e8124032-726f-429d-a466-be863dc2b5ed}</guid>
+            <label>Configure VoIP APC Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>35.998535</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{560bb4eb-73ee-4287-8bed-5b390172f56f}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>121.37305</x>
+        <y>265.5656</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227; de VoIP autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Configure VoIP APC Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureVoIPAPCHandleErrorTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

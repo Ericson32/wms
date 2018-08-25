@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureOTTIESFSolveIssueTask_cwr4">
+  <activity name="startConfigureOTTIESFSolveIssue" type="seqActivity">
+    <guid>{803e1be9-3486-49e3-af92-fa647855d041}</guid>
+    <label>Start Configure OTT iESF Solve Issue</label>
+    <x>87.359764</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureOTTIESFSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureOTTIESFSolveIssue</element>
+        <guid>{27c5fa27-a809-4f0c-a917-dcc88de39cdc}</guid>
+        <label>Configure OTT iESF Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>87.0166</x>
+        <y>130.6414</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{df053c6a-fb2e-4db6-bd93-3e6c0617d035}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.51123</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ConfigureOTTIESFSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureOTTIESFSolveIssueChangeIssue</element>
+            <guid>{811866d6-f86e-40e1-9e9b-09b189d7dd50}</guid>
+            <label>Configure OTT IESF Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>157.8628</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_OTT_IESF");
+                  //var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureOTTIESFSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureOTTIESFSolveIssueSuccess</element>
+            <guid>{5d4bf56a-7207-4f1b-960d-7f28590c1a4d}</guid>
+            <label>Configure OTT iESF Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>419.9002</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{0ca4b788-512d-4e72-a111-1ac3bcc57690}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.331055</x>
+                <y>568.0555</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_OTT_IESF");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{82e14576-7d6f-4827-8a07-47a014ef734d}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>125.54053</x>
+        <y>278.7967</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_OTT_IESF");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+          {
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar OTT - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Configure OTT iESF Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureOTTIESFSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

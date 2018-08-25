@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureInfraSolveIssueTask_cwr2">
+  <activity name="startConfigureInfraSolveIssue" type="seqActivity">
+    <guid>{839386ef-c548-4aee-88a0-f2de34fffc20}</guid>
+    <label>Start Configure Infra Solve Issue</label>
+    <x>36.748436</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureInfraSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureInfraSolveIssue</element>
+        <guid>{5f022c4f-d0d8-42fe-b5c4-7eada8eda5c5}</guid>
+        <label>Configure Infra Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>39.490234</x>
+        <y>124.76094</y>
+      </child>
+      <child name="ConfigureInfraSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureInfraSolveIssueSuccess</element>
+        <guid>{f437b9cb-2674-46b6-a648-0dbab03252e0}</guid>
+        <label>Configure Infra Solve Issue - Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>39.81836</x>
+        <y>362.26678</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("CONFIGURAR_INFRA");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{e8fdec1e-7594-4245-a8af-124bde27e43b}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>250.86444</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_INFRA");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar Infra - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Configure Infra Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureInfraSolveIssueTask</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

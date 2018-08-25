@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.RestoreVoIPIMSHandleErrorTask">
+  <activity name="RestoreVoIPIMSHandleErrorTaskStart" type="seqActivity">
+    <guid>{a3432264-0a04-4c7b-8096-67f20f8d1cee}</guid>
+    <label>Restore VoIP IMS Handle Error Task Start</label>
+    <x>77.96572</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RestoreVoIPIMSHandleError" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVOIPIMSHandleError</element>
+        <guid>{1b40cd34-a2a6-46ae-ac66-4f4fd2efbd69}</guid>
+        <label>Restore VoIP IMS Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>88.180176</x>
+        <y>129.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{60db6b96-1bdf-46a4-b71f-4e1f2f36e460}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="RestoreVoIPIMSHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVOIPIMSHandleErrorIssue</element>
+                <guid>{8ef0f28d-153b-40c8-af3f-c3d2f7ac44ea}</guid>
+                <label>Restore VoIP IMS Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>158.13477</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESBLOQUEAR_VOIP_IMS");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="RestoreVoIPIMSHandleErrorRecend" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVOIPIMSHandleErrorResend</element>
+                <guid>{47e95b3c-674c-440d-bded-2c3a9d9bdc63}</guid>
+                <label>Restore VoIP IMS Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>24.838379</x>
+                <y>410.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESBLOQUEAR_VOIP_IMS");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{9985b029-899a-49b0-a5c2-a2ff067edce8}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>104.0293</x>
+        <y>269.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESBLOQUEAR_VOIP_IMS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso o bloqueio de VoIP autom&#225;tica n&#227;o tenha sido realizada com
+      sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{c3e9712f-e7d7-4f5f-bc31-beb4507ac3bb}</guid>
+  <label>Restore VoIP IMS Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.InstallJumperSolveIssueTask_cwr2">
+  <activity name="InstallJumperSolveIssueTaskStart" type="seqActivity">
+    <guid>{b387879c-c4ef-4f6b-8883-405c49fa665f}</guid>
+    <label>Install Jumper Solve Issue Task Start</label>
+    <x>35.95156</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InstallJumperSolveIssueOperation" type="opActivity">
+        <element>iface_FTTHUserInterface.InstallJumperSolveIssueInterface/oper_InstallJumperSolveIssue</element>
+        <guid>{bee4ba73-c25f-4c49-820a-7929aaef56b7}</guid>
+        <label>Install Jumper Solve Issue Operation</label>
+        <participant>part_FTTHUserInterface.InstallJumperSolveIssueParticipant</participant>
+        <x>37.4834</x>
+        <y>130.6414</y>
+      </child>
+      <child name="InstallJumperSolvedOperation" type="opActivity">
+        <element>iface_FTTHUserInterface.InstallJumperSolveIssueInterface/oper_InstallJumperSolved</element>
+        <guid>{b15a5f7c-a3f4-4f8e-a0c5-d394801f711c}</guid>
+        <label>Install Jumper Solved Operation</label>
+        <participant>part_FTTHUserInterface.InstallJumperSolveIssueParticipant</participant>
+        <x>42.15039</x>
+        <y>412.2508</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InstallJumperSolveIssueParticipant" type="participantActivity">
+        <guid>{e46e07ad-bfac-4529-80fd-4c4fe33bdd5b}</guid>
+        <label>Install Jumper Solve Issue Participant</label>
+        <participant>part_FTTHUserInterface.InstallJumperSolveIssueParticipant</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo tratamento da atividade manual &quot;Instalar
+      Jumper - Pend&#234;ncia&quot;. Ap&#243;s ser aberta uma pend&#234;ncia na atividade de
+      Instalar Jumper devido a alguma pend&#234;ncia (t&#233;cnica ou funcional), a
+      mesma dever&#225; ser tratada e a atividade manual fechada.
+    </p>
+  ]]></description>
+  <label>Install Jumper Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.InstallJumperSolveIssueTask</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

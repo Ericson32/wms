@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="override_cwf_pm.getOperation">
+  <label>Get Operation</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="worklist" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="order" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="type" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        Script Get Operation
+        AUTOR: Felipe Machado
+        DATA: 14/12/2016
+        DESCRICAO: Este script recebe a worklist como parametro e retorna a tarefa que deve ser executada
+    */
+        var operParam = null;
+        var result = null;
+        var oper = "";
+
+        operParam = new Finder("override_cwf_pm.parametersOperationFinder");
+        operParam.searchDocument.participant = worklist.Participant;
+        operParam.searchDocument.status  = type;
+        operParam.searchDocument.operation  = worklist.Operation;
+        operParam.search();
+        result = operParam.list ? operParam.list.start : null;
+
+        if (result) {
+        oper = result.operationResult;
+        }
+
+        return oper;
+  ]]></script>
+</script>

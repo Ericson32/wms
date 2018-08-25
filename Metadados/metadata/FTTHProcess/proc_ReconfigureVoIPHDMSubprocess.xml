@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.ReconfigureVoIPHDMSubprocess">
+  <activity name="ReconfigureVoIPHDMStart" type="seqActivity">
+    <guid>{27c73d7c-e1f5-4a8a-ac50-39ea02238bbf}</guid>
+    <label>Reconfigure VoIP HDM Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ReconfigureVoIPHDMAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ReconfigureVoIPHDMAutomaticTask</element>
+        <guid>{05b5aacf-928c-47a5-9ccb-90c5730a1e9f}</guid>
+        <label>Reconfigure VoIP HDM Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{204ebf16-132f-4a6b-82c7-c0406c903608}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{d73ae24c-670d-4046-959c-6065e4aa77bf}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_HDM");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{aeee2e36-0e4c-4fe9-8786-f2c53b75b7fe}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{f7ccdf63-2971-4f71-be0f-433896f74729}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="ReconfigureVoIPHDMHandleErrorTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.ReconfigureVoIPHDMHandleErrorTask</element>
+                    <guid>{6a77162f-af55-4bed-93d9-ee182d179fa0}</guid>
+                    <label>Reconfigure VoIP HDM Handle Error Task</label>
+                    <x>160.46594</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{30545c4b-cccc-49db-b9bf-f89c844c119b}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{682be999-69e8-4ea7-ae63-3e1b5538cb41}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{45e9a39f-f168-49d8-9a57-ba04c4600d3f}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ReconfigureVoIPHDMSolveIssueTask" type="subflowActivity">
+                                <element>proc_FTTHHandleIssueProcess.ReconfigureVoIPHDMHandleIssueSubprocess</element>
+                                <guid>{9fb298db-dfb2-42fb-a03c-d4158e83eaad}</guid>
+                                <label>Reconfigure VoIP HDM Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>proc_FTTHProcess.ReconfigureVoIPHDMSubprocess/seqActivity_ReconfigureVoIPHDMStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{d66f9cc5-13d2-4e43-bde9-1a00fa14f5cb}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_HDM");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{0f678278-5b07-47b6-a5d5-c5dc1e4a607c}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>proc_FTTHProcess.ReconfigureVoIPHDMSubprocess/seqActivity_ReconfigureVoIPHDMStart</element>
+                            <guid>{35b3eabd-5610-4e9b-b4c6-2c2ac181496b}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Reconfigurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de
+      Reconfigurar VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a
+      resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de reconfigura&#231;&#227;o de VoIP autom&#225;tica para o sistema
+      de Rede, ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o
+      subprocesso de Reconfigurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <guid>{b39e2612-a27a-4020-bb67-4366bf6476a4}</guid>
+  <label>Reconfigure VoIP HDM Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process>

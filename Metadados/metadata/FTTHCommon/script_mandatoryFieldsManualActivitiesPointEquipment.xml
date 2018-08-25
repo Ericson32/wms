@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.mandatoryFieldsManualActivitiesPointEquipment">
+  <label>Mandatory Fields Manual Activities Point Equipment</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="activity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="pointEquipment" type="rifp">
+      <type>doc_FTTHOrder.EquipmentData</type>
+    </parameter>
+    <parameter name="tipoOS" type="rifp">
+      <type>dtype_FTTHCommon.tipoOS</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var campo;
+    var msg = "";
+    var i;
+    var countManageIssue,countManualActivity, countEquipmentData;
+    var camposObrigatoriosResult;
+    var searchDoc = new Document("FTTHCommon:MandatoryFields");
+
+    searchDoc.nomeAtividade = activity; //esse campo deve dizer se e Instalar ou Remover Equipamento
+    searchDoc.tipoOS = tipoOS;
+    camposObrigatoriosResult  = Finder.runSearch ("FTTHCommon.MandatoryFieldsFinder", searchDoc);
+
+    for (i = 0; i < camposObrigatoriosResult.length; i++){
+        if(camposObrigatoriosResult[i].getValueByName("nomeDocument") == "EquipmentData"){
+            campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+            var value = pointEquipment.getValueByName(campo);
+            var nomeCampo = camposObrigatoriosResult[i].getValueByName("nomeCampo");
+            if((value == null || isOnlySpaces(value)) && msg.indexOf(nomeCampo) == -1)
+                msg = msg + "\n" + "- " + nomeCampo;
+            else if ((campo == "isNETWIN") && !pointEquipment.getValueByName(campo)) { //PRJ11255 Correção defeito #40 - luanm@br.ibm.com
+                msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+            }
+        }
+    }
+
+
+    if(tipoOS == "TIPO_ORDEM_INSTALACAO"){
+        var orderId = pointEquipment.cwOrderId;
+        var activityId = Global.getConfigVariable("ASSOCIAR_ONT_APC");
+        var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+        if(result != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+            msg = msg + "\n" + "- ONT não foi associado";
+          }
+    }
+
+
+
+
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = pointEquipment.cwOrderId;
+    var isExclusaoPonto = false;
+
+    var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+    if (orderRequest.size > 0) {
+        for (var i = 0; i < orderRequest.size; i++) {
+            var solicitacao = orderRequest[i];
+
+            if(solicitacao.idSolicitacao == "EXCLUSAO_PONTO_ADICIONAL"){
+                isExclusaoPonto = true;
+            }
+        }
+    }
+
+
+    if((tipoOS == "TIPO_ORDEM_MODIFICACAO" && pointEquipment.acao == "remover" && isExclusaoPonto) || tipoOS == "TIPO_ORDEM_RETIRADA"){
+        if(pointEquipment.deviceGUID_Original == "" || !pointEquipment.deviceGUID_Original || isOnlySpaces(pointEquipment.deviceGUID_Original)){
+            msg += "\n campo deviceGUID não preenchido";
+        }
+
+        if(pointEquipment.motivoSetTopBox == "" || !pointEquipment.motivoSetTopBox || isOnlySpaces(pointEquipment.motivoSetTopBox)){
+            //msg += "\n campo motivo não preenchido";
+        }
+    }
+
+
+    return msg;
+
+    function isOnlySpaces(str){
+
+        var aux = str.toString();
+
+        for(var i = 0; i < aux.length ; i++)
+            if(aux[i] != ' ')
+                 return false;
+
+        return true;
+    }
+  ]]></script>
+</script>

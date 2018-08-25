@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ConfigureDigitalServiceSolveIssueTask">
+  <activity name="SuspendVoIPVMPServiceSolveIssueTaskStart" type="seqActivity">
+    <guid>{7fb0b744-316c-4759-8248-0129eb865a0b}</guid>
+    <label>Configure Digital Service Solve Issue Task Start</label>
+    <x>86.54883</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureDigitalServiceSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureDigitalServiceSolveIssue</element>
+        <guid>{44da1486-04ec-4b23-a010-8341efaf2ac3}</guid>
+        <label>Configure Digital Service Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>87.0166</x>
+        <y>130.64142</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{b00053b3-fcc1-4427-935f-faee48a96083}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.51123</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ConfigureDigitalServiceSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureDigitalServiceSolveIssueChangeIssue</element>
+            <guid>{78663f05-76bc-4066-af6b-59c93ba0ff00}</guid>
+            <label>Configure Digital Service Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>157.8628</x>
+            <y>412.54962</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{aadb69b2-985c-4031-be02-d2805059457e}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>142.70605</x>
+                <y>591.10724</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_SERVICO_DIGITAL");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureDigitalServiceSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureDigitalServiceSolveIssueSuccess</element>
+            <guid>{d7daa742-cc19-4206-8fdf-f8de9405cc57}</guid>
+            <label>Configure Digital Service Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>419.9002</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{1941afb2-52c1-4f91-be5d-b0619dbc727c}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.331055</x>
+                <y>582.75665</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.dataFechamento = new Date();
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_SERVICO_DIGITAL");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{96c383db-24d8-4388-848c-ffcd1e923618}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>125.54053</x>
+        <y>278.7967</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_SERVICO_DIGITAL");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+          {
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      .
+    </p>
+  ]]></description>
+  <guid>{94c75253-99e8-4945-862e-5de6975401ed}</guid>
+  <highlight>70</highlight>
+  <label>Configure Digital Service Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process>

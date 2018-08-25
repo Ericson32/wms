@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureIPTVNASSSolveIssueTask_cwr4">
+  <activity name="startConfigureIPTVNASSSolveIssue" type="seqActivity">
+    <guid>{51b22b33-6949-460f-9700-4ce214163d1a}</guid>
+    <label>Start Configure IPTV NASS Solve Issue</label>
+    <x>84.26953</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureIPTVNASSSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureIPTVNASSSolveIssue</element>
+        <guid>{69b96d98-c33d-4a21-8821-82f326dcc0a2}</guid>
+        <label>Desconfigure IPTV NASS Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>83.331055</x>
+        <y>130.6414</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{c7dcc36d-33e1-46ab-b276-2943d7cbc213}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>34.16162</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ConfigureIPTVNASSSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureIPTVNASSSolveIssueChangeIssue</element>
+            <guid>{3619d8af-bd96-49a1-ad2f-c5b602385c30}</guid>
+            <label>Configure IPTV NASS Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>158.29639</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_NASS");
+                  //var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureIPTVNASSSolveIssueSeccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureIPTVNASSSolveIssueSuccess</element>
+            <guid>{de7ab725-bb91-4af8-9450-958e021acc36}</guid>
+            <label>Configure IPTV NASS Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>419.9002</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{50e4b57f-dc6a-4f1a-a49d-10f86db3d763}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.65625</x>
+                <y>568.0555</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_NASS");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{95b6b6d2-62fd-47e4-834a-55d676dcbc90}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>126.19092</x>
+        <y>278.7967</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_NASS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+          {
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar IPTV - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Configure IPTV NASS Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureIPTVNASSSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.UpdateOrderReschedule">
+  
+  <label>UpdateOrderReschedule</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Update Order Reschedule');
+
+    var orderHeader = FTTHCommon.getLatestVersion(requisicao.idPedido);
+
+    Global.logInfo("Busca OSs do idPedido: " + requisicao.idPedido);
+
+    if(!orderHeader)
+        throw "Não existe OS para o pedido " + requisicao.idPedido;
+
+    var ord = Order.getOrderById(orderHeader.cwOrderId);
+    if(!ord) {
+        Global.logInfo("Ordem nao encontrada com id " + orderHeader.cwOrderId);
+        return;
+    }
+
+    var ultimo = ord.IssueData.length;
+    if(ord.IssueData[ultimo-1].IssueData.idProcesso == null) {
+        Global.logInfo("Id do Processo inválido na Ordem " + orderHeader.cwOrderId + " (" + ord.IssueData[ultimo-1].IssueData.idProcesso + ")" );
+        return;
+    }
+
+    //changes the correlation Id to the new correlation Id
+    orderHeader.numeroOS = requisicao.correlationID;
+    orderHeader.versao = requisicao.versao;
+    orderHeader.save();
+    //FTTHOrder.addOrderHeaderSupplementary(ord,requisicao.versao);
+
+    Global.logInfo('Cria atividade de notificacao de encerramento da pendência');
+    Global.logInfo('Inicia processo de update');
+    Process.sendMessageToProcess(ord.IssueData[ultimo-1].IssueData.idProcesso, null, "FTTHOrderManagementInterface:OMListenerInterface/closeIssueOperation", requisicao);
+  ]]></script>
+</script>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.DesconfigureVoIPAPCHandleIssueSubprocess_cwr7">
+  <activity name="DesconfigureVoIPAPCHandleIssueStart" type="seqActivity">
+    <guid>{81b4af01-91cd-4577-bb5d-02d074caf7e5}</guid>
+    <label>Desconfigure VoIP APC Handle Issue Start</label>
+    <x>96.17892</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{4bf3c156-d36b-4f39-ba7c-81b481fd3a45}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>98.055466</x>
+        <y>130.64139</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{2bc1c592-d8d3-40c1-9f4b-aaa0d4cd003e}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>100.85451</x>
+            <y>225.40234</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{933636e0-bef9-439a-9420-7f8ab6603967}</guid>
+        <label>Check Issue Type</label>
+        <x>102.86035</x>
+        <y>351.50586</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{9d9464cc-6d75-4283-bdf0-476cdda3c936}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{32f326fa-c3ef-4a0f-8492-ef41f00b2d78}</guid>
+                <label>Technical Issue</label>
+                <x>166.04434</x>
+                <y>462.9082</y>
+                <childList>
+                  <child name="DesconfigureVoIPAPCSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DesconfigureVoIPAPCSolveIssueTask_cwr1</element>
+                    <guid>{aa5de645-0872-4217-a12f-9beeafd2dfa1}</guid>
+                    <label>Desconfigure VoIP APC Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>554.9082</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{8c8fa090-2dce-4ba7-99e7-1d08e5d0443d}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>168.708</x>
+                    <y>695.7129</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{376782d8-63d1-4de2-b9a6-34127c265f8d}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{40986835-64b7-476f-83c0-8c2aa5628294}</guid>
+                <label>Client Issue</label>
+                <x>47.02051</x>
+                <y>462.9082</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{b589bb9a-183a-4289-94b0-da86b8a4231f}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.000015</x>
+                    <y>563.2588</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Desconfigurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de
+      Desonfigurar VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a
+      resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de desonfigura&#231;&#227;o de VoIP autom&#225;tica para o sistema
+      de Rede, ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o
+      subprocesso de Desonfigurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Desconfigure VoIP APC Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.DesconfigureVoIPAPCHandleIssueSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DesconfigureInfraSubprocess_cwr2">
+  <activity name="DesconfigureVoIPStart" type="seqActivity">
+    <guid>{d6b6d041-86d0-42e6-b91d-f1e23020426c}</guid>
+    <label>Desconfigure Infra Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="DesconfigureInfraAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DesconfigureInfraAutomaticTask</element>
+        <guid>{3703513b-0fdb-46ee-8a44-be932d61507d}</guid>
+        <label>Desconfigure Infra Automatic Task</label>
+        <syc>true</syc>
+        <x>31.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{de6dc202-59d6-4f8f-86aa-85135de78d5f}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{bc17cbdc-244c-46cf-a1da-45fb34c86a23}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{cf097aef-8eae-4e5d-921d-bfb90abe3eae}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{84efc7a7-2282-4d7c-8e91-e145f6431012}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="DesconfigureInfraHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DesconfigureInfraHandleErrorTask_cwr1</element>
+                    <guid>{fe205fd3-b592-4699-acef-8dc510307a54}</guid>
+                    <label>Desconfigure Infra Handle Error Task</label>
+                    <x>160.46594</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{423204da-5342-4ed6-8560-af20de540d17}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{fcc1c6db-0689-4b1b-8bc9-876f201d0aec}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{b4c425ab-e229-483a-ae19-c87a366b7739}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="DesconfigureInfraSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHUserInterface.DesconfigureInfraSolveIssueTask_cwr1</element>
+                                <guid>{300b2a30-a937-4a8a-b72a-bb0c008bffc4}</guid>
+                                <label>Desconfigure Infra Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.DesconfigureInfraSubprocess_cwr2/seqActivity_DesconfigureVoIPStart</element>
+                                <guid>{1fc36b53-bd1a-4828-8b30-d20457357a16}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{bbf46a17-9790-4305-b4be-a1de464733bf}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.DesconfigureInfraSubprocess_cwr2/seqActivity_DesconfigureVoIPStart</element>
+                            <guid>{854f695e-4d4f-4a21-8f0d-98844bb6d95c}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar Infra&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      Infra. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de Infra autom&#225;tica para o sistema de Rede,
+      ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar Infra - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Desconfigure Infra Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DesconfigureInfraSubprocess</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.validateCPE">
+  <label>validateCPE</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="equipmentType" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="ord" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="cwDocId" type="rifp">
+      <type>dtype_cwf.cwDocId</type>
+    </parameter>
+    <parameter name="cwOrderId" type="rifp"/>
+    <parameter name="parametro" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    Marcos Souza - marcossouza@br.ibm.com - PRJ 11255 - 20/06/2017
+    script responsável pelo envio da mensagem para o SAP e o recebimento da resposta de sua interface síncrona.
+    */
+
+    var validateCPE = true;
+    var response = new DataStructure("FTTHOrder:infoFromSAP");
+    var request = new DataStructure("FTTHManterEquipamentoInventarioSAP:ManterEquipamentoInventariadoRequest");
+    var isBypassSapOn = FTTHCommon.parseBoolean(Global.getConfigVariable('IS_BYPASS_SAP_ON'));
+
+    response.COD_OPER = FTTHManterEquipamentoInventarioSAPInterface.createMessageToSAPInterface(equipmentType, ord, validateCPE, request, cwDocId, cwOrderId, parametro);
+
+
+
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = ord.OrderHeader.cwOrderId;
+    var isReparo = false;
+    var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+
+    if (orderRequest.size > 0) {
+        for (var i = 0; i < orderRequest.size; i++) {
+            var solicitacao = orderRequest[i];
+            if(solicitacao.tipoOrdemServico == "TIPO_ORDEM_REPARO"){
+                isReparo = true;
+                break;
+            }
+        }
+    }
+
+
+    try{
+        if(response.COD_OPER == '2' || isReparo){
+            var syncResp;
+            if(isBypassSapOn){
+                var sapReturn = new DataStructure("FTTHManterEquipamentoInventarioSAP:ManterEquipamentoInventariadoResponse");
+                sapReturn.ResponseControl.code = '0';
+                sapReturn.ResponseControl.reason = 'Bypass SAP ativado - atualização equipamento no SAP ignorada';
+                syncResp = sapReturn;
+            }else{
+                syncResp = Global.invokeInterface("FTTHManterEquipamentoInventarioSAPInterface.ManterEquipamentoInventariadoOSB", "ManterEquipamentoInventariado", request)[0];
+            }
+            response.SAPResponse = syncResp;
+            FTTHCommon.logMessageUserData(ord, UserProfile.getMsgLogDoc());
+        }
+    } catch(e){
+        var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+        var LOG_ACTIVITY = "Atualizar Equipamento no Inventário";
+        var LOG_SCRIPT = "updateEquipmentInventory";
+        var ONT_OPERATION = "VALIDAR CPE SAP";
+        var LOG_MSG = "Mensagem não chegou ao destino";
+        FTTHCommon.log(ord.id, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+        FTTHCommon.logMessageUserData(ord, UserProfile.getMsgLogDoc());
+        return null;
+    }
+
+    return response;
+  ]]></script>
+</script>

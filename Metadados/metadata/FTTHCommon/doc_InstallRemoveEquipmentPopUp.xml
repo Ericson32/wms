@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHCommon.InstallRemoveEquipmentPopUp">
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{6daf6afa-e4cd-4f2b-9d89-e5e81ed79213}</guid>
+  <label>Install/Remove Equipment</label>
+  <metaVersion>3</metaVersion>
+  <variableList>
+    <variable name="msg" type="leaf">
+      <label>String</label>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+    </variable>
+    <variable name="pontosNaoInstalados" type="leaf">
+      <label>Boolean</label>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+    </variable>
+    <variable name="labelMsg" type="leaf">
+      <label>String</label>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+    </variable>
+    <variable name="operation" type="leaf">
+      <valueType>dtype_override_cwf_pm.operation</valueType>
+    </variable>
+    <variable name="orderId" type="leaf">
+      <valueType>dtype_FTTHClickInterface.orderId</valueType>
+    </variable>
+    <variable name="userId" type="leaf">
+      <valueType>dtype_cwf.userId</valueType>
+    </variable>
+    <variable name="processId" type="leaf">
+      <valueType>dtype_cwf.processId</valueType>
+    </variable>
+  </variableList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHCommon.InstallRemoveEquipmentPopUp</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="GridLayout" type="elgrd">
+                <numOfCols>2</numOfCols>
+                <elementList>
+                  <element name="msg" type="eltxtArea">
+                    <autoFitText>true</autoFitText>
+                    <dataLength>20</dataLength>
+                    <dynLabel type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_FTTHCommon.InstallRemoveEquipmentPopUp/ui_UserInterface/uivar_model</variablePath>
+                        <variablePath>doc_FTTHCommon.InstallRemoveEquipmentPopUp/leaf_labelMsg</variablePath>
+                      </variablePathList>
+                    </dynLabel>
+                    <editable type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                      </variablePathList>
+                    </editable>
+                    <height>50px</height>
+                    <removeLabelLine>true</removeLabelLine>
+                    <textAlign>center</textAlign>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_FTTHCommon.InstallRemoveEquipmentPopUp/ui_UserInterface/uivar_model</variablePath>
+                        <variablePath>doc_FTTHCommon.InstallRemoveEquipmentPopUp/leaf_msg</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <width>280px</width>
+                  </element>
+                  <element name="Button" type="elbtn">
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_FTTHCommon.InstallRemoveEquipmentPopUp/ui_UserInterface/uimthd_sucesso</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <iconHeight>40</iconHeight>
+                    <iconSpacing>20</iconSpacing>
+                    <iconWidth>20</iconWidth>
+                    <label>Sim</label>
+                    <width>120px</width>
+                  </element>
+                  <element name="Button1" type="elbtn">
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_FTTHCommon.InstallRemoveEquipmentPopUp/ui_UserInterface/uimthd_onSubmit</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <label>Não</label>
+                    <width>135px</width>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="onSubmit" type="uimthd">
+        <valueType>ui_com.conceptwave.system.Window</valueType>
+        <script>return Global.STOP_UI;</script>
+      </method>
+      <method name="sucesso" type="uimthd">
+        <script><![CDATA[
+          
+
+          if(this.model.pontosNaoInstalados){
+              this.model.pontosNaoInstalados = false;
+              this.model.labelMsg = 'Associar ONT';
+              this.model.msg = "Equipamento está funcionando corretamente?";
+
+              if(!this.model.orderId){
+                  return;
+              }
+          }
+
+          if(!this.model.orderId){
+              return Global.confirmOK();
+          }
+
+
+          //Ajustes para a correção do defeito PRJ14008#932 - 07/03/2018
+          //pegar a worklist
+          var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+          searchDoc.OrderId = this.model.orderId;
+          var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+          var isSuccess = FTTHClickInterface.encerramentoExterno(worklist[0]);
+
+          if(isSuccess){
+              return Global.confirmOK();
+          } else{
+              this.cwChildDialogClose(this);
+
+              return Global.STOP_UI;
+          }
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

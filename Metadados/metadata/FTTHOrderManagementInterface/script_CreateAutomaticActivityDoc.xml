@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateAutomaticActivityDoc">
+  <label>CreateAutomaticActivityDoc</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="atividade" type="rifp">
+      <type>doc_FTTHOrderManagementInterface.OrderActivities</type>
+    </parameter>
+    <parameter name="ordem" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    if (atividade.atividadeAutomatica) {
+        var automaticActivityDoc = new Document('FTTHOrder.AutomaticActivityData');
+        automaticActivityDoc.nomeAtividade = Global.getConfigVariable(atividade.codAtividade);
+        automaticActivityDoc.indCancelamento = FTTHCommon.isCancelOrder(ordem.OrderHeader.cwOrderId);
+
+        var automaticActivityData = ordem.AutomaticActivityData;
+        if (!automaticActivityData) {
+            automaticActivityData = ordem.addItem("AutomaticActivityData");
+        }
+
+        var ins = automaticActivityData.newInstance();
+        ins.AutomaticActivityData = automaticActivityDoc;
+        ordem.save();
+    }
+  ]]></script>
+</script>

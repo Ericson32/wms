@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHInventoryInterface.AttributeFinder">
+  <dbSchema>ORDER</dbSchema>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHInventoryInterface.AttributeInventory</input>
+  <label>AttributesFinder</label>
+  <metaVersion>3</metaVersion>
+  <output>doc_FTTHInventoryInterface.AttributeInventory</output>
+  <type>SQL</type>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        select TAA.COD_OPERACAO, TAA.NOME_DOCUMENTO, TAA.COD_CAMPO, TAA.IND_OBRIGATORIEDADE,
+               TAA.IND_ENVIAR_DADO_ORIGINAL, TAA.COD_ACAO, TAA.CWDOCID,
+                    TAA.DESC_TIPO_ACAO, TAA.DESC_TIPO_ATRIBUTO
+        from TBI_ATRIBUTO_INVENTARIO TAA, TBI_ORDEM_ACAO TOA
+        where TOA.COD_ACAO like TAA.COD_ACAO
+        {[0] and TAA.COD_OPERACAO = ?}
+        {[10] and TOA.ID_ORDEM_SERVICO = ?}
+        and TAA.DESC_TIPO_SOLICITACAO is null
+        UNION
+        select COD_OPERACAO, NOME_DOCUMENTO, COD_CAMPO, IND_OBRIGATORIEDADE,
+               IND_ENVIAR_DADO_ORIGINAL, COD_ACAO, CWDOCID,
+                     DESC_TIPO_ACAO, DESC_TIPO_ATRIBUTO
+        from TBI_ATRIBUTO_INVENTARIO
+        where COD_ACAO is null
+        {[0] and COD_OPERACAO = ?}
+        and DESC_TIPO_SOLICITACAO is null
+        UNION
+        select TAA.COD_OPERACAO, TAA.NOME_DOCUMENTO, TAA.COD_CAMPO, TAA.IND_OBRIGATORIEDADE,
+               TAA.IND_ENVIAR_DADO_ORIGINAL, TAA.COD_ACAO, TAA.CWDOCID,
+                    TAA.DESC_TIPO_ACAO, TAA.DESC_TIPO_ATRIBUTO
+        from TBI_ATRIBUTO_INVENTARIO TAA, TBI_ORDEM_ACAO TOA, TBI_ORDEM_SOLICITACAO TOS
+        where TOA.COD_ACAO like TAA.COD_ACAO
+        {[0] and TAA.COD_OPERACAO = ?}
+        {[10] and TOA.ID_ORDEM_SERVICO = ?}
+        {[10] and TOS.ID_ORDEM_SERVICO = ?}
+        and TOS.COD_SOLICITACAO like TAA.DESC_TIPO_SOLICITACAO
+        UNION
+        select COD_OPERACAO, NOME_DOCUMENTO, COD_CAMPO, IND_OBRIGATORIEDADE,
+               IND_ENVIAR_DADO_ORIGINAL, COD_ACAO, CWDOCID,
+                     DESC_TIPO_ACAO, DESC_TIPO_ATRIBUTO
+        from TBI_ATRIBUTO_INVENTARIO TAA, TBI_ORDEM_SOLICITACAO TOS
+        where TAA.COD_ACAO is null
+        {[0] and TAA.COD_OPERACAO = ?}
+        {[10] and TOS.ID_ORDEM_SERVICO = ?}
+        and TOS.COD_SOLICITACAO like TAA.DESC_TIPO_SOLICITACAO
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>Attribute Activation Document</label>
+        <valueType>doc_FTTHInventoryInterface.AttributeInventory</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHInventoryInterface.AttributeInventory/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHInventoryInterface.AttributeInventory/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="AttributeFinderResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="operacao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_operacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="idOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_idOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomeDocumento" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_nomeDocumento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="identificadorCampo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_identificadorCampo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="obrigatoriedade" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_obrigatoriedade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="enviarDadoOriginal" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_enviarDadoOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="acao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_acao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="cwDocId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoAcao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_tipoAcao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoAtributo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.AttributeInventory/leaf_tipoAtributo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <onEnter type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_searchAction</variablePath>
+                  </variablePathList>
+                </onEnter>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+  <viewList>
+    <view name="AttributesFinderView" type="findVView">
+      <outputOverlay>findSql_FTTHInventoryInterface.AttributeFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+    </view>
+  </viewList>
+</findSql>

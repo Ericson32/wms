@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHServiceRequest.createSRTicketActivityData">
+  <label>Preenche Formulário de Dados do Bilhete de Atividades do Service Request</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="serviceRequest" type="rifp">
+      <type>dstruct_FTTHServiceRequest.serviceRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     * AUTHOR:      Marcos Souza - marcossouza@br.ibm.com - 19/07/2017 - PRJ17683
+     * DESCRIPTION: Script reponsável por criar e preencher o formulário de bilhete de atividades
+     */
+     Global.logInfo("--- Create SR Ticket Activity Data ---");
+
+     var ticketActivityData = new Document("FTTHServiceRequest:SRTicketActivityData");
+
+    //MS - marcossouza@br.ibm.com - 11/12/2017 - mapeando o campo tipoAtiv - PRJ17683#24
+    ticketActivityData.tipoAtiv = serviceRequest.operacoes.operacao[0].tipoAtiv;
+    //end MS
+
+     //ticketActivityData.tipoAtiv        = FTTHCommon.getValueAttributeFromAttributeList("tipoAtiv", serviceRequest.atributos);
+     ticketActivityData.areaTec         = FTTHCommon.getValueAttributeFromAttributeList("areaTec", serviceRequest.atributos);
+     ticketActivityData.atividade       = FTTHCommon.getValueAttributeFromAttributeList("atividade", serviceRequest.atributos);
+     ticketActivityData.prioridadeBA    = FTTHCommon.getValueAttributeFromAttributeList("prioridadeBA", serviceRequest.atributos);
+     ticketActivityData.tipoProg        = FTTHCommon.getValueAttributeFromAttributeList("tipoProg", serviceRequest.atributos);
+     ticketActivityData.codTecnico      = FTTHCommon.getValueAttributeFromAttributeList("codTecnico", serviceRequest.atributos);
+     ticketActivityData.descLivre       = FTTHCommon.getValueAttributeFromAttributeList("descLivre", serviceRequest.atributos);
+     ticketActivityData.codReclamacao   = FTTHCommon.getValueAttributeFromAttributeList("codReclamacao", serviceRequest.atributos);
+     ticketActivityData.dataIniProblema = FTTHCommon.getValueAttributeFromAttributeList("dataIniProblema", serviceRequest.atributos);
+     ticketActivityData.horaIniProblema = FTTHCommon.getValueAttributeFromAttributeList("horaIniProblema", serviceRequest.atributos);
+     ticketActivityData.dataAgendamento = FTTHCommon.getValueAttributeFromAttributeList("dataAgendamento", serviceRequest.atributos);
+
+     /* accd@br.ibm.com - PRJ14008 - Reparo */
+     ticketActivityData.indPlantaExterna = FTTHCommon.getValueAttributeFromAttributeList("indPlantaExterna", serviceRequest.atributos);
+     ticketActivityData.codigoEndereco   = FTTHCommon.getValueAttributeFromAttributeList("codigoEndereco", serviceRequest.atributos);
+
+     //MS - marcossouza@br.ibm.com - 20170928
+     //Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+     ticketActivityData.dataInstalacao   = new Date(FTTHCommon.getValueAttributeFromAttributeList("dataInstalacao", serviceRequest.atributos));
+     //end MS
+     ticketActivityData.dataIndicador    = FTTHCommon.getValueAttributeFromAttributeList("dataIndicador", serviceRequest.atributos);
+     ticketActivityData.reclamacao       = FTTHCommon.getValueAttributeFromAttributeList("reclamacao", serviceRequest.atributos);
+
+     //CR7155 - Envio campo Informacoes Complementares
+      ticketActivityData.informacoes   = FTTHCommon.getValueAttributeFromAttributeList("infComplementares", serviceRequest.atributos);
+     return ticketActivityData;
+  ]]></script>
+</script>

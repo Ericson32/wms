@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.updateEnableFiberExecutionPlan">
+  <label>Update Enable Fiber Execution Plan</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp">
+      <mandatory>true</mandatory>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <mandatory>true</mandatory>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <mandatory>true</mandatory>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var reusoPlanejamentoResult;
+    var planExecReuso;
+    var searchDoc = new Document("FTTHCommon:PlanoExecReuso");
+    searchDoc.cwOrderId = cwOrderId;
+    searchDoc.idAtividade = atividade;
+    reusoPlanejamentoResult  = Finder.runSearch ("FTTHCommon.PlanoExecReusoFinder", searchDoc);
+
+    try {
+        if(reusoPlanejamentoResult.length > 0){
+            planExecReuso = reusoPlanejamentoResult[0];
+            planExecReuso.statusAtividade = status;
+            planExecReuso.save();
+        }
+    } catch (e) {
+        Global._throwException(e.message);
+    }
+  ]]></script>
+</script>

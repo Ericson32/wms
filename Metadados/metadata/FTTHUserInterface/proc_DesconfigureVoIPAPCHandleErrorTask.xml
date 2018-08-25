@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.DesconfigureVoIPAPCHandleErrorTask">
+  <activity name="startDesconfigureVoIPAPCHandleError" type="seqActivity">
+    <guid>{90e0b95c-e62a-4847-9cc4-a23b79eed29e}</guid>
+    <label>Start Desconfigure VoIP APC Handle Error</label>
+    <x>90.952736</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureVoIPAPCSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPAPCHandleError</element>
+        <guid>{101b05da-e807-4bfa-aecd-bd430a677b6b}</guid>
+        <label>Desconfigure VoIP APC Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>91.35254</x>
+        <y>130.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{8bbf6e2f-7e8f-4917-8724-919a62836e32}</guid>
+        <label>Wait Manual Activity</label>
+        <x>42.675293</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="DesconfigureVoIPAPCHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPAPCHandleErrorIssue</element>
+            <guid>{284b3ec0-9667-494d-b456-d1156b1e910e}</guid>
+            <label>Desconfigure VoIP APC Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>163.47998</x>
+            <y>411.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="DesconfigureVoIPAPCHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPAPCHandleErrorResend</element>
+            <guid>{97fe8882-092b-498f-a75d-76619266110d}</guid>
+            <label>Desconfigure VoIP APC Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>30.0</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{52657bb1-215d-4872-b1a6-604d3a85c861}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>134.04834</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a desconfigurar VoIP autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{6c7964a2-5915-4d07-a6ac-01cc0ce70c16}</guid>
+  <label>Desconfigure VoIP APC Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

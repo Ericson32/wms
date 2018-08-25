@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision filenameHash="a4df123aa47cc1ecdba461111e63eb59" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.UpdateCPEAutomaticTask_cwr5">
+  <activity name="UpdateCPEAutomaticTaskStart" type="seqActivity">
+    <guid>{14663790-4c77-498b-b051-88acab181cff}</guid>
+    <label>Update CPE Automatic Task Start</label>
+    <x>110.96914</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateCPESendOperation" type="opActivity">
+        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_UpdateEquipmentSendOperation</element>
+        <guid>{235732b3-4afb-4cbe-9faf-379d58cc0dbd}</guid>
+        <label>Update CPE Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>175.39258</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHInventoryInterface.CreateInventoryMessage(this.process.processOrder, this.process.id,"ATUALIZAR_EQUIPAMENTO_CLIENTE" ,this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update CPE Automatic Task", "Update CPE Send Operation", "cwOnProcActBefore", msg.toXML());
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update CPE Automatic Task", "Update CPE Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="UpdateCPEAutomaticTaskComplete" type="completeActivity">
+        <guid>{02dc5f1a-4bbe-4cc1-9c35-e10ea8cc3c0c}</guid>
+        <label>Update CPE Automatic Task Complete</label>
+        <x>267.18066</x>
+        <y>271.74493</y>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{ab2f4c3a-6de0-47c1-82f0-71049b2c40cd}</guid>
+        <label>exceptionHandler</label>
+        <x>30.0</x>
+        <y>145.34258</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{137959d3-1bf5-43e0-8dc0-0977b5cf4f84}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>101.180664</x>
+        <y>279.09552</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Atualizar
+      CPE. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de atualiza&#231;&#227;o dos equipamentos caso n&#227;o obtenha resposta em
+      um intervalo de tempo pr&#233; determinado, ser&#227;o feitas mais algumas
+      retentativas. A quantidade de retentativas e o tempo de espera ser&#227;o
+      configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Update CPE Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryInterface.UpdateCPEAutomaticTask</process>
+  <revision>5</revision>
+  <type>User</type>
+</process__revision>

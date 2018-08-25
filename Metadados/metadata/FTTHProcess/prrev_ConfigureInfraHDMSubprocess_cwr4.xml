@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureInfraHDMSubprocess_cwr4">
+  <activity name="ConfigureInfraHDMStart" type="seqActivity">
+    <guid>{eb2d2b41-d3f1-45a6-b2c7-1b13a2d28c20}</guid>
+    <label>Configure Infra HDM Start</label>
+    <x>28.934765</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureInfraHDMAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureInfraHDMAutomaticTask</element>
+        <guid>{d09f9602-a995-491a-9b6c-e8be08db7a9a}</guid>
+        <label>Configure Infra HDM Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{a65a37b4-2839-488e-81fc-02fa71b19e1c}</guid>
+        <label>Check Task Result</label>
+        <x>65.762695</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{14b7c07a-77a6-49c2-93ba-d5417d54e4e9}</guid>
+            <label>Success</label>
+            <x>33.844482</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_HDM");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{7dc016ee-25c9-48d3-9484-8d57d22f93b8}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{f0cb2a2b-0707-49a7-bf8d-f2cf1e44d25c}</guid>
+                <label>Handle Error Start</label>
+                <x>118.51479</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="ConfigureInfraHDMHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureInfraHDMHandleErrorTask_cwr3</element>
+                    <guid>{abc9bf98-75dc-4e8c-a5f3-22b39d02a7c6}</guid>
+                    <label>Configure Infra HDM Handle Error Task</label>
+                    <x>157.83191</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{3a0a0b5d-f119-4ad3-a33b-782e6a22da25}</guid>
+                    <label>Check Error Handling</label>
+                    <x>119.80208</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{3870699b-0b01-4c0a-94e2-81425885e1cd}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{a7f209ed-e8fe-4ac7-8d21-decfa8398abc}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.09726</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureInfraHDMSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConfigureInfraHDMHandleIssueSubprocess_cwr6</element>
+                                <guid>{528f4dee-d12d-4f8d-8aa2-f734f0148f0c}</guid>
+                                <label>Configure Infra HDM Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConfigureInfraHDMSubprocess_cwr4/seqActivity_ConfigureInfraHDMStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{156d87b6-192e-411d-b52a-becc1a284371}</guid>
+                                <label>Repeat</label>
+                                <x>151.77637</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_HDM");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{2acb17da-3f4c-4eb3-93eb-912849d5c647}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConfigureInfraHDMSubprocess_cwr4/seqActivity_ConfigureInfraHDMStart</element>
+                            <guid>{e20caaa1-adb9-408c-b459-468254ea9164}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar Infra&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      Infra. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de Infra autom&#225;tica para o sistema de Rede,
+      ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar Infra - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure Infra HDM Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureInfraHDMSubprocess</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

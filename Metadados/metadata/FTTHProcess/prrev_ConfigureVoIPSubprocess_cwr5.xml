@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureVoIPSubprocess_cwr5">
+  <activity name="ConfigureVoIPStart" type="seqActivity">
+    <guid>{910c6be6-40a0-4b08-9a95-013c4a337d21}</guid>
+    <label>Configure VoIP Start</label>
+    <x>28.133202</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureVoIPAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureVoIPAutomaticTask</element>
+        <guid>{8438a3bb-9621-4f5e-b123-e9a76c302957}</guid>
+        <label>Configure VoIP Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{48742f42-5428-48e4-a57a-29efe43f8c7a}</guid>
+        <label>Check Task Result</label>
+        <x>66.66113</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{dda8d367-68f0-4e67-a9ff-b2bda8e24bf7}</guid>
+            <label>Success</label>
+            <x>34.74292</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_VOIP");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{e34200fb-5223-45d2-ac19-5da8a20e52ea}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{1fe8e5db-8c65-45da-8cf9-0d69bb655051}</guid>
+                <label>Handle Error Start</label>
+                <x>119.41323</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="ConfigureVoIPHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureVoIPHandleErrorTask_cwr2</element>
+                    <guid>{5539e046-eb73-4a64-b21c-a0ec9338a6e1}</guid>
+                    <label>Configure VoIP Handle Error Task</label>
+                    <x>158.73035</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{906fc57c-c45d-4a7b-9642-d4718bd51d9f}</guid>
+                    <label>Check Error Handling</label>
+                    <x>120.47591</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{d1f99846-89a8-41d3-8b22-46170799840d}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{f64d7655-a782-4f02-8d59-881b2458369b}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.77109</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureVoIPSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConfigureVoIPHandleIssueSubprocess_cwr7</element>
+                                <guid>{65787a1c-c650-4fe5-a340-bc4d3dae155b}</guid>
+                                <label>Configure VoIP Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConfigureVoIPSubprocess_cwr5/seqActivity_ConfigureVoIPStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{50a9ddc9-339f-48bb-9c63-bd7e82de4c42}</guid>
+                                <label>Repeat</label>
+                                <x>152.6748</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_VOIP");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{79b5db05-dfbf-435d-8276-bbbba7adbc3c}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConfigureVoIPSubprocess_cwr5/seqActivity_ConfigureVoIPStart</element>
+                            <guid>{7faf9f8a-fc99-4318-8f47-2290f70506f7}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure VoIP Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureVoIPSubprocess</process>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process__revision>

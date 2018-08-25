@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.UpdateFranchiseSolveIssueTask_cwr3">
+  <activity name="startUpdateFranchiseSolveIssue" type="seqActivity">
+    <guid>{5e6ed026-2d69-407a-8e45-e7f97cbd40d3}</guid>
+    <label>Start Update Franchise Solve Issue</label>
+    <x>37.946877</x>
+    <y>28.0</y>
+    <childList>
+      <child name="UpdateFranchiseSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_UpdateFranchiseSolveIssue</element>
+        <guid>{87c203c5-e5f4-4c63-bd8b-e28812b96169}</guid>
+        <label>Update Franchise Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>38.816406</x>
+        <y>124.76094</y>
+      </child>
+      <child name="UpdateFranchiseSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_UpdateFranchiseSolveIssueSuccess</element>
+        <guid>{d2546fb8-1e7e-4e6e-8cf8-d295712f6dab}</guid>
+        <label>Update Franchise Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>34.816406</x>
+        <y>362.26678</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = "ALTERAR_FRANQUIA_IN";
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{e2c718ed-0171-498e-9ad9-4ffe25e110c4}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>250.86444</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = "ALTERAR_FRANQUIA_IN";
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar VoIP - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Update Franchise Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.UpdateFranchiseSolveIssueTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

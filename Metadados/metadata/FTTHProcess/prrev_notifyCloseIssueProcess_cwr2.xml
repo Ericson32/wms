@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.notifyCloseIssueProcess_cwr2">
+  <activity name="NotifyIssueStart" type="seqActivity">
+    <guid>{ac544d8b-0089-4a2a-ab52-b17ae032ef23}</guid>
+    <label>Notify Issue Start</label>
+    <x>49.114647</x>
+    <y>30.0</y>
+    <childList>
+      <child name="notifyCloseIssueAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.NotifyIssueAutomaticTask</element>
+        <guid>{84f1af38-963b-4653-9ddb-800da042b750}</guid>
+        <label>Notify Close Issue Automatic Task</label>
+        <syc>true</syc>
+        <x>103.84717</x>
+        <y>122.0</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{bc13b78c-aee2-47a9-9e5f-f9c6e8cc32c5}</guid>
+        <label>Check Task Result</label>
+        <x>117.18506</x>
+        <y>246.10352</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{878e9807-a358-4fde-8ed8-2dbc44099701}</guid>
+            <label>Success</label>
+            <x>159.854</x>
+            <y>372.20703</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  if(this.process.children[0].processDocument.pendenciaNotificada)
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{bea2507e-987b-41fd-bbb8-2671157d6c09}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{4fdc6f82-fe8c-4523-a8ea-91293d47119d}</guid>
+                <label>Handle Error Start</label>
+                <x>55.172752</x>
+                <y>374.55762</y>
+                <childList>
+                  <child name="NotifyCloseIssueHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.NotifyCloseIssueHandleErrorTask_cwr8</element>
+                    <guid>{05e248c0-de90-4bf4-a836-028134673adb}</guid>
+                    <label>Notify Close Issue Handle Error Task</label>
+                    <x>59.51709</x>
+                    <y>468.9082</y>
+                  </child>
+                  <child name="sendToAutomaticActivity" type="repeatActivity">
+                    <element>prrev_FTTHProcess.notifyCloseIssueProcess_cwr2/seqActivity_NotifyIssueStart</element>
+                    <guid>{186a4128-4e48-44b9-aec5-21713bd583b6}</guid>
+                    <label>send To Automatic Activity</label>
+                    <x>28.0</x>
+                    <y>602.0117</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="OMSenderParticipant" type="participantActivity">
+        <guid>{7b930bd7-9a8e-4dc1-984e-be23a96d936e}</guid>
+        <label>OM Sender Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>102.955734</x>
+        <y>248.40234</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <document>doc_FTTHOrderManagementInterface.IssueNotification</document>
+  <label>Notify Closse Issue Process</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.notifyCloseIssueProcess</process>
+  <revision>2</revision>
+  <type>User</type>
+</process__revision>

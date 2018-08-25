@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHOrderManagementInterface.NotifyClosingAutomaticTask_cwr3">
+  <activity name="NotifyClosingAutomaticTaskStart" type="seqActivity">
+    <guid>{03ad15fb-7992-4cf5-a9bd-d9aadd4d8cce}</guid>
+    <label>Notify Closing Automatic Task Start</label>
+    <x>103.14492</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyClosingSendOperation" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMSenderInterface/oper_NotifyOperation</element>
+        <guid>{7700c697-e135-4c8f-a2d9-be8381f16a3b}</guid>
+        <invokeDirectly>true</invokeDirectly>
+        <label>Notify Closing Send Operation</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>104.87891</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Notify Closing Automatic Task", "Notify Closing Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("OM_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("NOTIFICAR_ENCERRAMENTO"), status);
+
+              FTTHOrderManagementInterface.updateClosingDate(this.process.processOrder, status);
+            ]]></script>
+          </method>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHOrderManagementInterface.NotifyClosingInterfaceScript(this.process.processOrder, this.process.id, this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Notify Closing Automatic Task", "Notify Closing Send Operation", "cwOnProcActBefore", msg.toXML());
+              return msg;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="NotifyClosingAutomaticTaskComplete2" type="completeActivity">
+        <guid>{1f5f9046-a332-4e21-8c24-74a373ad9dda}</guid>
+        <label>Notify Closing Automatic Task Complete</label>
+        <x>196.0</x>
+        <y>286.4461</y>
+      </child>
+      <child name="OMSenderParticipant" type="participantActivity">
+        <guid>{34ddd735-91a7-4e95-84bd-72cc1c016e7a}</guid>
+        <label>OM Sender Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>0.0</x>
+        <y>0.0</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("NOTIFICAR_ENCERRAMENTO");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Atuliazar OM.
+      Inicialmente o fluxo envia para o sistema OM.
+    </p>
+  ]]></description>
+  <label>Notify Closing Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHOrderManagementInterface.NotifyClosingAutomaticTask</process>
+  <revision>3</revision>
+  <type>User</type>
+</process__revision>

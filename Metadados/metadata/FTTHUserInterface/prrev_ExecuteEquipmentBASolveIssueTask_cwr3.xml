@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ExecuteEquipmentBASolveIssueTask_cwr3">
+  <activity name="ExecuteEquipmentBASolveIssueTaskStart" type="seqActivity">
+    <guid>{82e0b6da-f041-4f5c-bd08-11427c77b9a3}</guid>
+    <label>Execute Equipment BA Solve Issue Task Start</label>
+    <x>80.50039</x>
+    <y>30.0</y>
+    <childList>
+      <child name="AssignFacilitySolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ClickSolveIssueInterface/oper_ExecuteEquipmentBASolveIssue</element>
+        <guid>{9dd35eb5-45a0-441f-9116-62e0b2e22688}</guid>
+        <label>Execute Equipment BA Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ClickSolveIssue</participant>
+        <x>87.024414</x>
+        <y>136.52188</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{fba6e7fd-9db6-4b38-a694-b866ad21e13e}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.526855</x>
+        <y>277.32657</y>
+        <childList>
+          <child name="ExecuteEquipmentBASolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ClickSolveIssueInterface/oper_ExecuteEquipementBAHandleSolveIssueChangeIssue</element>
+            <guid>{1b4bf8ca-9379-4dc1-83e8-947f1fe9ec45}</guid>
+            <label>Execute Equipment BA Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ClickSolveIssue</participant>
+            <x>157.87321</x>
+            <y>419.43008</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+
+                  if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+                       var activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+                  }else {
+                      var activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                  }
+
+
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ExecuteEquipmentBASolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ClickSolveIssueInterface/oper_ExecuteEquipementBAHandleSolveIssueSuccess</element>
+            <guid>{908d5dc0-13cb-4bf6-9c8a-a798a99e7e31}</guid>
+            <label>Execute Equipment BA Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ClickSolveIssue</participant>
+            <x>30.0</x>
+            <y>425.78067</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{0264329a-2f95-4bca-9756-178134cac70e}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.338867</x>
+                <y>573.9359</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+
+
+                  if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+                       var activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+                  }else {
+                      var activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                  }
+
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ClickSolveIssue" type="participantActivity">
+        <guid>{6b6f8770-e801-4fae-9b16-da2ec7723297}</guid>
+        <label>Click Solve Issue</label>
+        <participant>part_FTTHUserInterface.ClickSolveIssue</participant>
+        <x>125.55615</x>
+        <y>284.67715</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActAfter" type="action">
+        <category>script</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+
+          if (process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+               var activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+          }else {
+              var activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+          }
+
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE"){
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Execute Equipment BA - Erro
+      tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade
+      manual ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Execute Equipment BA Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ExecuteEquipmentBASolveIssueTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

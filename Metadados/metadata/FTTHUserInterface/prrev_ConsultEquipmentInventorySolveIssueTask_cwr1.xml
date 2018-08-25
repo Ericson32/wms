@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConsultEquipmentInventorySolveIssueTask_cwr1">
+  <activity name="ConsultEquipmentInventorySolveIssueStart" type="seqActivity">
+    <guid>{cba35cfa-7bc1-4d61-8229-e740d4b8b1d1}</guid>
+    <label>Consult Equipment Inventory Solve Issue Start</label>
+    <x>85.49648</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultEquipmentInventorySolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_ConsultEquipmentInventorySolveIssue</element>
+        <guid>{481b8778-3ea6-4187-80a7-506cb87bcf35}</guid>
+        <label>Consult Equipment Inventory Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>85.37305</x>
+        <y>136.52188</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{03db5cd0-bb3d-41b2-a058-77c8b6abeb3e}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.51123</x>
+        <y>292.02774</y>
+        <childList>
+          <child name="ConsultEquipmentInventorySolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_ConsultEquipmentInventorySolveIssueChangeIssue</element>
+            <guid>{cf265609-ff49-4ab2-9917-926bbc698514}</guid>
+            <label>Consult Equipment Inventory Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+            <x>157.8628</x>
+            <y>433.13123</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConsultEquipmentInventorySolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_ConsultEquipmentInventorySolveIssueSucess</element>
+            <guid>{47f88f9b-4e1a-4b79-94cd-f073edd1ac6c}</guid>
+            <label>Consult Equipment Inventory Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+            <x>30.0</x>
+            <y>440.4818</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{dd6f982f-e023-4561-8d68-d8bfa7f8bcd2}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.331055</x>
+                <y>603.33826</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventorySolveIssue" type="participantActivity">
+        <guid>{d5003abe-61a5-4e91-992e-6411e2d36f71}</guid>
+        <label>Inventory Solve Issue</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>125.54053</x>
+        <y>299.37833</y>
+      </child>
+    </childList>
+  </activity>
+  <label>Consult Equipment Inventory Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConsultEquipmentInventorySolveIssueTask</process>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.SuspendVagoVMPSolveIssueTask_cwr4">
+  <activity name="SuspendVagoVMPSolveIssueTaskStart" type="seqActivity">
+    <guid>{c4ffa430-45d3-4c59-979c-3a0995dacff8}</guid>
+    <label>Suspend Vago VMP Solve Issue Task Start</label>
+    <x>85.484764</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendVagoVMPSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendVagoVMPSolveIssue</element>
+        <guid>{f7a032b4-8461-45da-a16e-3432ec5bd10b}</guid>
+        <label>Suspend Vago VMP Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>87.0166</x>
+        <y>130.6414</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{66fd9efc-0a06-44c7-87e1-e8037139d214}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.51123</x>
+        <y>256.74493</y>
+        <childList>
+          <child name="SuspendVagoVMPSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendVagoVMPSolveIssueChangeIssue</element>
+            <guid>{bb53b141-7e03-46a3-9313-def38b332a3c}</guid>
+            <label>Suspend Vago VMP Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>157.8628</x>
+            <y>397.84845</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{fe96a647-e77b-4b73-ad49-3333f634337d}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>142.70605</x>
+                <y>561.7049</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="SuspendVagoVMPSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendVagoVMPSolveIssueSuccess</element>
+            <guid>{3402987b-8ac7-42d6-b41b-d9d561919c9d}</guid>
+            <label>Suspend Vago VMP Solve Issue Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>405.19904</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{f4706831-45c2-4a3c-a4ff-e7676d750a7a}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.331055</x>
+                <y>553.3543</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.dataFechamento = new Date();
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{a2bb032d-7894-4f9a-a9d9-0152f2bd2728}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>125.54053</x>
+        <y>264.09552</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE"){
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <label>Suspend Vago VMP Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.SuspendVagoVMPSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

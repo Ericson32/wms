@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DesconfigureIPTVPlatformsSubprocess_cwr4">
+  <activity name="DesconfigureIPTVStart" type="seqActivity">
+    <guid>{bd0262f4-80e0-4d5b-93f4-faf179f80a45}</guid>
+    <label>Desconfigure IPTV Start</label>
+    <x>81.39189</x>
+    <y>30.0</y>
+    <childList>
+      <child name="BundleChange" type="switchActivity">
+        <guid>{6d246f42-0f16-43fd-be0a-a4a71d34654a}</guid>
+        <label>Bundle Change?</label>
+        <x>93.32178</x>
+        <y>124.760956</y>
+        <childList>
+          <child name="No" type="caseActivity">
+            <guid>{d3fedbf3-1dfc-418d-9fe9-84b8f9e820e4}</guid>
+            <label>No</label>
+            <x>153.35254</x>
+            <y>468.968</y>
+          </child>
+          <child name="Yes" type="caseActivity">
+            <guid>{56c91a59-2f31-41e0-9a0a-bc2669be1bdc}</guid>
+            <label>Yes</label>
+            <x>130.67435</x>
+            <y>224.76096</y>
+            <childList>
+              <child name="DesconfigureIPTVSequence" type="seqActivity">
+                <guid>{1966e28a-131b-4a13-a90e-d46abd118bff}</guid>
+                <label>DesconfigureIPTVSequence</label>
+                <x>13.430481</x>
+                <y>236.1633</y>
+                <childList>
+                  <child name="DesconfigureIPTVAPCSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.DesconfigureIPTVAPCSubprocess_cwr6</element>
+                    <guid>{2f26226e-3809-4b18-96bd-b664e1a2edda}</guid>
+                    <label>Desconfigure IPTV APC Subprocess</label>
+                    <x>34.64746</x>
+                    <y>328.1633</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "DESCONFIGURAR_IPTV_APC";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return result;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="DesconfigureIPTVHDMSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.DesconfigureIPTVHDMSubprocess_cwr6</element>
+                    <guid>{ab61391e-0982-4f54-af61-70851dd38291}</guid>
+                    <label>Desconfigure IPTV HDM Subprocess</label>
+                    <x>34.64746</x>
+                    <y>454.2668</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "DESCONFIGURAR_IPTV_HDM";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return result;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="DesconfigureIPTVNASSSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.DesconfigureIPTVNASSSubprocess_cwr6</element>
+                    <guid>{1ddc1af8-4bec-4890-b697-262d3c5d2d85}</guid>
+                    <label>Desconfigure IPTV NASS Subprocess</label>
+                    <x>34.64747</x>
+                    <y>580.37036</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "DESCONFIGURAR_IPTV_NASS";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return result;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderSolicitacoes = new Finder('FTTHCommon.RequestFinder');
+                  orderSolicitacoes.searchDocument.cwOrderId = process.processOrderId;
+                  var orderSolicitacoesResult = orderSolicitacoes.search();
+                  for (var x=0; x<orderSolicitacoesResult.length; x++) {
+                      switch(orderSolicitacoesResult[x].requestId) {
+                          case ('MUDANCA_PACOTE') :
+                              return true;
+                      }
+                  }
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="HDTVConfiguration" type="seqActivity">
+        <guid>{a85b3a43-32ff-49d7-a8a3-52928f05c265}</guid>
+        <label>HD TV Configuration</label>
+        <x>93.12471</x>
+        <y>706.4739</y>
+        <childList>
+          <child name="IsHDTV" type="switchActivity">
+            <guid>{c8942b6d-6f8f-49b3-9525-35fd13b58c5d}</guid>
+            <label>Is HD TV?</label>
+            <x>70.00537</x>
+            <y>801.23486</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{75fd9c51-c12b-4936-b534-21c526750fdd}</guid>
+                <label>Yes</label>
+                <x>181.29028</x>
+                <y>672.6466</y>
+                <childList>
+                  <child name="DesconfigureIPTVIESFSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.DesconfigureIPTVIESFSubprocess_cwr6</element>
+                    <guid>{94455348-151e-44cd-b8c3-6fc4e42c5eda}</guid>
+                    <label>Desconfigure IPTV IESF Subprocess</label>
+                    <x>114.0</x>
+                    <y>897.93604</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      if (process.processOrder.OriginalData != null){
+                          if(process.processOrder.OriginalData[0] != null){
+                             if( process.processOrder.OriginalData[0].ProductData.identificadorIPTV != null)
+                                 return true;
+                          }
+                      }else{
+                          if(process.processOrder.ProductData.identificadorIPTV != null)
+                              return true;
+                      }
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{c89c163c-80c8-4801-b5e3-8d75fb1e7fe3}</guid>
+                <label>No</label>
+                <x>30.0</x>
+                <y>912.6372</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de infra de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <label>Desconfigure IPTV Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DesconfigureIPTVPlatformsSubprocess</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

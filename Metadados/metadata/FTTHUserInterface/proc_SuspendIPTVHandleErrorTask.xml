@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.SuspendIPTVHandleErrorTask">
+  <activity name="SuspendIPTVHandleErrorTaskStart" type="seqActivity">
+    <guid>{024e8dc6-0aaa-45b4-a04e-29ebe7897448}</guid>
+    <label>Suspend IPTV Handle Error Task Start</label>
+    <x>80.25323</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendIPTVHandleError" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVHandleError</element>
+        <guid>{71fac860-7854-4f5c-94c1-e759cf52242b}</guid>
+        <label>Suspend IPTV Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>94.19678</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{96c88860-d443-480b-8018-353b6744d4eb}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="SuspendIPTVHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVHandleErrorIssue</element>
+                <guid>{7c81639f-9c33-4fc6-ba06-c9195acc0ceb}</guid>
+                <label>Suspend IPTV Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>161.9349</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("BLOQUEAR_IPTV");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="SuspendIPTVHandleErrorRecend" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVHandleErrorResend</element>
+                <guid>{3259e789-172b-40ae-8c19-92f375d3cec3}</guid>
+                <label>Suspend IPTV Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>47.18799</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("BLOQUEAR_IPTV");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{c64a0045-3968-40e3-8443-6d06dd0a0cbd}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>360.0</x>
+        <y>94.0</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso o bloqueio de IPTV autom&#225;tica n&#227;o tenha sido realizada com
+      sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{33dcc0fc-a4fa-4dc7-bfdc-df36aa632fe3}</guid>
+  <label>Suspend IPTV Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process>

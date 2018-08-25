@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findScript name="FTTHBackoffice.sqlPlus">
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHBackoffice.sqlQuery</input>
+  <label>SQL Plus</label>
+  <maxRowsLimit>9999</maxRowsLimit>
+  <metaVersion>3</metaVersion>
+  <output>doc_FTTHBackoffice.sqlResult</output>
+  <type>script</type>
+  <uiQueryTimeout>0</uiQueryTimeout>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        var sql = searchData.query+"";
+        var result = null;
+        var expressionAssembler = "";
+        var can = false;
+
+        var sqlTest = sql.toUpperCase();
+        if(sql=="null" || sql==""){
+            return;
+        }
+
+        if((sqlTest.indexOf("OMAUDIT")!=-1) || (sqlTest.indexOf("BACKOFFICEUSER")!=-1)){
+            FTTHBackoffice.addAuditEntry(Global.getUserId(), 'RUN_SQL', 'RUN_SQL', sql, 'FAILEDHACK');
+            Global.showUserMessage('Utilização indevida!');
+            return;
+        }
+
+        if(!FTTHBackoffice.isBackofficeUser()){
+            FTTHBackoffice.addAuditEntry(Global.getUserId(), 'RUN_SQL', 'RUN_SQL', sql, 'FAILEDACCESS');
+            Global.showUserMessage('O usuário não tem permissões para executar scripts!');
+            return;
+        }
+
+            if(sql != "null") {
+                var parsedString = sql.split("\n");
+                for(var i=0; i < parsedString.length; i++){
+                        var line = parsedString[i];
+                        if(      line.toLowerCase().startsWith("truncate")       ||
+                            line.toLowerCase().startsWith("select")       ||
+                            line.toLowerCase().startsWith("insert")       ||
+                            line.toLowerCase().startsWith("delete")       ||
+                            line.toLowerCase().startsWith("update")       ||
+                            line.toLowerCase().startsWith("drop")) {
+                            can = true;
+                        }
+
+                        if(can)
+                            expressionAssembler += line+" ";
+
+                        var cIndex = expressionAssembler.toLowerCase().lastIndexOf(";");
+                        if ( cIndex != -1 ) {
+                          var rEA = expressionAssembler.substring(0,cIndex);
+
+                          if(rEA.toLowerCase().startsWith("truncate")){
+                                Global.runDBStoredProcedure("ORDER", rEA, null);
+                          }
+                          else if (rEA.toLowerCase().startsWith("select") ) {
+                                var list = Global._runSQLQuery("ORDER", "FTTHBackoffice.sqlResult", 200, null, rEA);
+                                result = list;
+                          }
+                          else if (       rEA.toLowerCase().startsWith("insert") ||
+                                            rEA.toLowerCase().startsWith("delete") ||
+                                            rEA.toLowerCase().startsWith("update") ||
+                                            rEA.toLowerCase().startsWith("drop")){
+                                //Global._runDBUpdate('ORDER', rEA, null);
+                                Global._runDBStoredProcedure("ORDER", rEA, null);
+                          }
+                          expressionAssembler = "";
+                          can = false;
+                       }
+                }
+            }
+
+
+
+        FTTHBackoffice.addAuditEntry( Global.getUserId(), 'RUN_SQL', 'RUN_SQL', sql, 'SUCESS' );
+
+        return list;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>SQL Result</label>
+        <valueType>doc_FTTHBackoffice.sqlResult</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHBackoffice.sqlQuery/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHBackoffice.sqlResult/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="sqlPlusResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <showDetailColumn>false</showDetailColumn>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="f1" type="elfld">
+                        <label>f1</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f1</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f2" type="elfld">
+                        <label>f2</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f2</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f3" type="elfld">
+                        <label>f3</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f3</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f4" type="elfld">
+                        <label>f4</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f4</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f5" type="elfld">
+                        <label>f5</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f5</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f6" type="elfld">
+                        <label>f6</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f6</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f7" type="elfld">
+                        <label>f7</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f7</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f8" type="elfld">
+                        <label>f8</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f8</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f9" type="elfld">
+                        <label>f9</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f9</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f10" type="elfld">
+                        <label>f10</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f10</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f11" type="elfld">
+                        <label>f11</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f11</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="f12" type="elfld">
+                        <label>f12</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHBackoffice.sqlResult/leaf_f12</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <onEnter type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_searchAction</variablePath>
+                  </variablePathList>
+                </onEnter>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+  <viewList>
+    <view name="result" type="findVView">
+      <inputOverlay>doc_FTTHBackoffice.sqlQuery/ui_UserInterface/frmui_Forms/exov_Default</inputOverlay>
+      <label>SQL Plus</label>
+      <outputOverlay>findScript_FTTHBackoffice.sqlPlus/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+      <showSearchForm>true</showSearchForm>
+    </view>
+  </viewList>
+</findScript>

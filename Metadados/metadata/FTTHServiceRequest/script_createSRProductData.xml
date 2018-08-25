@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHServiceRequest.createSRProductData">
+  <label>Preenche Formulário de Dados do Produto do Service Request</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="serviceRequest" type="rifp">
+      <type>dstruct_FTTHServiceRequest.serviceRequest</type>
+    </parameter>
+    <parameter name="rollout" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Flag que diz se a ordem &amp;#233; pelo CLICK(Booleano, true = CLICK)&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     * AUTHOR:      Marcos Souza - marcossouza@br.ibm.com - 19/07/2017 - PRJ17683
+     * DESCRIPTION: Script reponsável por criar e preencher o formulário do produto
+     */
+     Global.logInfo("--- Create SR Product Data ---");
+
+     var flagBSIM = FTTHCommon.getValueAttributeFromAttributeList("flagBSIM", serviceRequest.atributos);
+     var productData = new Document('FTTHOrder:ProductData');
+
+     var plantaExterna = FTTHCommon.getValueAttributeFromAttributeList("indPlantaExterna", serviceRequest.atributos);
+     productData.idBundle          = FTTHCommon.getValueAttributeFromAttributeList("idBundle", serviceRequest.atributos);
+     productData.nomePacote        = FTTHCommon.getValueAttributeFromAttributeList("nomeBundle", serviceRequest.atributos);
+     productData.quantidadePontosIPTV = FTTHCommon.getValueAttributeFromAttributeList("qtdPontosIptv", serviceRequest.atributos);
+    //07/06/2018 - Correção pendencias de UAT
+     productData.planoVoIP            = FTTHCommon.getValueAttributeFromAttributeList("IdPlanoVOIP", serviceRequest.atributos);//IdPlanoVOIP
+     productData.planoHSI             = FTTHCommon.getValueAttributeFromAttributeList("IdPlanoHSI", serviceRequest.atributos);//IdPlanoHSI
+     productData.planoIPTV            = FTTHCommon.getValueAttributeFromAttributeList("IdPlanoIPTV", serviceRequest.atributos);//IdPlanoIPTV
+
+     if (FTTHCommon.getValueAttributeFromAttributeList("IdPlanoIPTV", serviceRequest.atributos)) {
+         productData.planoRFTV       = FTTHCommon.getValueAttributeFromAttributeList("IdPlanoIPTV", serviceRequest.atributos)+'_RF';
+         productData.planoOTT        = FTTHCommon.getValueAttributeFromAttributeList("IdPlanoIPTV", serviceRequest.atributos)+'_OTT';
+     }
+     //end 07/06/2018
+
+
+     productData.nomePlanoHSI         = FTTHCommon.getValueAttributeFromAttributeList("nomePlanoBL", serviceRequest.atributos);
+     productData.nomePlanoVoIP        = FTTHCommon.getValueAttributeFromAttributeList("nomePlanoVOIP", serviceRequest.atributos);
+     productData.nomePlanoIPTV        = FTTHCommon.getValueAttributeFromAttributeList("nomePlanoTV", serviceRequest.atributos);
+     if (FTTHCommon.getValueAttributeFromAttributeList("nomePlanoTV", serviceRequest.atributos)) {
+      productData.nomePlanoRFTV        = FTTHCommon.getValueAttributeFromAttributeList("nomePlanoTV", serviceRequest.atributos)+'_RF';
+      productData.nomePlanoOTT        = FTTHCommon.getValueAttributeFromAttributeList("nomePlanoTV", serviceRequest.atributos)+'_OTT';
+     }
+
+     productData.identificadorVoIP = FTTHCommon.getValueAttributeFromAttributeList("idVOIP", serviceRequest.atributos);// Já estava mapeado
+     productData.identificadorHSI     = FTTHCommon.getValueAttributeFromAttributeList("idBL", serviceRequest.atributos);
+     productData.identificadorIPTV    = FTTHCommon.getValueAttributeFromAttributeList("idTV", serviceRequest.atributos);
+
+    //07/06/2018 - Correção pendencias de UAT
+     if (FTTHCommon.getValueAttributeFromAttributeList("idTV", serviceRequest.atributos)) {
+         productData.identificadorRFTV= FTTHCommon.getValueAttributeFromAttributeList("idTV", serviceRequest.atributos)+'_RF';
+         productData.identificadorOTT = FTTHCommon.getValueAttributeFromAttributeList("idTV", serviceRequest.atributos)+'_OTT';
+     }
+    //end 07/06/2018
+     productData.planoVoIP_idItem  = FTTHCommon.getValueAttributeFromAttributeList("idPlanoVoip", serviceRequest.atributos);// Já estava mapeado
+
+     productData.numeroVoIP        = FTTHCommon.getValueAttributeFromAttributeList("numeroVoip", serviceRequest.atributos);
+     productData.tipoPlano         = FTTHCommon.getValueAttributeFromAttributeList("tipoPlanoVoip", serviceRequest.atributos);
+     productData.tipoUso           = FTTHCommon.getValueAttributeFromAttributeList("tipoUsoVoip", serviceRequest.atributos);
+     productData.valorFranquia     = FTTHCommon.getValueAttributeFromAttributeList("valorFranquiaVoip", serviceRequest.atributos);
+     productData.unidadeFranquia   = FTTHCommon.getValueAttributeFromAttributeList("undFranquiaVoip", serviceRequest.atributos);
+
+
+     productData.portableNumber    = FTTHCommon.getValueAttributeFromAttributeList("numPortado", serviceRequest.atributos);
+
+     productData.qtdPontosHDPago     = FTTHCommon.getValueAttributeFromAttributeList("qtdPontosSTBHDPago", serviceRequest.atributos);
+     productData.qtdPontosHDGratis   = FTTHCommon.getValueAttributeFromAttributeList("qtdPontosSTBHDGratis", serviceRequest.atributos);
+     productData.qtdPontosDVRGratis  = FTTHCommon.getValueAttributeFromAttributeList("qtdPontosSTBDVRGratis", serviceRequest.atributos);
+     productData.qtdPontosRFOverlay     = FTTHCommon.getValueAttributeFromAttributeList("qtdPontosRFOverlay", serviceRequest.atributos);
+
+
+     productData.velocidadeDownload   = FTTHCommon.getValueAttributeFromAttributeList("velocidadeDownload", serviceRequest.atributos);
+     productData.velocidadeUpload     = FTTHCommon.getValueAttributeFromAttributeList("velocidadeUpload", serviceRequest.atributos);
+     productData.velocidadeContratada = FTTHCommon.getValueAttributeFromAttributeList("velocidadeContratada", serviceRequest.atributos);
+     productData.nomePromocao         = FTTHCommon.getValueAttributeFromAttributeList("nomePromocao", serviceRequest.atributos);
+
+
+     productData.planoHSI_idItem = FTTHCommon.getValueAttributeFromAttributeList("idPlanoHSI", serviceRequest.atributos);
+     productData.planoIPTV_idItem = FTTHCommon.getValueAttributeFromAttributeList("idPlanoIPTV", serviceRequest.atributos);
+     //CR 6781
+     productData = mapeiaPlanoClick(flagBSIM,rollout,plantaExterna);
+     return productData;
+
+     function mapeiaPlanoClick(flagBSIM,rollout,plantaExterna){
+        //Se a planta externa for S então temos que verificar se é Rollout para verificar se é CLICK
+        if(plantaExterna == "S" && rollout){
+            productData.nomePlanoVoIP     =  FTTHCommon.getValueAttributeFromAttributeList("PlanoVOIP", serviceRequest.atributos);
+            productData.nomePlanoHSI      =  FTTHCommon.getValueAttributeFromAttributeList("PlanoHSI", serviceRequest.atributos);
+            productData.nomePlanoIPTV     =  FTTHCommon.getValueAttributeFromAttributeList("PlanoTV", serviceRequest.atributos);
+            productData.nomePlanoRFTV        = FTTHCommon.getValueAttributeFromAttributeList("PlanoTV", serviceRequest.atributos)+'_RF';
+            productData.nomePlanoOTT        = FTTHCommon.getValueAttributeFromAttributeList("PlanoTV", serviceRequest.atributos)+'_OTT';
+        }
+     return productData;
+     }
+  ]]></script>
+</script>

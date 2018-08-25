@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.SuspendIPTVAPCHandleIssueSubprocess_cwr12">
+  <activity name="SuspendIPTVAPCHandleIssueStart" type="seqActivity">
+    <guid>{ef418ac1-947b-448a-ae0c-fd6ca200483e}</guid>
+    <label>Suspend IPTV APC Handle Issue Start</label>
+    <x>94.81249</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{0f34c259-62a9-4639-832e-bf44003c21bb}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>95.88748</x>
+        <y>130.64139</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{63f583de-f567-493b-8148-bd37277fb90f}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>98.68652</x>
+            <y>225.40234</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{787731d3-5495-43fb-a832-3446147c6020}</guid>
+        <label>Check Issue Type</label>
+        <x>100.6924</x>
+        <y>351.50586</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{68243f13-4887-4e17-8e48-53676fa6b8e7}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{e4fd2fba-c0c0-4c72-b4d4-31e057d4f525}</guid>
+                <label>Technical Issue</label>
+                <x>161.7084</x>
+                <y>462.9082</y>
+                <childList>
+                  <child name="SuspendIPTVAPCSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.SuspendIPTVAPCSolveIssueTask_cwr4</element>
+                    <guid>{68cfd955-6ce5-4b13-ab67-6de8fe791fe1}</guid>
+                    <label>Suspend IPTV APC Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>554.9082</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{16d288be-e7d5-4e2e-8e14-07e32e810321}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>164.37206</x>
+                    <y>695.7129</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{620e56fd-9be3-4b9f-9f66-1eaad85a1d6b}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{207b5549-f054-4ec2-98b6-0c70cb270052}</guid>
+                <label>Client Issue</label>
+                <x>47.020508</x>
+                <y>462.9082</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{6f4eddbb-6cd2-4b3b-8ba8-107b9b1cf9cd}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.000013</x>
+                    <y>563.2588</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Bloquear IPTV&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de bloqueio de IPTV. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de bloqueio de IPTV para o sistema de rede. Ou poder&#225;
+      finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de Bloquear
+      IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Suspend IPTV APC Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.SuspendIPTVAPCHandleIssueSubprocess</process>
+  <revision>12</revision>
+  <type>Sub-flow</type>
+</process__revision>

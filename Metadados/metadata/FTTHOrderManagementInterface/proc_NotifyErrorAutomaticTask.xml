@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHOrderManagementInterface.NotifyErrorAutomaticTask">
+  <activity name="NotifyErrorStart" type="seqActivity">
+    <guid>{3bc5242c-1a3e-467a-a5ff-d5f2bd55b908}</guid>
+    <label>NotifyErrorStart</label>
+    <x>124.481544</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyErrorOperation" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMSenderInterface/oper_NotifyOperation</element>
+        <guid>{8dcb855f-dd90-4255-889a-e7c720f91467}</guid>
+        <invokeDirectly>true</invokeDirectly>
+        <label>NotifyErrorOperation</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>175.39258</x>
+        <y>121.0</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var docNotificacao = this.process.processDocument;
+
+              this.process.processDocument.erroNotificado = false;
+
+              var msg = FTTHOrderManagementInterface.CreateNotifyErrorMessage(docNotificacao, this.activityData);
+
+              FTTHCommon.log(null, this.process.id, "Notify Error Automatic Task", "Notify Error Operation", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              var docNotificacao = this.process.processDocument;
+              messageDoc.userData1 = docNotificacao.numeroPedido;
+              messageDoc.userData2 = docNotificacao.numeroOS;
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(null, this.process.id, "Notify Error Automatic Task", "Notify Error Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+              this.process.processDocument.erroNotificado = true;
+              var docNotificacao = this.process.processDocument;
+
+              var msgLogDoc = UserProfile.getMsgLogDoc();
+              if(msgLogDoc != null) {
+                  msgLogDoc.userData1 = docNotificacao.numeroPedido;
+                  msgLogDoc.userData2 = docNotificacao.numeroOS;
+                  msgLogDoc.save();
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{7df1768c-d7e6-4882-ade0-e16a93805a64}</guid>
+        <label>exceptionHandler</label>
+        <x>30.0</x>
+        <y>122.0</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script>this.process.processDocument.erroNotificado= false;</script>
+          </method>
+        </methodList>
+      </child>
+      <child name="OMSenderParticipant" type="participantActivity">
+        <guid>{86e3bb85-e17e-40fa-aaac-009ff9414a58}</guid>
+        <label>OM Sender Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>173.41211</x>
+        <y>218.70117</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Notifica&#231;&#227;o de errro na cria&#231;&#227;o da ordem no WMS
+    </p>
+  ]]></description>
+  <document>doc_FTTHOrderManagementInterface.ErrorNotification</document>
+  <guid>{ee35d5ab-7024-434e-85d5-a4778846f4a4}</guid>
+  <label>Notify Error Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <parentProcessDoc>true</parentProcessDoc>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>User</type>
+</process>

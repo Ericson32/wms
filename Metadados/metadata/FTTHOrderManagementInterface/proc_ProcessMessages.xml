@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHOrderManagementInterface.ProcessMessages">
+  <activity name="Start" type="seqActivity">
+    <guid>{716a4387-9aee-4a05-9566-128b490568a9}</guid>
+    <label>Start</label>
+    <x>661.37006</x>
+    <y>168.10352</y>
+    <childList>
+      <child name="Choice" type="choiceActivity">
+        <guid>{22d37a57-ab66-4c8f-8375-326719fccd2c}</guid>
+        <label>Choice</label>
+        <x>285.13477</x>
+        <y>29.0</y>
+        <childList>
+          <child name="Submit" type="opActivity">
+            <element>iface_FTTHOrderManagementInterface.ProcessMessagesInterface/oper_Submit</element>
+            <guid>{03486a2f-d9bc-40d4-88b0-4f4d59e33ca5}</guid>
+            <label>Submit</label>
+            <x>465.4043</x>
+            <y>171.70117</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  try {
+                      Global.logInfo('Process Messages Submit cwOnProcActAfter');
+
+                     if(this.activityData.metadataType == "FTTHServiceRequest:serviceRequest"){
+                          FTTHServiceRequest.createSRProcess(this.activityData);
+                      }else{
+                          FTTHOrderManagementInterface.CreateOrderProcess(this.activityData, this.process);
+                      }
+                  } catch(e) {
+                      Global.logError('Excecao em FTTHOrderManagementInterface.ProcessMessages.Submit: ' + e);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="opActivity">
+            <element>iface_FTTHOrderManagementInterface.ProcessMessagesInterface/oper_Error</element>
+            <guid>{0a3cab04-1c39-4f18-8ff3-36598d8303d9}</guid>
+            <label>Error</label>
+            <x>381.4043</x>
+            <y>171.70117</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  try {
+                      Global.logInfo('Global Process: Process Messages - Operation: Error - Method: cwOnProcActAfter');
+
+                      var orderId = null;
+                      if(this.process.processOrder != null)
+                          orderId = this.process.processOrder.id;
+
+                      var doc = FTTHOrderManagementInterface.ReturnAsyncError(orderId, this.activityData);
+
+                      Process.startProcess("FTTHOrderManagementInterface:NotifyErrorAutomaticTask", doc);
+
+                  } catch(e) {
+                      Global.logError('Excecao em FTTHOrderManagementInterface.ProcessMessages.Error');
+                      Global.logError(e);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Initiate" type="opActivity">
+            <element>iface_FTTHOrderManagementInterface.ProcessMessagesInterface/oper_Initiate</element>
+            <guid>{8cdc44fe-677e-436d-9264-e517b6cb96c0}</guid>
+            <label>Initiate</label>
+            <x>295.04883</x>
+            <y>171.70117</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  try {
+                      Global.logInfo('Process Messages Initiate cwOnProcActAfter');
+
+                     FTTHOrderManagementInterface.StartOrderProcess(this.activityData);
+
+                  } catch(e) {
+                      Global.logError('Excecao em FTTHOrderManagementInterface.ProcessMessages.InitiateOrderProcess: ' + e);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Cancel" type="opActivity">
+            <element>iface_FTTHOrderManagementInterface.ProcessMessagesInterface/oper_Cancel</element>
+            <guid>{09f8e410-45ca-4c5f-86e4-e5f3f5d437e3}</guid>
+            <label>Cancel</label>
+            <x>204.69531</x>
+            <y>171.70117</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  try {
+                      Global.logInfo('Process Messages Cancel cwOnProcActAfter');
+                      FTTHOrderManagementInterface.CancelOrder(this.activityData);
+                  } catch(e) {
+                      Global.logError('Excecao em FTTHOrderManagementInterface.ProcessMessages.Cancel: ' + e);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Update" type="opActivity">
+            <element>iface_FTTHOrderManagementInterface.ProcessMessagesInterface/oper_Update</element>
+            <guid>{cd407092-a226-4e8d-b11f-35fbd0a16e0c}</guid>
+            <label>Update</label>
+            <x>116.0</x>
+            <y>171.70117</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  try {
+                      Global.logInfo('Global Process: Process Messages - Operation: Update - Method: cwOnProcActAfter');
+
+                      FTTHOrderManagementInterface.UpdateOrderProcess(this.activityData);
+                  } catch(e) {
+                      Global.logError('Excecao em FTTHOrderManagementInterface.ProcessMessages.Update: ' + e);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Issue" type="opActivity">
+            <element>iface_FTTHOrderManagementInterface.ProcessMessagesInterface/oper_Issue</element>
+            <guid>{34161944-30d3-4e5d-a9cc-c054ee9cb007}</guid>
+            <label>Issue</label>
+            <x>32.0</x>
+            <y>171.70117</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  try {
+                      Global.logInfo('Global Process: Process Messages - Operation: Issue - Method: cwOnProcActAfter');
+
+                      /*
+                      var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                      ohs.numeroOS = this.activityData.cwOrderId;
+                      var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                      if(queryResult.size == 0) {
+                          Global.logInfo("Processo nao encontrado para orderId: " + this.activityData.cwOrderId);
+                  }
+
+                  var ord = Order.getOrderById(this.activityData.cwOrderId);
+                  if(!ord) {
+                      Global.logInfo("Ordem nao encontrada com id " + this.activityData.cwOrderId);
+                      return;
+                  }
+                  ord.issueData.idProcesso = queryResult[0].idProcesso;
+                  ord.save();
+                  */
+
+
+                  var doc = FTTHOrderManagementInterface.ReturnSyncIssue(this.activityData);
+
+                  if(this.activityData.flagIssueStatus == 0) {
+                      Process.startProcess("FTTHProcess:notifyIssueProcess", doc);
+
+                  } else {
+                      doc.dataFechamento = new Date();
+                      doc.save();
+
+                      Process.startProcess("FTTHProcess:notifyCloseIssueProcess", doc);
+                      process.sendSignalFromProcess("FTTHHandleIssueProcess.technicalIssueChangeReady", doc.processIdSignal);
+                  }
+
+                  } catch(e) {
+                      Global.logError('Excecao em FTTHOrderManagementInterface.ProcessMessages.Issue');
+                      Global.logError(e);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Reschedule" type="opActivity">
+            <element>iface_FTTHOrderManagementInterface.ProcessMessagesInterface/oper_Reschedule</element>
+            <guid>{d965dcc7-c0aa-415b-96f9-d1a10f516dd0}</guid>
+            <label>Reschedule</label>
+            <x>532.0</x>
+            <y>174.70117</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  try {
+                      Global.logInfo('Global Process: Process Messages - Operation: Reschedule - Method: cwOnProcActAfter');
+                      FTTHOrderManagementInterface.UpdateOrderReschedule(this.activityData);
+                  } catch(e) {
+                      Global.logError('Excecao em FTTHOrderManagementInterface.ProcessMessages.InitiateOrderProcess: ' + e);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="Seq" type="seqActivity">
+        <guid>{f232c8ea-295e-4531-ba2f-435526337f5b}</guid>
+        <label>Seq</label>
+        <x>243.98813</x>
+        <y>298.40234</y>
+        <childList>
+          <child name="Repeat" type="repeatActivity">
+            <element>proc_FTTHOrderManagementInterface.ProcessMessages/seqActivity_Start</element>
+            <guid>{66d96a49-1bce-46df-b565-626bcb979fac}</guid>
+            <label>Repeat</label>
+            <x>246.64047</x>
+            <y>390.40234</y>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{63468f35-8f08-42fa-8598-8ec2a91a73ac}</guid>
+  <interface>iface_FTTHOrderManagementInterface.ProcessMessagesInterface</interface>
+  <label>Process Messages</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>Global</type>
+</process>

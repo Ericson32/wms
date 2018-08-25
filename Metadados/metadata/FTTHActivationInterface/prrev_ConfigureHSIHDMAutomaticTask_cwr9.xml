@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.ConfigureHSIHDMAutomaticTask_cwr9">
+  <activity name="ConfigureHSIHDMAutomaticTaskStart" type="seqActivity">
+    <guid>{527f47a8-ea9e-469e-a336-a8ad7f4b239e}</guid>
+    <label>Configure HSI HDM Automatic Task Start</label>
+    <x>112.15091</x>
+    <y>950.7545</y>
+    <childList>
+      <child name="ConfigureHSIHDMSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{1c1c3672-ccb2-4ded-aed7-0005ca0b9415}</guid>
+        <label>Configure HSI HDM Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>237.85483</x>
+        <y>1078.8281</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_ACTIVITY = "Configurar HSI HDM";
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+                              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure HSI HDM Automatic Task", "Configure HSI HDM Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONFIGURAR_HSI_HDM"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                   Global.getConfigVariable("CONFIGURAR_HSI_HDM"),
+                                   status,
+                                   this.activityData.code,
+                                   this.activityData.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                         Global.getConfigVariable("CONFIGURAR_HSI_HDM"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckSendOperationResult" type="switchActivity">
+        <guid>{87124512-4b33-4436-a792-5b0ad79e1841}</guid>
+        <label>Check Send Operation Result</label>
+        <x>247.26855</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{4793bb5e-4b8f-468d-8db7-5aaeb02171a4}</guid>
+            <label>Success</label>
+            <x>275.14493</x>
+            <y>236.0</y>
+            <childList>
+              <child name="WaitAutomaticActivity" type="choiceActivity">
+                <guid>{bc7ddd28-f765-4bbe-942a-3f34ea82a89d}</guid>
+                <label>Wait Automatic Activity</label>
+                <x>75.26465</x>
+                <y>185.80469</y>
+                <childList>
+                  <child name="TimeOutControl" type="timeoutActivity">
+                    <guid>{3a553e8f-36d8-4557-8879-0a85674e64cc}</guid>
+                    <label>TimeOut Control</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                              return timeout;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>45.679688</x>
+                    <y>319.2588</y>
+                    <childList>
+                      <child name="StatusTimeout" type="scriptActivity">
+                        <guid>{d66bf406-f47f-4031-86b1-74ece1a1bfd2}</guid>
+                        <label>StatusTimeout</label>
+                        <x>30.0</x>
+                        <y>460.06348</y>
+                        <methodList>
+                          <method name="cwOnProcActBefore" type="action">
+                            <category>before</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure HSI Status Timeout", "cwOnProcActBefore", null);
+
+                              var errorTypeResult = "" ;
+                              var searchErrorTypeDoc = "";
+                              var orderId = this.process.processOrder.id;
+                              var activity = Global.getConfigVariable("CONFIGURAR_HSI");
+                              var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                              FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                              searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                              searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                              searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                              errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                              var errorType = errorTypeResult.start;
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                   Global.getConfigVariable("CONFIGURAR_HSI"),
+                                                   status,
+                                                   errorType.errorCode,
+                                                   errorType.errorDescription,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_REQUEST"));
+
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                         Global.getConfigVariable("CONFIGURAR_HSI"));
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                  <child name="ConfigureHSIHDMReceiveOperation" type="opActivity">
+                    <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                    <guid>{b9c52783-f3bc-4841-88cc-a12c86d552c8}</guid>
+                    <label>Configure HSI HDM Receive Operation</label>
+                    <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                    <x>155.36719</x>
+                    <y>438.01172</y>
+                    <methodList>
+                      <method name="cwOnProcActAfter" type="action">
+                        <category>script</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure HSI HDM Automatic Task", "Configure HSI HDM Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                          var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONFIGURAR_HSI_HDM"), status);
+
+                          FTTHCommon.saveEvent(this.process.processOrder.id,
+                                               Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                               Global.getConfigVariable("CONFIGURAR_HSI_HDM"),
+                                               status,
+                                               this.activityData.code,
+                                               this.activityData.description,
+                                               this.process.id,
+                                               Global.getConfigVariable("ASYNC_RESPONSE"));
+                          FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                     Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                     Global.getConfigVariable("CONFIGURAR_HSI_HDM"));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{47043ce0-209f-4ee5-8cfd-86377bab53a9}</guid>
+            <label>Error</label>
+            <x>317.45215</x>
+            <y>326.60938</y>
+          </child>
+        </childList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{b90a1612-bbcb-41d9-be82-183dbd54712d}</guid>
+        <label>exceptionHandler</label>
+        <x>86.39499</x>
+        <y>1249.8799</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id,Global.getConfigVariable("CONFIGURAR_HSI_HDM"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{8aab3153-ffd3-420b-92ec-4f28d88c9274}</guid>
+        <label>Check Resend</label>
+        <x>167.13391</x>
+        <y>593.8164</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>146.70996</x>
+            <y>685.8164</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "CONFIGURAR_HSI_HDM", "ACTIVATION_SYSTEM");
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHActivationInterface.ConfigureHSIHDMAutomaticTask_cwr9/seqActivity_ConfigureHSIHDMAutomaticTaskStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <x>112.40833</x>
+                    <y>811.9199</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>226.44348</x>
+                <y>819.2705</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("CONFIGURAR_HSI_HDM"), Global.getConfigVariable("ACTIVATION_SYSTEM")));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ConfigureHSIHDMAutomaticTaskComplete" type="completeActivity">
+        <guid>{ec353033-8dca-41c3-9a0f-8851b6a6381d}</guid>
+        <label>Configure HSI HDM Automatic Task Complete</label>
+        <x>215.75793</x>
+        <y>923.32227</y>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{46183d54-c708-491e-8e83-fd69ef98ab91}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>207.20444</x>
+        <y>1219.6328</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{e362e583-6e2d-456a-929b-867a7dc585b9}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>155.45215</x>
+        <y>311.9082</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Configurar
+      HSI. Inicialmente o fluxo envia para o sistema de Rede uma solicita&#231;&#227;o
+      de configura&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de tempo pr&#233;
+      determinado, ser&#227;o feitas mais algumas retentativas. A quantidade de
+      retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Configure HSI HDM Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.ConfigureHSIHDMAutomaticTask</process>
+  <revision>9</revision>
+  <type>User</type>
+</process__revision>

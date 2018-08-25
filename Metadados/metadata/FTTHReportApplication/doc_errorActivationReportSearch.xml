@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHReportApplication.errorActivationReportSearch">
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{31ea520c-258e-4c9f-b142-d7cb7f06fb27}</guid>
+  <label>Error Activation Report Search</label>
+  <metaVersion>3</metaVersion>
+  <variableList>
+    <variable name="numeroOS" type="leaf">
+      <label>Numero OS</label>
+      <valueType>dtype_FTTHCommon.numeroOS</valueType>
+    </variable>
+    <variable name="idPedido" type="leaf">
+      <label>Numero Pedido</label>
+      <valueType>dtype_FTTHCommon.numeroPedido</valueType>
+    </variable>
+    <variable name="tpOrdemServico" type="leaf">
+      <label>Tipo OS</label>
+      <valueType>dtype_FTTHCommon.tipoOS</valueType>
+    </variable>
+    <variable name="agregSolicitacao" type="leaf">
+      <label>Lista de Solicitacoes</label>
+      <valueType>dtype_FTTHCommon.listaSolicitacoes</valueType>
+    </variable>
+    <variable name="acessoGPON" type="leaf">
+      <label>AcessoGPON</label>
+      <valueType>dtype_FTTHCommon.acessoGPON</valueType>
+    </variable>
+    <variable name="nome" type="leaf">
+      <label>Nome</label>
+      <valueType>dtype_FTTHCommon.nome</valueType>
+    </variable>
+    <variable name="estacao" type="leaf">
+      <label>Estacao</label>
+      <valueType>dtype_FTTHCommon.estacao</valueType>
+    </variable>
+    <variable name="estado" type="leaf">
+      <label>Estado Logradouro</label>
+      <valueType>dtype_FTTHCommon.estadoLogradouro</valueType>
+    </variable>
+    <variable name="atividade" type="leaf">
+      <label>Atividade</label>
+      <valueType>dtype_FTTHReportApplication.activationSystemActivities</valueType>
+    </variable>
+    <variable name="statusAtividade" type="leaf">
+      <label>Status Atividade</label>
+      <valueType>dtype_FTTHCommon.statusAtividade</valueType>
+    </variable>
+    <variable name="estadoOS" type="leaf">
+      <label>Estado OS</label>
+      <valueType>dtype_FTTHCommon.estadoOS</valueType>
+    </variable>
+    <variable name="dataAbertura" type="leaf">
+      <label>Data de Abertura</label>
+      <propertyElement type="eldatetime">
+        <displayFormat>dd/MM/yyyy HH:mm</displayFormat>
+      </propertyElement>
+      <valueType>dtype_FTTHCommon.dataAbertura</valueType>
+    </variable>
+    <variable name="dataFechamento" type="leaf">
+      <label>Data de Fechamento</label>
+      <propertyElement type="eldatetime">
+        <displayFormat>dd/MM/yyyy HH:mm</displayFormat>
+      </propertyElement>
+      <valueType>dtype_FTTHCommon.dataFechamento</valueType>
+    </variable>
+    <variable name="dataAberturaAtividade" type="leaf">
+      <label>Data Abertura Atividade</label>
+      <propertyElement type="eldatetime">
+        <displayFormat>dd/MM/yyyy HH:mm</displayFormat>
+        <label>Data Abertura Atividade</label>
+      </propertyElement>
+      <valueType>dtype_com.conceptwave.system.DateTime</valueType>
+    </variable>
+    <variable name="dataFechamentoAtividade" type="leaf">
+      <label>Data Fechamento Atividade</label>
+      <propertyElement type="eldatetime">
+        <displayFormat>dd/MM/yyyy HH:mm</displayFormat>
+        <label>Data Fechamento Atividade</label>
+      </propertyElement>
+      <valueType>dtype_com.conceptwave.system.DateTime</valueType>
+    </variable>
+    <variable name="codigoMensagem" type="leaf">
+      <label>Código Erro Mensagem</label>
+      <propertyElement type="elfld">
+        <label>Código Erro Mensagem</label>
+      </propertyElement>
+      <valueType>dtype_cwt_common.string32</valueType>
+    </variable>
+    <variable name="OLTRACK" type="leaf">
+      <label>OLT RACK</label>
+      <valueType>dtype_FTTHCommon.OLTRACK</valueType>
+    </variable>
+    <variable name="OLTSHELF" type="leaf">
+      <label>OLT SHELF</label>
+      <valueType>dtype_FTTHCommon.OLTSHELF</valueType>
+    </variable>
+    <variable name="OLTSLOT" type="leaf">
+      <label>OLT SLOT</label>
+      <valueType>dtype_FTTHCommon.OLTSLOT</valueType>
+    </variable>
+    <variable name="OLTPORT" type="leaf">
+      <label>OLT PORT</label>
+      <valueType>dtype_FTTHCommon.OLTPORT</valueType>
+    </variable>
+    <variable name="auxAtividade" type="leaf">
+      <label>string128</label>
+      <valueType>dtype_cwf_oe.string128</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="cwLeafInitAction$dataFechamentoAtividade" type="laction">
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataFechamentoAtividade</path>
+      <type>initializer</type>
+      <script>return new Date();</script>
+    </method>
+    <method name="validateDataFechamentoAtividade" type="crule">
+      <message>Data inválida</message>
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataFechamentoAtividade</path>
+      <severity>error</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        if(document.dataAberturaAtividade != null && document.dataFechamentoAtividade != null)
+            return Calendar.isDateBefore(document.dataFechamentoAtividade,document.dataAberturaAtividade,0,0);
+
+        if(document.dataAberturaAtividade != null && document.dataFechamentoAtividade == null)
+            return true;
+
+        return false;
+      ]]></script>
+    </method>
+    <method name="validateAllMandatoryFields_dataFechamentoAtividade" type="crule">
+      <code>UU1107</code>
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataFechamentoAtividade</path>
+      <severity>error</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        if(document.dataAbertura == null && document.dataFechamento == null && document.dataAberturaAtividade == null && document.dataFechamentoAtividade == null)
+            return true;
+
+        return false;
+      ]]></script>
+    </method>
+    <method name="cwLeafInitAction$dataAberturaAtividade" type="laction">
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataAberturaAtividade</path>
+      <type>initializer</type>
+      <script><![CDATA[
+        var date = new Date();
+        var day = date.getDate()-2;
+        return new Date(date.setDate(day));
+      ]]></script>
+    </method>
+    <method name="validationDataAberturaAtividade" type="crule">
+      <message>Data inválida</message>
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataAberturaAtividade</path>
+      <severity>error</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        if(document.dataAberturaAtividade != null && document.dataFechamentoAtividade != null)
+            return Calendar.isDateBefore(document.dataFechamentoAtividade,document.dataAberturaAtividade,0,0);
+
+        if(document.dataAberturaAtividade == null && document.dataFechamentoAtividade != null)
+            return true;
+
+        return false;
+      ]]></script>
+    </method>
+    <method name="validateAllMandatoryFields_dataAberturaAtividade" type="crule">
+      <code>UU1107</code>
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataAberturaAtividade</path>
+      <severity>error</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        if(document.dataAbertura == null && document.dataFechamento == null && document.dataAberturaAtividade == null && document.dataFechamentoAtividade == null)
+            return true;
+
+        return false;
+      ]]></script>
+    </method>
+    <method name="validateDataFechamento" type="crule">
+      <message>Data inválida</message>
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataFechamento</path>
+      <severity>error</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        if(document.dataAbertura != null && document.dataFechamento != null)
+            return Calendar.isDateBefore(document.dataFechamento,document.dataAbertura,0,0);
+
+        if(document.dataAbertura != null && document.dataFechamento == null)
+            return true;
+
+        return false;
+      ]]></script>
+    </method>
+    <method name="validateAllMandatoryFields_dataFechamento" type="crule">
+      <code>UU1107</code>
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataFechamento</path>
+      <severity>error</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        if(document.dataAbertura == null && document.dataFechamento == null && document.dataAberturaAtividade == null && document.dataFechamentoAtividade == null)
+            return true;
+
+        return false;
+      ]]></script>
+    </method>
+    <method name="validateDataAbertura" type="crule">
+      <message>Data inválida</message>
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataAbertura</path>
+      <severity>error</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        if(document.dataAbertura != null && document.dataFechamento != null)
+            return Calendar.isDateBefore(document.dataFechamento,document.dataAbertura,0,0);
+
+        if(document.dataAbertura == null && document.dataFechamento != null)
+            return true;
+
+        return false;
+      ]]></script>
+    </method>
+    <method name="validateAllMandatoryFields_dataAbertura" type="crule">
+      <code>UU1107</code>
+      <path>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataAbertura</path>
+      <severity>error</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        if(document.dataAbertura == null && document.dataFechamento == null && document.dataAberturaAtividade == null && document.dataFechamentoAtividade == null)
+            return true;
+
+        return false;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHReportApplication.errorActivationReportSearch</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="searchForm" type="vform">
+            <label>searchForm</label>
+            <root name="searchFormGrid_vCentering" type="elvltstck">
+              <height>100%</height>
+              <membersMargin>5</membersMargin>
+              <width>100%</width>
+              <elementList>
+                <element name="errorActivationReportSearchGrid" type="elgrd">
+                  <cellPadding>5</cellPadding>
+                  <colWidths>200px</colWidths>
+                  <membersMargin>5</membersMargin>
+                  <numOfCols>6</numOfCols>
+                  <useDefaultHeight>true</useDefaultHeight>
+                  <width>960px</width>
+                  <elementList>
+                    <element name="numeroOS" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_numeroOS</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="idPedido" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_idPedido</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="tpOrdemServico" type="elslct">
+                      <sorted>false</sorted>
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_tpOrdemServico</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="agregSolicitacao" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_agregSolicitacao</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="acessoGPON" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_acessoGPON</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="nome" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_nome</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="estacao" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_estacao</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="estado" type="elslct">
+                      <sorted>false</sorted>
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_estado</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="atividade" type="elslct">
+                      <sorted>false</sorted>
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_atividade</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="statusAtividade" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_statusAtividade</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="estadoOS" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_estadoOS</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="dataAbertura1" type="eldate">
+                      <displayFormat>dd/MM/yyyy</displayFormat>
+                      <editable type="varPath">
+                        <variablePathList>
+                          <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                        </variablePathList>
+                      </editable>
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataAbertura</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="dataFechamento1" type="eldate">
+                      <displayFormat>dd/MM/yyyy</displayFormat>
+                      <editable type="varPath">
+                        <variablePathList>
+                          <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                        </variablePathList>
+                      </editable>
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataFechamento</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="dataAberturaAtividade" type="eldatetime">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataAberturaAtividade</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="dataFechamentoAtividade" type="eldatetime">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_dataFechamentoAtividade</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="codigoMensagem" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_codigoMensagem</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="OLTRACK" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_OLTRACK</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="OLTSHELF" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_OLTSHELF</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="OLTSLOT" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_OLTSLOT</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                    <element name="OLTPORT" type="elfld">
+                      <variable type="varPath">
+                        <variablePathList>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/uivar_model</variablePath>
+                          <variablePath>doc_FTTHReportApplication.errorActivationReportSearch/leaf_OLTPORT</variablePath>
+                        </variablePathList>
+                      </variable>
+                    </element>
+                  </elementList>
+                </element>
+              </elementList>
+            </root>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+</document>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.hasActivity">
+  <label>Verifica se uma ordem tem uma dada atividade.</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.orderId</type>
+    </parameter>
+    <parameter name="atividades" type="rifp">
+      <array>true</array>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="statusAtividade" type="rifp">
+      <type>dtype_FTTHCommon.statusAcao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc = new Document ("FTTHCommon:Activity");
+    searchDoc.orderId = orderId;
+    searchDoc.status = statusAtividade;
+
+    var result = Finder.runSearch ("FTTHCommon.statusActivityFinder", searchDoc);
+
+    for (var i = 0; i < result.length; i++){
+        for (var j = 0; j < atividades.length; j++) {
+            if (result[i].activityId == atividades[j])
+                return true;
+        }
+    }
+
+
+    return false;
+  ]]></script>
+</script>

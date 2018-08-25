@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ReconfigureHSIAPCHandleErrorTask_cwr1">
+  <activity name="startReconfigureHSIAPCHandleError" type="seqActivity">
+    <guid>{dca09c8b-fe8d-4afa-bb37-927b73829524}</guid>
+    <label>Start Reconfigure HSI APC Handle Error</label>
+    <x>87.35274</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureHSIAPCHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIAPCHandleError</element>
+        <guid>{cfd1378a-0963-42b7-835c-3e29bee7161e}</guid>
+        <label>Reconfigure HSI APC Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>88.35254</x>
+        <y>124.76094</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{7bc4d1ce-190f-4f21-b54e-11376339a1a1}</guid>
+        <label>Wait Manual Activity</label>
+        <x>36.675293</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="ReconfigureHSIAPCHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIAPCHandleErrorIssue</element>
+            <guid>{5a17e714-52c5-4662-84d1-85f121236762}</guid>
+            <label>Reconfigure HSI APC Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>159.47998</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_HSI_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReconfigureHSIAPCHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIAPCHandleErrorResend</element>
+            <guid>{a22d73ef-4dce-46cc-9a58-22f6bea5f9cf}</guid>
+            <label>Reconfigure HSI APC Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>30.0</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_HSI_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{85561734-9156-4abe-949f-3e9e017a89ad}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>128.04834</x>
+        <y>265.5656</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("RECONFIGURAR_HSI_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a reconfigura&#231;&#227;o de HSI autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Reconfigure HSI APC Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ReconfigureHSIAPCHandleErrorTask</process>
+  <type>Sub-flow</type>
+</process__revision>

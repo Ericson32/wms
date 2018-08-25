@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHClickInterface.createBAExternalCloseRequestMessage">
+  <label>createBAExternalCloseRequestMessage</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ord" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="request" type="rifp">
+      <type>dstruct_FTTHClickWorkForceManager.externalCloseTaskRequest</type>
+    </parameter>
+    <parameter name="indCancelamento" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="codEncerramento" type="rifp">
+      <type>dtype_FTTHClickInterface.codEncerramento</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var ma = new Document('FTTHOrder:ManualActivityData');
+    ma.cwOrderId = ord.OrderHeader.cwOrderId;
+    var result = Finder.runSearch('FTTHOrder:ManualActivityDataFinder', ma);
+
+    //MS - Correção Defeito PRJ14008#234 - 14/10/2017
+    if(result){
+        if(result.start){
+            //encontrou resultado, mantêm comportamento
+        } else{
+            ma.statusAtividade = null;
+            result = Finder.runSearch('FTTHOrder:ManualActivityDataFinder', ma);
+        }
+    } else{
+        ma.statusAtividade = null;
+        result = Finder.runSearch('FTTHOrder:ManualActivityDataFinder', ma);
+    }
+
+    //end MS
+
+    //MS - marcossouza@br.ibm.com - Adaptação para o cancelamento - 20170920
+    if(indCancelamento){
+        request.workOrderItem.closingCodes.closingCode[0] = Global.getConfigVariable("COD_CANCELAMENTO_BA_JUMPER");
+    } else{
+
+        if(codEncerramento){
+            request.workOrderItem.closingCodes.closingCode[0] = codEncerramento;
+
+        }else{
+            request.workOrderItem.closingCodes.closingCode[0] = "00";
+
+        }
+        if(result && result.start){
+            //Campo não deve ser enviado no cancelamento
+            //accd@br.ibm.com - matrícula do técnico
+            request.workOrderItem.technicianAuthorizedId      = result.start.matriculaTecnico;
+            //accd@br.ibm.com - matrícula do operador
+            request.workOrderItem.technicianId                = result.start.matriculaTecnico;
+
+        }
+    }
+
+    if(result && result.start){
+
+        if(indCancelamento){
+
+            request.workOrderItem.activityEndDateTime         = new Date();
+            request.workOrderItem.activityInitialDateTime     = result.start.dataAbertura;
+            request.workOrderItem.closeDateTime               = new Date();
+            request.workOrderItem.id                          = result.start.numeroBA;
+
+        }else{
+            request.workOrderItem.activityEndDateTime         = result.start.dataHoraFim;
+            request.workOrderItem.activityInitialDateTime     = result.start.dataHoraInicio;
+            request.workOrderItem.closeDateTime               = result.start.dataFechamento;
+
+            var tecnico = new Document("FTTHOrder:TecnicoAuxiliar");
+            //messages.equipmentType = "ONT";
+            tecnico.cwOrderId = ord.OrderHeader.cwOrderId;
+            tecnico.fk_manualActivity = result.start.cwDocId;
+            var resultTecnico = Finder.runSearch("FTTHOrder:tecnicoAuxiliarFinder", tecnico);
+            request.workOrderItem.id                          = result.start.numeroBA;
+
+            //accd@br.ibm.com - matrícula do técnico auxiliar
+            for(var i = 0; i < resultTecnico.length; i++)
+            {
+                request.workOrderItem.technicianAuxList.technicianAux[i] = resultTecnico[i].matriculaTecnico;
+            }
+        }
+    }
+
+
+    request.workOrderItem.originSystem                = "OM";
+
+    //accd@br.ibm.com - PRJ14008 - #104
+    //request.workOrderItem.appointment.FlagJoinInstallation = ((ord.OrderHeader.permiteCancelamento)? "S" : "N");
+
+    //request.workOrderItem.works.work[0].appointments.appointment[0].FlagJoinInstallation = ((ord.OrderHeader.permiteCancelamento)? "S" : "N");
+    request.workOrderItem.works.work[0].appointments.appointment[0].FlagJoinInstallation = (indCancelamento ? "S" : "N");//((result[0].nomeAtividade    == "Instalar Jumper")? "N" : "S");
+    return request;
+  ]]></script>
+</script>

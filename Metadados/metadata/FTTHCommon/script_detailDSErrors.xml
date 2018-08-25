@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.detailDSErrors">
+  <label>Display Error Message</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <mandatory>true</mandatory>
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="xpath" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    //Devolve os campos onde se encontra o erro na estrutura passada como parametro
+    var erro;
+    var nomeCampo;
+    var errosAUX;
+    var msgErro = "";
+
+    if (!(requisicao instanceof DataStructure))
+        return msgErro;
+
+    errosAUX = requisicao.validate(20,true,true);
+
+    if (errosAUX==null)
+        return msgErro;
+
+    if (requisicao.isCollection()) {
+        for (var a=0; a<requisicao.length; a++)
+            msgErro += detailDSErrors(requisicao[a],xpath + "[" + a + "]");
+    }
+    else{
+        var nodes = requisicao.getNodeNames();
+        for (var a=0; a<nodes.length; a++)
+            msgErro += detailDSErrors(requisicao[nodes[a]],xpath + "/" + nodes[a]);
+    }
+
+    if(msgErro == ""){
+        if (errosAUX!=null)
+            for (var ee=0; ee<errosAUX.length;ee++) {
+                nomeCampo = errosAUX[ee+1].split("\"");
+                erro = nomeCampo[0] + '[' + xpath + "/" + nomeCampo[1] + '];';
+                msgErro += erro;
+                ee++;
+            }
+    }
+
+    return msgErro;
+  ]]></script>
+</script>

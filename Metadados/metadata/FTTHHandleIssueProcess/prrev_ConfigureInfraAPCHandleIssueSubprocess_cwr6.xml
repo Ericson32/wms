@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ConfigureInfraAPCHandleIssueSubprocess_cwr6">
+  <activity name="ConfigureInfraAPCHandleIssueStart" type="seqActivity">
+    <guid>{2c9e385d-c1d4-4995-9bb3-0a943ac83c30}</guid>
+    <label>Configure Infra APC Handle Issue Start</label>
+    <x>94.54814</x>
+    <y>29.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{c69fd4f0-346e-4a4d-be02-a2a893bb240c}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>94.88408</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{94c96516-71d2-4afc-ab2a-de0c59712b95}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>97.683105</x>
+            <y>219.52188</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{d02e91ff-4634-4a51-a912-22a5fad4815b}</guid>
+        <label>Check Issue Type</label>
+        <x>98.688965</x>
+        <y>345.6254</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{5872d41c-8236-4b47-ba3c-dcc7afb02277}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="SolveTechnicalIssue" type="seqActivity">
+                <guid>{ec4445ab-f8a0-430d-ba3a-a1a455ad843d}</guid>
+                <label>Solve Technical Issue</label>
+                <x>159.16719</x>
+                <y>457.02774</y>
+                <childList>
+                  <child name="ConfigureInfraAPCSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureInfraAPCSolveIssueTask_cwr3</element>
+                    <guid>{e55a9121-494c-4354-afb2-f3bbc96fac91}</guid>
+                    <label>Configure Infra APC Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>551.7887</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{d0c7bbb5-a444-4cc7-96fa-f3b6e2edb727}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>157.69824</x>
+                    <y>677.8922</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{d7e3ff28-a92f-47e8-8fe4-ec8373f840ce}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{278c6b2f-3cc1-4a4c-a3d9-b0e72971034c}</guid>
+                <label>Client Issue</label>
+                <x>47.020508</x>
+                <y>458.4082</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{ae4a5eba-dfb7-4ed3-b241-9e74663e9e4f}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.0</x>
+                    <y>552.7887</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar Infra&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      Infra. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de Infra autom&#225;tica para o sistema de Rede,
+      ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar Infra - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure Infra APC Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ConfigureInfraAPCHandleIssueSubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

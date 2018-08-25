@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.RestoreVagoVMPSubprocess_cwr3">
+  <activity name="RestoreVagoVMPStart" type="seqActivity">
+    <guid>{c25cfe2f-7937-49de-b9ba-1af1dce339de}</guid>
+    <label>Restore Vago VMP Start</label>
+    <x>21.603516</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="RestoreVagoVMPAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.RestoreVagoVMPAutomaticTask</element>
+        <guid>{a5ff82dc-d016-48b7-8313-a6fc3c34b5d7}</guid>
+        <label>Restore Vago VMP Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{4d855770-32be-485b-8ca4-dec18b4d1f0e}</guid>
+        <label>Check Task Result</label>
+        <x>71.98389</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{0a62ec5c-c32b-404b-a920-0a15eca6344a}</guid>
+            <label>Success</label>
+            <x>40.065674</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{db60cedd-2d26-4c7a-b3a2-059fe2e07f16}</guid>
+            <label>Error</label>
+            <x>41.682617</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{820570d9-d3bd-41b3-a2db-e0000ee51b0c}</guid>
+                <label>Handle Error Start</label>
+                <x>124.735985</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="RestoreVagoVMPHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.RestoreVagoVMPHandleErrorTask_cwr1</element>
+                    <guid>{a52a25ee-9545-4842-b2c4-c86c2bb71864}</guid>
+                    <label>Restore Vago VMP Handle Error Task</label>
+                    <x>163.73303</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{fe4ad777-3989-41f2-b513-50d39c8e1832}</guid>
+                    <label>Check Error Handling</label>
+                    <x>125.148766</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{9b5584ba-cfb6-4cd8-9608-46cdff53770c}</guid>
+                        <label>Resend</label>
+                        <x>69.34863</x>
+                        <y>683.0715</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.RestoreVagoVMPSubprocess_cwr3/seqActivity_RestoreVagoVMPStart</element>
+                            <guid>{20359e9d-58d8-498e-9af9-75df15ac1608}</guid>
+                            <label>Repeat</label>
+                            <x>39.341797</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{35b80fd3-d62a-4c96-8e46-6a76f0d729a0}</guid>
+                        <label>Issue</label>
+                        <x>69.34863</x>
+                        <y>683.0715</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{0deb11f9-e424-418a-95bc-f54fa4ce9689}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>134.11191</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="RestoreVagoVMPSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.RestoreVagoVMPHandleIssueSubprocess_cwr3</element>
+                                <guid>{c5a8b1ae-d458-4e1f-925c-4770dbb84a0e}</guid>
+                                <label>Restore Vago VMP Solve Issue Task</label>
+                                <x>135.3789</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.RestoreVagoVMPSubprocess_cwr3/seqActivity_RestoreVagoVMPStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{9ed80847-e5c4-4a50-8603-9a188706cad8}</guid>
+                                <label>Repeat</label>
+                                <x>157.99756</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <label>Restore Vago VMP Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.RestoreVagoVMPSubprocess</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

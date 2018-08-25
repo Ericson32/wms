@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHCommon.LastEventFinder">
+  <dbSchema>ORDER</dbSchema>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  
+  <input>doc_FTTHCommon.Event</input>
+  <label>LastEventFinder</label>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHCommon.Event</output>
+  <type>SQL</type>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        select {+*+}
+        from
+            tbi_evento e
+        where (1=1)
+        {[1] and e.id_ordem_servico=?}
+        {[3] and e.desc_sistema=?}
+        {[4] and e.desc_atividade=?}
+         order by data_execucao desc
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <valueType>doc_FTTHCommon.Event</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHCommon.Event/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHCommon.Event/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="LastEventFinderResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="cwDocId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="cwOrderId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_cwOrderId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="correlationId" type="elfld">
+                        <dataLength>9</dataLength>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_correlationId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="sistema" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_sistema</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="atividade" type="elslct">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_atividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="status" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_status</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codigo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_codigo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="descricao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_descricao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataExecucao" type="eldate">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_dataExecucao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="direcao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_direcao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="indCancelamento" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Event/leaf_indCancelamento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+  <viewList>
+    <view name="LastEventFinderView" type="findVView">
+      <outputOverlay>findSql_FTTHCommon.LastEventFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+    </view>
+  </viewList>
+</findSql>

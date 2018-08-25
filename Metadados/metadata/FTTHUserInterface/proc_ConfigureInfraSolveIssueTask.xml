@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ConfigureInfraSolveIssueTask">
+  <activity name="startConfigureInfraSolveIssue" type="seqActivity">
+    <guid>{839386ef-c548-4aee-88a0-f2de34fffc20}</guid>
+    <label>Start Configure Infra Solve Issue</label>
+    <x>82.77041</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureInfraSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureInfraSolveIssue</element>
+        <guid>{5f022c4f-d0d8-42fe-b5c4-7eada8eda5c5}</guid>
+        <label>Configure Infra Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>85.51221</x>
+        <y>124.76094</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{4acae9e5-1ed6-4d77-94c8-52a3c710d79f}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>30.0</x>
+        <y>250.86444</y>
+        <childList>
+          <child name="ConfigureInfraSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureInfraSolveIssueChangeIssue</element>
+            <guid>{9048d6a7-3fdb-4845-8dfe-13209155525a}</guid>
+            <label>Configure Infra Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>155.9082</x>
+            <y>391.96796</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_INFRA");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureInfraSolveIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureInfraSolveIssueSuccess</element>
+            <guid>{89b0a499-403f-494a-a4b5-075221ae83e4}</guid>
+            <label>Configure Infra Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>31.158691</x>
+            <y>399.31854</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{eb9db46e-d4f8-4c7a-95ac-2c8b12eb4cb3}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>33.154785</x>
+                <y>547.4738</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.dataFechamento = new Date();
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_INFRA");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{e728b9a8-ce62-4c95-b9ac-a64e73b5e58f}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>122.0293</x>
+        <y>258.21503</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_INFRA");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar Infra - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <guid>{aeac0cef-fe43-4528-97f9-4c764a4ddd03}</guid>
+  <label>Configure Infra Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process>

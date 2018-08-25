@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ConfigureVoIPHDMHandleErrorTask">
+  <activity name="startConfigureVoIPHDMHandleError" type="seqActivity">
+    <guid>{1a601bd0-f91b-4312-bacd-096dafcd8c6c}</guid>
+    <label>Start Configure VoIP HDM Handle Error</label>
+    <x>79.079</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureVoIPHDMSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPHDMHandleError</element>
+        <guid>{6e15e69a-cc33-4438-8cb2-78c8f8d90d4d}</guid>
+        <label>Configure VoIP HDM Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>86.02783</x>
+        <y>124.76094</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{3093e96e-04d7-4e2d-988f-0198400d2592}</guid>
+        <label>Wait Manual Activity</label>
+        <x>30.0</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="ConfigureVoIPHDMHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPHDMHandleErrorIssue</element>
+            <guid>{f2be9fa5-5e79-4279-b976-cd98e18190ad}</guid>
+            <label>Configure VoIP HDM Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>154.0293</x>
+            <y>407.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_HDM");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureVoIPHDMHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPHDMHandleErrorResend</element>
+            <guid>{75e3d9b7-6132-400b-82f9-8e6131f6a830}</guid>
+            <label>Configure VoIP HDM Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>37.998535</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_HDM");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{81482e2e-964c-4c78-bf5f-44bce31a6914}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>121.37305</x>
+        <y>265.5656</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_HDM");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227; de VoIP autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{91b38fbb-4260-4bf5-9756-7123a314f125}</guid>
+  <label>Configure VoIP HDM Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process>

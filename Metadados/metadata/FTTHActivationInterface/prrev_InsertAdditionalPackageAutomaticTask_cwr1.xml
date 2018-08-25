@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.InsertAdditionalPackageAutomaticTask_cwr1">
+  <activity name="InsertAdditionalPackageAutomaticTaskStart" type="seqActivity">
+    <guid>{48d5e4fc-80b1-44a7-a0e6-bea1a41e0c8d}</guid>
+    <label>Insert AdditionalPackage Automatic Task Start</label>
+    <x>186.11871</x>
+    <y>947.8143</y>
+    <childList>
+      <child name="InsertAdditionalPackageSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{d9361abf-4595-4b7c-a2e8-dbafed049027}</guid>
+        <label>Insert AdditionalPackage Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>291.31598</x>
+        <y>1078.8281</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{ee792486-e151-4e8a-b918-b9cf915537bb}</guid>
+            <label>Check Send Operation Result</label>
+            <x>266.44565</x>
+            <y>30.0</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{665c045e-1af9-453a-a623-7146a74310f4}</guid>
+                <label>Success</label>
+                <x>271.4801</x>
+                <y>412.54962</y>
+                <childList>
+                  <child name="WaitAutomaticActivity" type="choiceActivity">
+                    <guid>{03e0a72c-daac-420f-b9ca-975563f3fbce}</guid>
+                    <label>Wait Automatic Activity</label>
+                    <x>92.43799</x>
+                    <y>185.80469</y>
+                    <childList>
+                      <child name="TimeOutControl" type="timeoutActivity">
+                        <guid>{7c9e1921-37bd-4e8f-bd22-a91135de9542}</guid>
+                        <label>TimeOut Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>49.341797</x>
+                        <y>319.2588</y>
+                        <childList>
+                          <child name="TimeOutControl" type="scriptActivity">
+                            <guid>{923e1f3e-78f3-47d2-8d18-679ade21180b}</guid>
+                            <label>TimeOutControl</label>
+                            <x>30.0</x>
+                            <y>460.06348</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Inserir Pacote Adicional Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activity = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                  Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                  Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"),
+                                  status,
+                                  errorType.errorCode,
+                                  errorType.errorDescription,
+                                  this.process.id,
+                                  Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                  Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                  Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"));
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="InsertAdditionalPackageReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{e49404c4-ccd3-4d87-a82a-f1e07cc49d76}</guid>
+                        <label>Insert AdditionalPackage Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>162.6914</x>
+                        <y>438.01172</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Inserir Pacote Adicional Automatic Task", "Inserir Pacote Adicional Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"), status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                              Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                              Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"),
+                              status,
+                              this.activityData.code,
+                              this.activityData.description,
+                              this.process.id,
+                              Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                              Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                              Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"));
+
+                              if(status ==  Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                                  FTTHActivationInterface.updateAdditionalPackageStatus(this.process.processOrder.id, this.process.id, 'N', 'processado');
+                              else
+                              FTTHActivationInterface.updateAdditionalPackageStatus(this.process.processOrder.id, this.process.id, 'N', 'pendente');
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"));
+                      return true;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{a7250641-c9c2-4108-96a0-e80f277bdfad}</guid>
+                <label>Error</label>
+                <x>335.3047</x>
+                <y>326.60938</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_ACTIVITY = "Inserir Pacote Adicional";
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+
+              FTTHActivationInterface.defineAdditionalPackageToProcess(this.process.processOrder.id, 'adicionar' ,this.process.id, 'N');
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Inserir Pacote Adicional Automatic Task", "Inserir Pacote Adicional Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+              Global.getConfigVariable("ACTIVATION_SYSTEM"),
+              Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"),
+              status,
+              this.activityData.code,
+              this.activityData.description,
+              this.process.id,
+              Global.getConfigVariable("ASYNC_REQUEST"));
+
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+              Global.getConfigVariable("ACTIVATION_SYSTEM"),
+              Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{7ac26c06-a3b4-427e-aeff-509fef0397f2}</guid>
+        <label>exceptionHandler</label>
+        <x>145.92339</x>
+        <y>1100.8799</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{5d1c4f20-d868-4852-b4f0-90ca48933e13}</guid>
+        <label>Check Resend</label>
+        <x>185.30914</x>
+        <y>593.8164</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{1baf6520-612e-430c-a498-564f80e1dd16}</guid>
+            <label>Check Need To Resend</label>
+            <x>229.75876</x>
+            <y>685.8164</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{4962d42d-7899-432b-a829-a60f747f3379}</guid>
+                <label>Yes</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "INSERIR_FRANQUIA_IN", "ACTIVATION_SYSTEM");
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHActivationInterface.InsertAdditionalPackageAutomaticTask_cwr1/seqActivity_InsertAdditionalPackageAutomaticTaskStart</element>
+                    <guid>{94be7823-de91-4ccf-b881-d4da63aa8c03}</guid>
+                    <label>Resend To Start</label>
+                    <x>192.53708</x>
+                    <y>811.9199</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{c28271ef-d377-4e77-af14-324527744041}</guid>
+                <label>No</label>
+                <x>306.57224</x>
+                <y>819.2705</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"), Global.getConfigVariable("ACTIVATION_SYSTEM")));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InsertFrachiseAutomaticTaskComplete" type="completeActivity">
+        <guid>{b1f56fdf-821f-484e-953a-5c31dab7fc00}</guid>
+        <label>Insert Frachise Automatic Task Complete</label>
+        <x>295.8867</x>
+        <y>923.32227</y>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{0b3596b8-0aa9-4db6-ab26-b7bf2392ff09}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>284.02594</x>
+        <y>1219.6328</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{46fb600a-5448-460d-8bf4-fc4881b3082e}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>173.30469</x>
+        <y>311.9082</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Configurar
+      VoIP. Inicialmente o fluxo envia para o sistema de Rede uma solicita&#231;&#227;o
+      de configura&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de tempo pr&#233;
+      determinado, ser&#227;o feitas mais algumas retentativas. A quantidade de
+      retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Insert Additional Package Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.InsertAdditionalPackageAutomaticTask</process>
+  <type>User</type>
+</process__revision>

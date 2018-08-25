@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.ConfigureInfraAPCAutomaticTask_cwr9">
+  <activity name="ConfigureInfraAPCAutomaticTaskStart" type="seqActivity">
+    <guid>{00b350a0-34cf-4d61-943f-d133dd377b5a}</guid>
+    <label>Configure Infra APC Automatic Task Start</label>
+    <x>113.20638</x>
+    <y>951.7545</y>
+    <childList>
+      <child name="ConfigureInfraAPCSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{9f9cd1e6-606e-4936-9daa-c9a8ac484b98}</guid>
+        <label>Configure Infra APC Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>237.85483</x>
+        <y>1078.8281</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{893509eb-19d0-4766-aec4-3bc8d17e81a6}</guid>
+            <label>Check Send Operation Result</label>
+            <x>247.26855</x>
+            <y>30.0</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{7e5bc0ff-4eaf-4b1a-a8c6-992b8526f517}</guid>
+                <label>Success</label>
+                <x>261.5534</x>
+                <y>397.84845</y>
+                <childList>
+                  <child name="WaitAutomaticActivity" type="choiceActivity">
+                    <guid>{a2d3b9de-aa8c-428c-bb98-ad003abd0549}</guid>
+                    <label>Wait Automatic Activity</label>
+                    <x>75.26465</x>
+                    <y>185.80469</y>
+                    <childList>
+                      <child name="TimeOutControl" type="timeoutActivity">
+                        <guid>{b8ea1123-5b03-4bc3-9101-e4369d572c79}</guid>
+                        <label>TimeOut Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>45.679688</x>
+                        <y>319.2588</y>
+                        <childList>
+                          <child name="StatusTimeout" type="scriptActivity">
+                            <guid>{d5d2e872-5769-48a4-afad-ac346f90220a}</guid>
+                            <label>StatusTimeout</label>
+                            <x>30.0</x>
+                            <y>460.06348</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure Infra APC Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activity = Global.getConfigVariable("CONFIGURAR_INFRA_APC");
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                       Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                       Global.getConfigVariable("CONFIGURAR_INFRA_APC"),
+                                                       status,
+                                                       errorType.errorCode,
+                                                       errorType.errorDescription,
+                                                       this.process.id,
+                                                       Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                             Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                             Global.getConfigVariable("CONFIGURAR_INFRA_APC"));
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="ConfigureInfraAPCReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{c99be78b-cbad-429e-a0ea-b558bfe5848d}</guid>
+                        <invokeDirectly>true</invokeDirectly>
+                        <label>Configure Infra APC Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>155.36719</x>
+                        <y>438.01172</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure Infra APC Automatic Task", "Configure Infra APC Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONFIGURAR_INFRA_APC"), status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                   Global.getConfigVariable("CONFIGURAR_INFRA_APC"),
+                                                   status,
+                                                   this.activityData.code,
+                                                   this.activityData.description,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                         Global.getConfigVariable("CONFIGURAR_INFRA_APC"));
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_APC");
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"))
+                      return true;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{52ec1e95-af66-46ba-a986-aa1d0a188e46}</guid>
+                <label>Error</label>
+                <x>317.45215</x>
+                <y>326.60938</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_ACTIVITY = "Configurar INFRA APC";
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+               var msgLog =  msg.toXML();
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                              msgLog, null,
+                              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure Infra Automatic Task", "Configure Infra Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONFIGURAR_INFRA_APC"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                   Global.getConfigVariable("CONFIGURAR_INFRA_APC"),
+                                   status,
+                                   this.activityData.code,
+                                   this.activityData.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                         Global.getConfigVariable("CONFIGURAR_INFRA_APC"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{f6aa981b-8344-477a-89c7-5aa83c7d5a49}</guid>
+        <label>exceptionHandler</label>
+        <x>86.39499</x>
+        <y>1100.8799</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("CONFIGURAR_INFRA_APC"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{7a35c10b-c568-4fe0-b925-a9aa8a4425e2}</guid>
+        <label>Check Resend</label>
+        <x>167.13391</x>
+        <y>593.8164</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>146.70996</x>
+            <y>685.8164</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "CONFIGURAR_INFRA_APC", "ACTIVATION_SYSTEM");
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHActivationInterface.ConfigureInfraAPCAutomaticTask_cwr9/seqActivity_ConfigureInfraAPCAutomaticTaskStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "CONFIGURAR_INFRA_APC", "ACTIVATION_SYSTEM");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>112.408325</x>
+                    <y>811.9199</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>226.44348</x>
+                <y>819.2705</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("CONFIGURAR_INFRA_APC"), Global.getConfigVariable("ACTIVATION_SYSTEM")));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ConfigureInfraAPCAutomaticTaskComplete2" type="completeActivity">
+        <guid>{00d33c94-3751-4009-ba4a-c40920e7de5c}</guid>
+        <label>Configure Infra APC Automatic Task Complete</label>
+        <x>215.75793</x>
+        <y>923.32227</y>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{72ed3c6f-4ddd-4d4a-8a7c-648533d261c3}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>207.20444</x>
+        <y>1219.6328</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{7275788d-4ea4-4435-8ea6-c2fc820a1fd7}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>155.45215</x>
+        <y>311.9082</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_APC");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Configurar
+      Infra. Inicialmente o fluxo envia para o sistema de Rede uma solicita&#231;&#227;o
+      de configura&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de tempo pr&#233;
+      determinado, ser&#227;o feitas mais algumas retentativas. A quantidade de
+      retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Configure Infra APC Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.ConfigureInfraAPCAutomaticTask</process>
+  <revision>9</revision>
+  <type>User</type>
+</process__revision>

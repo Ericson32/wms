@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.createMessageToFranchisePlan">
+  <label>Create Message To Suspend Service</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Ordem a ser utilizada na montagem da mensagem.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Atividade para qual dever&amp;#225; ser criada a mensagem.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.String64</type>
+    </parameter>
+    <parameter name="correlationID" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Id do correla&amp;#231;&amp;#227;o.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.String64</type>
+    </parameter>
+    <parameter name="request" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHActivationInterface.request</type>
+    </parameter>
+    <parameter name="operation" type="rifp">
+      <type>dtype_FTTHCommon.operacao</type>
+    </parameter>
+  </parameterList>
+  <valueType>dstruct_FTTHActivationInterface.request</valueType>
+  <script><![CDATA[
+    /*
+    * validar se possui os campos mínimos para a operação e gerar o XML com o conteúdo a ser enviado para o sistema de ativação.
+    */
+
+
+    var franchisePlanDoc = null;
+    var franchisePlanFinder = null;
+    var listaAtributos = new Array();
+
+    franchisePlanDoc =  new Document('FTTHOrder:FranchisePlan');
+    franchisePlanDoc.cwOrderId = ordem.OrderHeader.cwOrderId;
+    franchisePlanDoc.statusAcao = null;
+    franchisePlanDoc.tipoPlano = null;
+    franchisePlanDoc.cwDocId = null;
+    franchisePlanDoc.acao = null;
+    franchisePlanDoc.PROCESS_ID = null;
+
+    franchisePlanFinder = Finder.runSearch('FTTHActivationInterface.FrachisePlanFinder', franchisePlanDoc);
+
+    if (franchisePlanFinder.length > 0){
+        request.attributeList.attribute[0].name = 'numeroOS';
+        request.attributeList.attribute[0].value = ordem.OrderHeader.numeroOS;
+
+        request.attributeList.attribute[1].name = 'numeroPedido';
+        request.attributeList.attribute[1].value = ordem.OrderHeader.numeroPedido;
+
+        request.attributeList.attribute[2].name = 'numeroVoIP';
+        request.attributeList.attribute[2].value = (franchisePlanFinder[0].flagIsOriginal == 'O') ? ordem.OriginalData[0].ProductData.numeroVoIP : ordem.ProductData.numeroVoIP;
+
+        request.attributeList.attribute[3].name = 'identificadorVoIP';
+        request.attributeList.attribute[3].value = (franchisePlanFinder[0].flagIsOriginal == 'O') ? ordem.OriginalData[0].ProductData.identificadorVoIP : ordem.ProductData.identificadorVoIP;
+
+        request.attributeList.attribute[4].name = 'acessoGPON';
+        request.attributeList.attribute[4].value = (franchisePlanFinder[0].flagIsOriginal == 'O') ? ordem.OriginalData[0].FacilityData.acessoGPON : ordem.FacilityData.acessoGPON;
+
+        request.attributeList.attribute[5].name = 'LINEID2';
+        request.attributeList.attribute[5].value = (franchisePlanFinder[0].flagIsOriginal == 'O') ? ordem.OriginalData[0].FacilityData.LINEID2 : ordem.FacilityData.LINEID2;
+
+        request.attributeList.attribute[6].name = 'ID_PLANO_VOIP';
+        request.attributeList.attribute[6].value = franchisePlanFinder[0].idCatalogo;
+
+        request.attributeList.attribute[7].name = 'valorFranquia';
+        request.attributeList.attribute[7].value = franchisePlanFinder[0].valorFranquia;
+    }
+
+
+    return request;
+  ]]></script>
+</script>

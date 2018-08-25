@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.SuspendVagoVMPSubprocess">
+  <activity name="SuspendVagoVMPStart" type="seqActivity">
+    <guid>{63e1674d-dbf5-4eee-892a-a00aa66eb0cd}</guid>
+    <label>Suspend Vago VMP Start</label>
+    <x>31.196484</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="SuspendVagoVMPAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.SuspendVagoVMPAutomaticTask</element>
+        <guid>{e28e33dc-3fe4-4506-9242-3eaee6b5ea87}</guid>
+        <label>Suspend Vago VMP Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{9ea51db5-562b-4110-8398-8c1123c8a6d7}</guid>
+        <label>Check Task Result</label>
+        <x>71.98389</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{51421bc3-7444-4637-90f9-b5b4a530387c}</guid>
+            <label>Success</label>
+            <x>40.065674</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+                  activityId = '%' + activityId;
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{29ee2258-2204-484a-9961-73317c2d9062}</guid>
+            <label>Error</label>
+            <x>124.0</x>
+            <y>380.9082</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{715b6676-5523-4af3-814b-c86b7682ef21}</guid>
+                <label>Handle Error Start</label>
+                <x>124.735985</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="SuspendVagoVMPHandleErrorTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.SuspendVagoVMPHandleErrorTask</element>
+                    <guid>{df4fb214-df48-4770-8c24-636396a87b78}</guid>
+                    <label>Suspend Vago VMP Handle Error Task</label>
+                    <x>163.73303</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{9e76c4fc-302b-4bc1-a2b1-c8d7a3b0fbdd}</guid>
+                    <label>Check Error Handling</label>
+                    <x>125.148766</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{180ba4e9-b623-441c-94b7-aad05fce3673}</guid>
+                        <label>Issue</label>
+                        <x>323.0</x>
+                        <y>626.9082</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{209ff237-0485-4659-bb37-7ce6d663e9fc}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>134.11191</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="SuspendVagoVMPSolveIssueTask" type="subflowActivity">
+                                <element>proc_FTTHHandleIssueProcess.SuspendVagoVMPHandleIssueSubprocess</element>
+                                <guid>{e6ddd0bb-53d3-4481-8bb8-97ac33d0cb38}</guid>
+                                <label>Suspend Vago VMP Solve Issue Task</label>
+                                <x>135.3789</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>proc_FTTHProcess.SuspendVagoVMPSubprocess/seqActivity_SuspendVagoVMPStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{ccd28345-ec73-4e7f-850d-b0d58e4d5b8e}</guid>
+                                <label>Repeat</label>
+                                <x>157.99756</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+                              activityId = '%' + activityId;
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{dcfd1f1d-5dfd-4731-a3af-6c1d1174bf52}</guid>
+                        <label>Resend</label>
+                        <x>221.0</x>
+                        <y>604.9082</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>proc_FTTHProcess.SuspendVagoVMPSubprocess/seqActivity_SuspendVagoVMPStart</element>
+                            <guid>{7a150c6f-4520-4bba-94c9-14ac24996d88}</guid>
+                            <label>Repeat</label>
+                            <x>39.341797</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{1eb61b6d-194e-4ec6-9593-6b2679bf5777}</guid>
+  <label>Suspend Vago VMP Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process>

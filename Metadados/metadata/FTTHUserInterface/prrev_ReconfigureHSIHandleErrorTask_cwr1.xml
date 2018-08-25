@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ReconfigureHSIHandleErrorTask_cwr1">
+  <activity name="startReconfigureHSIHandleError" type="seqActivity">
+    <guid>{11e61f65-2ab5-43c9-962b-1a1a587b66ad}</guid>
+    <label>Start Reconfigure HSI Handle Error</label>
+    <x>87.35274</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureHSIHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIHandleError</element>
+        <guid>{d589e53b-3eee-48c9-9145-7c6edeb34472}</guid>
+        <label>Reconfigure HSI Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>88.35254</x>
+        <y>124.76094</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{0485e930-81e3-4f77-852e-7b751ffdaed3}</guid>
+        <label>Wait Manual Activity</label>
+        <x>36.675293</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="ReconfigureHSIHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIHandleErrorIssue</element>
+            <guid>{ac81428a-0d69-4d20-aeeb-90a9464e1ba1}</guid>
+            <label>Reconfigure HSI Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>159.47998</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_HSI");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReconfigureHSIHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIHandleErrorResend</element>
+            <guid>{6a5e4507-b4da-4fb8-b4d3-4dc9dcc5275a}</guid>
+            <label>Reconfigure HSI Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>30.0</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_HSI");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{079ad500-9cd4-4dc2-b9a7-5b9dcbf216cc}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>128.04834</x>
+        <y>265.5656</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a reconfigura&#231;&#227;o de HSI autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Reconfigure HSI Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ReconfigureHSIHandleErrorTask</process>
+  <type>Sub-flow</type>
+</process__revision>

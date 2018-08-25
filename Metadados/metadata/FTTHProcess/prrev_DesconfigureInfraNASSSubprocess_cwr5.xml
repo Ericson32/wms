@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DesconfigureInfraNASSSubprocess_cwr5">
+  <activity name="DesconfigureVoIPNASSStart" type="seqActivity">
+    <guid>{b4543441-b82c-4a3a-a807-72aff06d73d4}</guid>
+    <label>Desconfigure Infra NASS Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="DesconfigureInfraNASSAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DesconfigureInfraNASSAutomaticTask</element>
+        <guid>{7411d50b-e14a-4067-ab17-aa9a21876b38}</guid>
+        <label>Desconfigure Infra NASS Automatic Task</label>
+        <syc>true</syc>
+        <x>31.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{02880efa-9f0e-4943-a22e-e4546691b7f4}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{67bb7a06-1149-41f8-a038-5387c17c7cc3}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA_NASS");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{a9760d6f-ab50-4e08-98ad-589edc932f1a}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{ade25ce6-d736-4ae4-858c-556f2cc06eef}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="DesconfigureInfraNASSHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DesconfigureInfraNASSHandleErrorTask_cwr1</element>
+                    <guid>{ff4e0bc0-6e56-4950-891c-97ef780b2eec}</guid>
+                    <label>Desconfigure Infra NASS Handle Error Task</label>
+                    <x>160.46594</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{20f0a518-1e6a-441e-b464-e0952c838b39}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{93a6d56d-ec67-4fba-be00-49c3a7ff481d}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{c435ce1b-e6ab-48ec-b50b-8c432e3e9714}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="DesconfigureInfraNASSSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.DesconfigureInfraNASSHandleIssueSubprocess_cwr7</element>
+                                <guid>{cc8b7e97-c3de-40e1-80bd-8be9e4c7e690}</guid>
+                                <label>Desconfigure Infra NASS Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.DesconfigureInfraNASSSubprocess_cwr5/seqActivity_DesconfigureVoIPNASSStart</element>
+                                <guid>{7e9fa667-78c2-4bfe-a93a-28fce29df713}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA_NASS");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{4dc7d8e0-e997-4ea9-b570-7e5d0c37e40e}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.DesconfigureInfraNASSSubprocess_cwr5/seqActivity_DesconfigureVoIPNASSStart</element>
+                            <guid>{00fc3694-0dab-4160-968b-9ffa22a2fcb3}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar Infra&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      Infra. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de Infra autom&#225;tica para o sistema de Rede,
+      ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar Infra - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Desconfigure Infra NASS Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DesconfigureInfraNASSSubprocess</process>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DesconfigureHSIAPCSubprocess_cwr5">
+  <activity name="DesconfigureVoIPAPCStart" type="seqActivity">
+    <guid>{7ee7236b-581b-4a36-9401-fd27bbb1eac0}</guid>
+    <label>Desconfigure HSI APC Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="DesconfigureHSIAPCAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DesconfigureHSIAPCAutomaticTask</element>
+        <guid>{7e7f691f-c7d0-4c40-aa7b-46d4c47735b5}</guid>
+        <label>Desconfigure HSI APC Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{401bfe0e-39dc-49cd-b1de-53e4582b5fa5}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{07a98daf-58d4-41ff-976d-700f0b15c698}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI_APC");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{db4f21f0-6843-49f1-884d-37f39d26a4eb}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{b58a37da-06e4-49b8-bbca-97f71f7a79f3}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="DesconfigureHSIAPCHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DesconfigureHSIAPCHandleErrorTask_cwr4</element>
+                    <guid>{9a73aa16-34ab-49ea-bdaa-db158615cf73}</guid>
+                    <label>Desconfigure HSI APC Handle Error Task</label>
+                    <x>160.46594</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{40d41078-d23f-4fc9-9cbb-8bbfe119b7fe}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{51e339f5-380c-4af3-91ac-357ed6ecbc15}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{59b85adb-7298-44d3-b991-c9e124bd19e8}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="DesconfigureHSIAPCSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.DesconfigureHSIAPCHandleIssueSubprocess_cwr7</element>
+                                <guid>{b6f98842-c773-4eba-8f27-ccc3be664112}</guid>
+                                <label>Desconfigure HSI APC Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.DesconfigureHSIAPCSubprocess_cwr5/seqActivity_DesconfigureVoIPAPCStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{5e3df9e6-a051-40a4-af3f-7d3db4b66964}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI_APC");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{308ccfb0-ffd8-4941-9632-c6edc2163358}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.DesconfigureHSIAPCSubprocess_cwr5/seqActivity_DesconfigureVoIPAPCStart</element>
+                            <guid>{b654019d-83f9-45dc-ab1d-424d38266ec0}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Desconfigurar HSI&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de
+      Desonfigurar HSI. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a
+      resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de desonfigura&#231;&#227;o de HSI autom&#225;tica para o sistema
+      de Rede, ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o
+      subprocesso de Desonfigurar HSI - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Desconfigure HSI APC Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DesconfigureHSIAPCSubprocess</process>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process__revision>

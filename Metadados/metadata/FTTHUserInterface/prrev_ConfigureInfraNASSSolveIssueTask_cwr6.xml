@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureInfraNASSSolveIssueTask_cwr6">
+  <activity name="startConfigureInfraNASSSolveIssue" type="seqActivity">
+    <guid>{627d603b-bd72-43e9-97aa-9575726439e4}</guid>
+    <label>Start Configure Infra NASS Solve Issue</label>
+    <x>84.18076</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureInfraNASSSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureInfraNASSSolveIssue</element>
+        <guid>{c6d38298-d564-4f41-ac58-16c12d766b79}</guid>
+        <label>Configure Infra NASS Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>86.51416</x>
+        <y>130.64142</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{541f40d6-3c0b-45ff-b746-321499ff63ab}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.00879</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ConfigureInfraNASSChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureInfraNASSSolveIssueChangeIssue</element>
+            <guid>{410a876a-fa32-484e-882f-be053c9900b7}</guid>
+            <label>Configure Infra NASS - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>158.03027</x>
+            <y>412.54962</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{3e1a1492-ec08-4985-8c86-b82ca14afacc}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>141.70117</x>
+                <y>561.7049</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_NASS");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureInfraNASSSolveIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureInfraNASSSolveIssueSuccess</element>
+            <guid>{cd69e6cb-2318-42e2-b2f0-acb9fe6b82c2}</guid>
+            <label>Configure Infra NASS Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>412.54962</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{e6b2f04b-342a-4880-a145-5d1cf0caf745}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.331055</x>
+                <y>553.3543</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.dataFechamento = new Date();
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_NASS");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{dd96d065-d4af-4e57-aabc-262c82c2bf25}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>125.038086</x>
+        <y>278.7967</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_INFRA_NASS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+          {
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar Infra - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Configure Infra NASS Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureInfraNASSSolveIssueTask</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

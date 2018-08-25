@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.RestoreHSIAPCSolveIssueTask_cwr5">
+  <activity name="RestoreHSIAPCSolveIssueTaskStart" type="seqActivity">
+    <guid>{546cbbb7-c53f-4011-91ce-e78c6b598a83}</guid>
+    <label>Restore HSI APC Solve Issue Task Start</label>
+    <x>32.0125</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RestoreHSIAPCSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreHSIAPCSolveIssue</element>
+        <guid>{404e4698-9981-4196-9bd1-d31f88de9523}</guid>
+        <label>Restore HSI APC Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>37.4834</x>
+        <y>130.6414</y>
+      </child>
+      <child name="RestoreHSIAPCSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreHSIAPCSolveIssueSuccess</element>
+        <guid>{1a36ee1a-89fa-4889-b3f2-db8cabdefa6c}</guid>
+        <label>Restore HSI APC Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>37.4834</x>
+        <y>368.14728</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESBLOQUEAR_HSI_APC");
+              activityId = '%' + activityId;
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{c2689dd4-8694-4f89-b076-be77977329f7}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>256.74493</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESBLOQUEAR_HSI_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Bloquear HSI - Erro tenha sido
+      finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual ser&#225;
+      gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Restore HSI APC Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.RestoreHSIAPCSolveIssueTask</process>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process__revision>

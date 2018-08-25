@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHOrderManagementInterface.CloseIssueAutomaticTask_cwr7">
+  <activity name="CloseIssueStart" type="seqActivity">
+    <guid>{4ab51dea-3525-4a3a-b1d9-868bc19c2482}</guid>
+    <label>Close Issue Start</label>
+    <x>19.451561</x>
+    <y>47.051758</y>
+    <childList>
+      <child name="CloseIssueOperation" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMListenerInterface/oper_closeIssueOperation</element>
+        <guid>{e9790256-466a-44cb-9ec8-aeaac92f1ec5}</guid>
+        <label>Close Issue Operation</label>
+        <participant>part_FTTHOrderManagementInterface.OMListenerParticipant</participant>
+        <x>90.15039</x>
+        <y>157.10352</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(null, this.process.id, "Close Issue", "Close Issue Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+               var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var docNotificacao = this.process.processDocument;
+              var msgLogDoc = UserProfile.getMsgLogDoc();
+              if(msgLogDoc != null) {
+                  msgLogDoc.userData1 = docNotificacao.numeroPedido;
+                  msgLogDoc.userData2 = docNotificacao.numeroOS;
+                  msgLogDoc.save();
+              }
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+              if(hasOpenInstallAdditionalPoint(process.processOrder, process.id)){
+                  setStatusToInstallAdditionalPoint(process.processOrder);
+                  var num_acessos = document.acessos.length;
+                  var idsAtivos = getIdsAtivosfromRequest(); //separa todos os idsAtivos dos equipamentos da suplementar
+                  var addPointEquip = fillNewIdAtivoIntoNewAdditionalPoint(idsAtivos); //insere o idAtivo novo no ponto adicional sem idAtivo e retorna o equip
+                  //updateEquipInventory(addPointEquip); //atualiza o idAtivo do equipamento no Inventário
+              }
+              FTTHHandleIssueProcess.removeAdditionalPointSolveIssue(process.processOrder, process.id);
+
+              //Fechar as pendencias associadas à ordem
+              FTTHOrderManagementInterface.closeIssue(this.process.processOrder, null, null);
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("OM_SYSTEM"), Global.getConfigVariable("CLOSE_ISSUE"), status, null, null, this.process.id, Global.getConfigVariable("SYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("OM_SYSTEM"), Global.getConfigVariable("CLOSE_ISSUE"));
+              if("codPendencia" in this.document)
+              {
+                  try{
+                      if(this.document.codPendencia)
+                      {
+                         // var ultimo =  process.processOrder.IssueData.length;
+                          var pendencia = this.document.codPendencia;
+                          var IssueData = FTTHOrderManagementInterface.ChangePendencyFromClient(process.processOrder, pendencia);
+                         // var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+                          //Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                          status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+                         //status = Global.getConfigVariable("ACTIVITY_MANUAL");
+                         FTTHCommon.setStatusOrder(orderId, status);
+                      }
+                  }catch(e)
+                  {
+                      Global.logError('Excecao em ClosseIssueAutomaticTask, ' + e);
+                  }
+              }
+
+
+              function hasOpenInstallAdditionalPoint(order, processId){
+                  /*
+                  * IssueData.flagIssueStatus == false - pendência aberta
+                  * IssueData.flagIssueStatus == true  - pendência fechada
+                  * /
+
+                  /*
+                  * 7025      - INCLUSÃO DE PONTO RF OVERLAY
+                  * 7026      - INCLUSÃO DE PONTO STB DVR GRÁTIS
+                  * 7027      - INCLUSÃO DE PONTO STB HD GRÁTIS
+                  * 7028      - INCLUSÃO DE PONTO STB HD PAGO
+                  */
+                  var pendenciasDeInstalacaoDePontosAdicionais = ['7025','7026','7027','7028'];
+
+                  for(var i = 0; i < order.IssueData.length; i++){
+                      var issueDoc = Document.readDoc("FTTHCommon.Issues", order.IssueData[i].IssueData.codigoPendencia);
+                      var codigoPendencia = String(issueDoc.codPendencia);
+                      if(order.IssueData[i].IssueData.idProcesso == processId && !order.IssueData[i].IssueData.flagIssueStatus && pendenciasDeInstalacaoDePontosAdicionais.indexOf(codigoPendencia) > -1 ){
+                          return true;
+                      }
+                  }
+                  return false;
+              }
+
+              function setStatusToInstallAdditionalPoint(order){
+                  var searchDoc = new Document('FTTHOrder:IssueAdditionalPointData');
+                  searchDoc.cwOrderId = order.id;
+                  searchDoc.status = 'WAIT';
+
+                  var pendencies = Finder.runSearch('FTTHCommon.AdditionalPointsIssueFinder', searchDoc);
+
+                  if(pendencies != null && pendencies.length > 0){
+                      pendencies[0].status = 'SENT';
+                      pendencies[0].save();
+                  }
+              }
+
+              function getIdsAtivosfromRequest() {
+                  //pega os idativos dos equipamentos da ordem suplementar
+                  var idsAtivos = [];
+                   for (var i = 0; i < num_acessos; i += 1) {
+                      if (document.acessos.acesso[i].idCatalogo.search('OI_IPTV') > -1 && document.acessos.acesso[i].servicos.length > 0) {
+                          var num_servicos = document.acessos.acesso[0].servicos.servico.length;
+                          for (var j = 0; j < num_servicos; j += 1){
+                              idsAtivos.push(document.acessos.acesso[i].servicos.servico[j].idAtivo);
+                          }
+                      }
+                  }
+                  return idsAtivos;
+              }
+
+              function fillNewIdAtivoIntoNewAdditionalPoint(idsAtivos) {
+
+                  //Numa inclusao de ponto adicional o equipamento a ser adicionado estará sem idAtivo.
+                  //O idAtivo será preenchido através do encerramento da pendencia atráves da ordem
+                  //suplementar enviadoa pelo Siebel8
+
+                  var searchDoc = new Document("FTTHOrder:EquipmentData");
+                  searchDoc.numeroSerieSetTopBox = null;
+                  searchDoc.cwDocId = null;
+                  searchDoc.cwOrderId = orderId;
+                  searchDoc.flgValidado = null;
+                  var result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                  var nullIdAtivoEquip;
+                  for (var i = 0; i < result.length ; i += 1 ) { //itera todos os equipamentos ponta para comparar qual deles é o novo e qual deles será preenchido
+                      for (var j = 0; j < idsAtivos.length; j += 1) {
+                          if (result[i].idAtivo == idsAtivos[j]) {
+                              idsAtivos.splice(j,1);
+                              break;
+                          } else if (result[i].idAtivo == null) {
+                              nullIdAtivoEquip = result[i];
+                              break;
+                          }
+                      }
+                  }
+                  //A ideia do for acima é que, após as iterações, idsAtivos possua SOMENTE o idAtivo que precisa ser incluído na ordem
+                  nullIdAtivoEquip.idAtivo = idsAtivos[0];
+                  nullIdAtivoEquip.acao = "A instalar";
+                  nullIdAtivoEquip.save();
+                  return nullIdAtivoEquip;
+              }
+
+              function updateEquipInventory(equip) {
+                  var validateEquipmentDoc = new Document('FTTHClickInterface:ValidateEquipmentDoc');
+                  validateEquipmentDoc.tipoEquipamentoNovo = "STB";
+                  validateEquipmentDoc.codMaterialNovo = equip.codEquipamento;
+                  validateEquipmentDoc.numeroSerieEquipamentoNovo = equip.numeroSerieSetTopBox;
+                  validateEquipmentDoc.idAtivoNovo = null; // primeiro enviamos o idAtivo nulo
+                  validateEquipmentDoc.acaoNovo == "remover"; // e acao remover para "CESSAR" o ponto adicional de idAtivo nulo (enviado previamente na validacao) no NETWIN...
+                  Process.startSubProcess("FTTHInventoryInterface.UpdateCPEAutomaticTask",  process.id, validateEquipmentDoc);
+
+                  validateEquipmentDoc.idAtivoNovo = equip.idAtivo; // ...depois enviamos o idAtivo preenchido na pendencia
+                  validateEquipmentDoc.acaoNovo == "adicionar"; // e acao adicionar para "ACTIVAR" o ponto adicional no NETWIN com o novo idAtivo
+                  Process.startSubProcess("FTTHInventoryInterface.UpdateCPEAutomaticTask",  process.id, validateEquipmentDoc);
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CloseIssueComplete" type="completeActivity">
+        <guid>{20fbd0ec-2050-4386-92e5-6904a32645c1}</guid>
+        <label>Close Issue Complete</label>
+        <x>91.82129</x>
+        <y>282.20703</y>
+      </child>
+      <child name="OMListenerParticipant" type="participantActivity">
+        <guid>{bd1efea7-e992-461c-9bee-e016792ab223}</guid>
+        <label>OM Listener Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMListenerParticipant</participant>
+        <x>126.0</x>
+        <y>30.0</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var order = this.process.processOrder;
+          var ultimo =  order.IssueData.length;
+          var issueDoc = order.IssueData[ultimo-1].IssueData;
+           var orderId = process.processOrder.OrderHeader.cwOrderId;
+          issueDoc.idProcesso = this.process.id;
+          issueDoc.save();
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <label>Close Issue Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</process>
+  <revision>7</revision>
+  <type>User</type>
+</process__revision>

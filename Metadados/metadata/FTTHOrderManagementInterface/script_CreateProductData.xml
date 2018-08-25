@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateProductData">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Monta o ProductData de acordo com a requisi&#231;&#227;o enviada pelo OM
+    </p>
+  ]]></description>
+  <label>Create Product Data</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+    <parameter name="productData" type="rifp">
+      <type>doc_FTTHOrder.ProductData</type>
+    </parameter>
+    <parameter name="facilityData" type="rifp">
+      <type>doc_FTTHOrder.FacilityData</type>
+    </parameter>
+    <parameter name="isNewData" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="contemTrocaNumero" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="isAddressChange" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var plano;
+
+    /***** CR 2 *****/
+    //var servico_idAtivo = null;
+    //var servico_idCatalogo = null;
+    var servicos_ids = new Array();
+    var nome_ids = new Array();
+    var servicesChangedArray = new Array();
+
+    /***** CR 133 ******************************
+    isNewData == true  - New Data (N)
+    isNewData == false - Original Data (O)
+    ********************************************/
+    isNewData == true ? productData.flagIsOriginal = 'N' : productData.flagIsOriginal = 'O';
+    productData.isDVR = 'N';
+
+    if (!isNewData){
+            productData.nomePacote = requisicao.tipoBundleOriginal;
+            productData.nomePromocao = requisicao.nomeBundleOriginal;
+    }
+    for (var i = 0; i < requisicao.acessos.acesso.length; i++) {
+        var acesso = requisicao.acessos.acesso[i];
+
+        Global.logInfo('Create Product Data - verifica acao do acesso');
+
+        if(mustRead(isNewData, acesso.acao)) {
+            FTTHOrderManagementInterface.CreateFacilityData(requisicao, facilityData,isNewData);
+
+            productData.nomePacote = requisicao.idCatalogo;
+            productData.nomePromocao = requisicao.nomeBundle;
+
+            productData.motivoRetirada = requisicao.motivoRetirada;
+            //CR2 - match idPromocao com idAtivo do item de promoçao
+            for (var indexOperacao = 0; indexOperacao < requisicao.operacoes.operacao.length; indexOperacao++)
+                if (requisicao.operacoes.operacao[indexOperacao].tipoProduto == requisicao.tipoBundle){
+                    productData.idPromocao = requisicao.operacoes.operacao[indexOperacao].idAtivo;
+                    break;
+                }
+
+            Global.logInfo('Create Product Data - verifica plano');
+            for (var k = 0; k < acesso.plano.length; k++) {
+                plano = acesso.plano[k];
+
+                if(mustRead(isNewData, plano.acao)) {
+                    break;
+                }
+            }
+
+            Global.logInfo('Create Product Data - monta lista de servicos');
+            if(productData.listaServicos == null) {
+                productData.listaServicos = acesso.tipoProduto;
+            } else {
+                productData.listaServicos = productData.listaServicos + "\n" + acesso.tipoProduto;
+            }
+
+            if(acesso.idCatalogo == 'OI_IPTV') {
+                Global.logInfo('Create Product Data - acesso iptv');
+                productData.identificadorIPTV = acesso.idAtivo;
+                productData.identificadorRFTV = acesso.idAtivo + "_RF";
+                productData.identificadorOTT = acesso.idAtivo + "_OTT";
+
+                productData.planoIPTV = plano.idCatalogo;
+
+                //CR2
+                productData.planoIPTV_idItem = plano.idAtivo;
+
+                productData.nomePlanoIPTV = plano.nome;
+                productData.planoRFTV = plano.idCatalogo + "_RF";
+                productData.nomePlanoRFTV = plano.nome + "_RF";
+                productData.planoOTT = plano.idCatalogo + "_OTT";
+                productData.nomePlanoOTT = plano.nome + "_OTT";
+
+                productData.qtdPontosRFOverlay = acesso.plano[0].qtdPontosRFOverlay;
+                productData.qtdPontosSTBDVRGratis = acesso.plano[0].qtdPontosSTBDVRGratis;
+                productData.qtdPontosSTBHDGratis = acesso.plano[0].qtdPontosSTBHDGratis;
+                productData.qtdPontosSTBHDPago = acesso.plano[0].qtdPontosSTBHDPago;
+
+                for (var a = 0; a < acesso.atributos.atributo.length; a++) {
+                    var atributo = acesso.atributos.atributo[a];
+                    if (atributo.nome == "qtdPontosRemanejar") {
+                        productData.qtdPontosRemanejar = atributo.valor;
+                    }
+                }
+                var qtPontosIPTV = 0;
+                var qtPontosRFTV = 0;
+                var controleIPTV = false;
+                var controleDVR = false;
+
+                var qtdPontosDVR = 0;
+                var qtdPontosHDPago = 0;
+                var qtdPontosHDGratis = 0;
+                Global.logInfo('Create Product Data - acesso iptv - servicos');
+
+                // MS - marcossouza@br.ibm.com - PKE000000026664 - 20170814
+                var dontNeedTVIESF = false;
+                // end MS
+                var addSTB = 0;
+                var removeSTB = 0;
+                var noActionSTB = 0;
+
+                for (var s = 0; s < acesso.servicos.servico.length; s++) {
+
+                    var servico = acesso.servicos.servico[s];
+
+                        switch(servico.idCatalogo){
+                            case 'SVCTV_PONTO_STB_DVR_GRATIS':
+                                qtdPontosDVR++;
+                                break;
+
+                            case 'SVCTV_PONTO_STB_HD_PAGO':
+                                qtdPontosHDPago++;
+                                break;
+
+                            case 'SVCTV_PONTO_STB_HD_GRATIS':
+
+                                qtdPontosHDGratis++;
+
+                                break;
+
+                            default:
+                                break;
+                        }
+                    if(servico.acao != '-'){
+                        //insert service changed
+                        var serviceChangedDoc = new Document("FTTHOrderManagementInterface.ChangedService");
+                        serviceChangedDoc.service = "identificadorIPTV";
+                        servicesChangedArray.push(serviceChangedDoc);
+                        serviceChangedDoc = new Document("FTTHOrderManagementInterface.ChangedService");
+                        serviceChangedDoc.service = "identificadorRFTV";
+                        servicesChangedArray.push(serviceChangedDoc);
+                    }
+
+                    /***** CR 2 *****/
+                    servicos_ids[s] = servico.idAtivo;
+                    nome_ids[s] = servico.idCatalogo;
+                    //servico_idCatalogo = acesso.servicos.servico[s].idCatalogo;
+
+                    //servicos_ids[s] = servico_idAtivo; --moved to atributos for
+                    //productData.servicos_idCatalogo = servico_idCatalogo;
+                    /***** CR 2 *****/
+
+                    for(var q = 0; q < servico.atributos.atributo.length; q++) {
+
+                        var atributo = servico.atributos.atributo[q];
+
+                        //MS - marcossouza@br.ibm.com - PKE - 20170829
+                        if(atributo.nome == 'Tipo') {
+                               if(atributo.valor == 'STB') {
+                                    if(servico.acao == "adicionar"){
+                                        if(!(servico.acao == "-" && isAddressChange)){
+                                            addSTB++;
+                                        }
+                                    }
+                                    if(servico.acao == "remover"){
+                                        if(!(servico.acao == "-" && isAddressChange)){
+                                            removeSTB++;
+                                        }
+                                    }
+                                    if(servico.acao == "-"){
+                                        if(!(servico.acao == "-" && isAddressChange)){
+                                            noActionSTB++;
+                                        }
+                                    }
+                               }
+                         }
+                        //end MS
+
+                        if(mustRead(isNewData, servico.acao)) {
+                            if(atributo.nome == 'Tipo') {
+                                if(atributo.valor == 'STB') {
+                                    qtPontosIPTV++;
+                                    controleIPTV = true;
+                                } else if(atributo.valor == 'RF') {
+                                    qtPontosRFTV++;
+                                }
+                            }
+                            if(atributo.nome == 'Tecnologia' &&  atributo.valor == 'DVR'){
+                                controleDVR = true;
+                            }
+                        }
+                    }
+
+                    if(controleDVR && controleIPTV &&(servico.acao != 'remover')){
+                        productData.isDVR = 'S';
+                    }
+                    //CR2
+                    productData.servicos_idItems = servicos_ids.join(",");
+                    productData.servicos_idCatalogos = nome_ids.join(",");
+                }
+
+                //se tiver bloqueando
+                if(acesso.bloqueios && acesso.bloqueios.length > 0 && acesso.bloqueios.bloqueio && acesso.bloqueios.bloqueio.length > 0){
+                    if(addSTB > 0 || removeSTB > 0 || noActionSTB > 0){
+                        productData.needTVIESF = true;
+                    }
+                }
+
+                //se for adição do acesso
+                if(acesso.acao == "adicionar"){
+                    productData.needTVIESF = true;
+                //se for retirada do acesso
+                } else if(acesso.acao == "remover"){
+                    productData.needTVIESF = true;
+                 //reconfigurar
+                } else if(isAddressChange){
+                    productData.needTVIESF = true;
+                }
+
+                /*
+                else if(addSTB > 0 && removeSTB > 0){
+                    productData.needTVIESF = true;
+                //
+                } else if(addSTB > 0 && removeSTB == 0 && noActionSTB > 0){
+                    productData.needTVIESF = false;
+                } else if(addSTB == 0 && removeSTB > 0 && noActionSTB > 0){
+                    productData.needTVIESF = false;
+                }
+                */
+
+                productData.quantidadePontosIPTV = qtPontosIPTV;
+                productData.quantidadePontosRFTV = qtPontosRFTV;
+                productData.qtdPontosDVRGratis = qtdPontosDVR;
+                productData.qtdPontosHDPago    = qtdPontosHDPago;
+                productData.qtdPontosHDGratis  = qtdPontosHDGratis;
+
+                // [FIBRA] Áudio de status - Sala de Guerra - 19:50hs de Vanessa Leal em 19/11/2012
+                if(qtPontosIPTV == 0) {
+                    //productData.identificadorIPTV = null;
+                    //productData.planoIPTV = null;
+                    //productData.nomePlanoIPTV = null;
+                    productData.identificadorOTT = null;
+                    productData.planoOTT = null;
+                    productData.nomePlanoOTT = null;
+                }
+
+                    //loop sobre os atributos
+                    for (var a = 0; a < acesso.atributos.atributo.length; a++){
+                        var atributo = acesso.atributos.atributo[a];
+
+                        if((atributo.nome == "movelTitularOiTotal")&&(atributo.valor != null)){
+                            productData.ID_OITOTAL = atributo.valor;
+                        }
+                        if((atributo.nome == "bundleID")&&(atributo.valor != null)){
+                            productData.idBundle = atributo.valor;
+                        }
+                    }
+
+
+
+            } else if(acesso.idCatalogo == 'OI_VOIP') {
+                Global.logInfo('Create Product Data - acesso voip');
+                productData.identificadorVoIP = acesso.idAtivo;
+
+                productData.planoVoIP = plano.idCatalogo;
+
+                /***** CR 2 *****/
+                productData.planoVoIP_idItem = plano.idAtivo;
+
+                productData.nomePlanoVoIP = plano.nome;
+
+                var nomeAtributoDDD = "ddd";
+                var nomeAtributoNumero = "numeroLinha";
+
+                if(!isNewData && contemTrocaNumero) {
+                    nomeAtributoDDD = "dddAntigo";
+                    nomeAtributoNumero = "numeroLinhaAntigo";
+                }
+
+                var dddVoIP = "";
+                var numeroVoIP = "";
+
+                //MS - marcossouza@br.ibm.com - Mapeamento do campo numero portado concatenado com o DDD portado - 17/11/2017
+                var dddPortado;
+                var numeroPortado;
+                //end MS
+
+                Global.logInfo('Create Product Data - acesso voip - atributos');
+                for (var j = 0; j < acesso.atributos.atributo.length; j++) {
+                    var atributoAcesso = acesso.atributos.atributo[j];
+
+                    //MS - marcossouza@br.ibm.com - Mapeamento do campo numero portado concatenado com o DDD portado - 17/11/2017
+                    if(atributoAcesso.nome == "numeroPortado"){
+                        numeroPortado = atributoAcesso.valor;
+                    }
+
+                    if(atributoAcesso.nome == "dddPortado"){
+                        dddPortado = atributoAcesso.valor;
+                    }
+                    //end MS
+
+                    if(atributoAcesso.nome == nomeAtributoDDD) {
+                        dddVoIP = atributoAcesso.valor;
+                    } else if(atributoAcesso.nome == nomeAtributoNumero) {
+                        numeroVoIP = atributoAcesso.valor;
+                    } else if(atributoAcesso.nome == "portabilidadeReceptora"){
+                        productData.portabilidadeReceptora = atributoAcesso.valor;
+                    } else if(atributoAcesso.nome == "portabilidadeInterna"){
+                        productData.portabilidadeInterna = atributoAcesso.valor;
+                    } else if(atributoAcesso.nome == "portabilidadeInternaComTrocaDeTecnologia"){
+                        productData.portabilidadeInternaComTrocaDeTecnologia = atributoAcesso.valor;
+                    }
+
+                    if((atributoAcesso.nome == "movelTitularOiTotal")&&(atributoAcesso.valor != null)){
+                            productData.ID_OITOTAL = atributoAcesso.valor;
+                    }
+                    if((atributoAcesso.nome == "bundleID")&&(atributoAcesso.valor != null)){
+                        productData.idBundle = atributoAcesso.valor;
+                    }
+                }
+
+                //MS - marcossouza@br.ibm.com - Mapeamento do campo numero portado concatenado com o DDD portado - 17/11/2017
+                if(dddPortado && numeroPortado && dddPortado != "" && numeroPortado != ""){
+                    productData.portableNumber = dddPortado + numeroPortado;
+                }
+                //end MS
+
+                productData.tipoPortabilidade = "";
+
+                //RQF002 - se todas as portabilidades = N, então tipoPortabilidade = END
+                if(productData.portabilidadeReceptora == "N"){
+                    productData.tipoPortabilidade = "END";
+                } if(productData.portabilidadeReceptora == "Y") {
+                    productData.tipoPortabilidade = "PREST";
+                }
+
+                productData.numeroVoIP = dddVoIP + numeroVoIP;
+
+                //PRJ14217 - Inclusao das informacoes do plano
+                productData.tipoPlano = plano.tipoPlano
+                productData.unidadeFranquia = plano.unidadeFranquia
+                productData.valorFranquia = plano.valorFranquia
+                productData.tipoUso = plano.tipoUso
+
+                //insert service changed
+                for (var s = 0; s < acesso.servicos.servico.length; s++) {
+                    var servico = acesso.servicos.servico[s];
+                    if(servico.acao != '-'){
+                        var serviceChangedDoc = new Document("FTTHOrderManagementInterface.ChangedService");
+                        serviceChangedDoc.service = "identificadorVoIP";
+                        servicesChangedArray.push(serviceChangedDoc);
+                    }
+                }
+
+            } else if(acesso.idCatalogo == 'OI_INTERNET') {
+                Global.logInfo('Create Product Data - acesso internet');
+                productData.identificadorHSI = acesso.idAtivo;
+
+                productData.planoHSI = plano.idCatalogo;
+
+                //CR2
+                productData.planoHSI_idItem = plano.idAtivo;
+
+                productData.nomePlanoHSI = plano.nome;
+
+                Global.logInfo('Create Product Data - acesso internet - atributos plano');
+                for (var j = 0; j < plano.listaDeAtributos.atributo.length; j++) {
+
+                    var atributoPlano = plano.listaDeAtributos.atributo[j];
+
+                    if(atributoPlano.nome == 'velocidadeContratada') {
+                        productData.velocidadeContratada = atributoPlano.valor;
+
+                    } else if(atributoPlano.nome == 'velocidadeDownload') {
+                        productData.velocidadeDownload = atributoPlano.valor;
+
+                    } else if(atributoPlano.nome == 'velocidadeUpload') {
+                        productData.velocidadeUpload = atributoPlano.valor;
+                    }
+                }
+
+                //insert service changed
+                for (var s = 0; s < acesso.servicos.servico.length; s++) {
+                    var servico = acesso.servicos.servico[s];
+                    if(servico.acao != '-'){
+                        var serviceChangedDoc = new Document("FTTHOrderManagementInterface.ChangedService");
+                        serviceChangedDoc.service = "identificadorHSI";
+                        servicesChangedArray.push(serviceChangedDoc);
+                    }
+                }
+
+                //loop sobre os atributos
+                for (var a = 0; a < acesso.atributos.atributo.length; a++){
+                    var atributo = acesso.atributos.atributo[a];
+
+                    if((atributo.nome == "movelTitularOiTotal")&&(atributo.valor != null)){
+                        productData.ID_OITOTAL = atributo.valor;
+                    } if((atributo.nome == "bundleID")&&(atributo.valor != null)){
+                            productData.idBundle = atributo.valor;
+                    }
+                }
+            }
+        }
+    }
+
+    return servicesChangedArray;
+
+    //functions-------------------------------------------
+
+    function mustRead(isNew, acao) {
+        if((isNew && acao != 'remover') || (!isNew && acao != 'adicionar'))
+            return true;
+
+        return false;
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ConfigureHSIHDMHandleErrorTask">
+  <activity name="startConfigureHSIHDMHandleError" type="seqActivity">
+    <guid>{0cf1f4f1-1a25-4bde-84fb-80174c950916}</guid>
+    <label>Start Configure HSI HDM Handle Error</label>
+    <x>81.21885</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureHSIHDMSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIHDMHandleError</element>
+        <guid>{f7db6afe-d012-40b1-824b-554a4c5c8023}</guid>
+        <label>Configure HSI HDM Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>86.02783</x>
+        <y>130.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{e11ad272-1b20-4b25-9afa-e24654af109a}</guid>
+        <label>Wait Manual Activity</label>
+        <x>30.0</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ConfigureHSIHDMHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIHDMHandleErrorIssue</element>
+            <guid>{a7cdcbb9-8f89-4017-be00-5f885d5dbe3b}</guid>
+            <label>Configure HSI HDM Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>157.0293</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureHSIHDMHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIHDMHandleErrorResend</element>
+            <guid>{9206e4bc-9e80-4865-8aba-d8f6bbcfefa4}</guid>
+            <label>Configure HSI HDM Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>35.998535</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{08b32817-4c0f-4771-9936-5834c72d1ced}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>121.37305</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227; de HSI autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{11b1afe7-e8f4-45e8-8598-17266c0e2aaf}</guid>
+  <label>Configure HSI HDM Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.NotifyIssueHandleErrorTask">
+  <activity name="NotifyIssueHandleErrorTaskStart" type="seqActivity">
+    <guid>{c78f7333-509c-4416-a2e2-59dc630de556}</guid>
+    <label>Notify Closing Handle Error Task Start</label>
+    <x>33.553905</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyIssueHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.OMHandleErrorInterface/oper_NotifyIssueHandleError</element>
+        <guid>{9388f75f-90f3-4c5c-a50a-20fdbd536805}</guid>
+        <label>Notify Issue Handle Error Task</label>
+        <participant>part_FTTHUserInterface.OMHandleError</participant>
+        <x>37.155273</x>
+        <y>130.6414</y>
+      </child>
+      <child name="NotifyIssueHandleErrorResend" type="opActivity">
+        <element>iface_FTTHUserInterface.OMHandleErrorInterface/oper_NotifyIssueHandleErrorResend</element>
+        <guid>{b3a9861e-66df-4180-b99c-cc9e6b6c54a4}</guid>
+        <label>Notify Issue Handle Error Resend</label>
+        <participant>part_FTTHUserInterface.OMHandleError</participant>
+        <x>37.155273</x>
+        <y>368.14728</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              //var orderId = process.processOrder.OrderHeader.cwOrderId;
+              //var activityId = Global.getConfigVariable("NOTIFICAR_ERRO");
+              //var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+              //FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="OMHandleError" type="participantActivity">
+        <guid>{6888d58b-a7e3-4f2c-a4f6-bd26756a2318}</guid>
+        <label>OM Handle Error</label>
+        <participant>part_FTTHUserInterface.OMHandleError</participant>
+        <x>54.0</x>
+        <y>256.74493</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          //var orderId = process.processOrder.OrderHeader.cwOrderId;
+          //var activityId = Global.getConfigVariable("NOTIFICAR_ENCERRAMENTO");
+          //var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          //FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a Notifica&#231;&#227;o de Fechamento de OS autom&#225;tica n&#227;o tenha sido
+      realizada com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser
+      finalizada com reenvio.
+    </p>
+  ]]></description>
+  <guid>{14f825b2-e065-4f47-ae68-2f0bc5f3dcf6}</guid>
+  <label>Notify Issue Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process>

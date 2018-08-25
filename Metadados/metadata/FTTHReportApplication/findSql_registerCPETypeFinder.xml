@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHReportApplication.registerCPETypeFinder">
+  <dbSchema>ORDER</dbSchema>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Finder respons&#225;vel pelo cadastro de tipo de CPE
+    </p>
+  ]]></description>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHReportApplication.CPE</input>
+  <label>CPE</label>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHReportApplication.CPE</output>
+  <type>SQL</type>
+  <vDetailForm>doc_FTTHReportApplication.CPE/ui_UserInterface/frmui_Forms/exov_Default</vDetailForm>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        select CWDOCID, CODIGOMATERIAL,
+                NOMECPE, DESCRICAOMATERIAL, TV,
+                LASTUPDATEAT
+           from TBI_TIPO_CPE
+           where 1=1
+               {[1] and CODIGOMATERIAL = ?}
+               {[2] and UPPER(NOMECPE) like UPPER('%'|| ? ||'%') }
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>reportPSRResult</label>
+        <valueType>doc_FTTHReportApplication.CPE</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHReportApplication.CPE/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHReportApplication.CPE/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="registerCPETypeFinderResultTable1" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="cwDocId" type="elfld">
+                        <label>cwDocId</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.CPE/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codigoMaterial" type="elfld">
+                        <label>Código Material</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.CPE/leaf_codigoMaterial</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomeCPE" type="elfld">
+                        <label>Nome CPE</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.CPE/leaf_nomeCPE</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="descricaoMaterial" type="elfld">
+                        <label>Descrição Material</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.CPE/leaf_descricaoMaterial</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="lastUpdateAt" type="elfld">
+                        <label>Ultima Atualização</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.CPE/leaf_lastUpdateAt</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="isTV" type="elchk">
+                        <label>isTV</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.CPE/leaf_isTV</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <onEnter type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/action_searchAction</variablePath>
+                  </variablePathList>
+                </onEnter>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</base>
+            <extends>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfAdd" type="eldel"/>
+              <override name="cwfCopy" type="eldel"/>
+              <override name="cwfDelete" type="eldel"/>
+              <override name="cwfUpdate" type="eldel"/>
+              <override name="finderMenuLayout" type="elext">
+                <elementList>
+                  <element name="incluir" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/usrActionMethod_addCPEType</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconAdd.gif</icon>
+                    <label>Cadastrar Tipo de CPE</label>
+                    <showDown>true</showDown>
+                    <showFocused>true</showFocused>
+                    <tooltip>Search</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="alterar" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/usrActionMethod_atualizarCPE</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconEdit.gif</icon>
+                    <label>Atualizar Tipo de CPE</label>
+                    <showDown>true</showDown>
+                    <showFocused>true</showFocused>
+                    <tooltip>Atualizar</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/permMethod_cwEnableForSelection</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="excluir" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/usrActionMethod_deleteAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconDelete.gif</icon>
+                    <label>Excluir Tipo de CPE</label>
+                    <showDown>true</showDown>
+                    <showFocused>true</showFocused>
+                    <tooltip>Search</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/permMethod_cwEnableForSelection</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="searchAction" type="action">
+        <parameterList>
+          <parameter name="doValidate" type="rifp">
+            <type>dtype_com.conceptwave.system.Boolean</type>
+          </parameter>
+        </parameterList>
+        <script><![CDATA[
+          doValidate = true;
+          this.cw$super_searchAction(doValidate);
+        ]]></script>
+      </method>
+      <method name="addCPEType" type="usrActionMethod">
+        <form>doc_FTTHReportApplication.CPE/ui_UserInterface/frmui_Forms/vform_cadastrarCPE</form>
+        <parameterList>
+          <parameter name="dialog" type="rifp">
+            <type>ui_com.conceptwave.system.Dialog</type>
+          </parameter>
+        </parameterList>
+        <showInPopup>true</showInPopup>
+        <userInterface>doc_FTTHReportApplication.CPE</userInterface>
+        <valueType>doc_FTTHReportApplication.CPE</valueType>
+        <script>dialog.lastUpdateAt = Calendar.today();</script>
+      </method>
+      <method name="excluirCPE" type="usrActionMethod">
+        <parameterList>
+          <parameter name="dialog" type="rifp">
+            <type>ui_com.conceptwave.system.ConfirmDialog</type>
+          </parameter>
+        </parameterList>
+        <showInPopup>true</showInPopup>
+      </method>
+      <method name="canEditDeletePerm" type="permMethod">
+        <script>return true;</script>
+      </method>
+      <method name="atualizarCPE" type="usrActionMethod">
+        <showInPopup>true</showInPopup>
+        <script><![CDATA[
+          if (this.result.selected!=null && this.result.selected.length == 1) {
+            var ui = new this.result.selected[0].UserInterface(this.result.selected[0], this);
+            this.isSearchButtonVisible = true;
+
+            return ui;
+          }
+          this.result.updateList();
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+  <viewList>
+    <view name="reportCPEFinderView" type="findVView">
+      <inputOverlay>doc_FTTHReportApplication.CPE/ui_UserInterface/frmui_Forms/vform_CPE</inputOverlay>
+      <label>Cadastro de Tipo de CPE</label>
+      <outputOverlay>findSql_FTTHReportApplication.registerCPETypeFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+      <searchImmediately>true</searchImmediately>
+      <showSearchForm>true</showSearchForm>
+    </view>
+  </viewList>
+</findSql>

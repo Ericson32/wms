@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateAdditionalPackage">
+  <label>Create Additional Package</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+    <parameter name="isNewData" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Additional Package');
+
+    var pacoteAdicionalArray = new Array();
+
+    for (var i = 0; i < requisicao.acessos.acesso.length; i++) {
+        var acesso = requisicao.acessos.acesso[i];
+        if (acesso.idCatalogo == 'OI_IPTV') {
+            var pacotes = acesso.pacotesAdicionais.pacoteAdicional;
+            for (var j=0;j<pacotes.length;j++) {
+                var acessoPacoteAdicional = pacotes[j];
+                if(mustRead(isNewData, acessoPacoteAdicional.acao)) {
+                    var pacoteAdicional = new Document('FTTHOrder.AdditionalPackage');
+
+                    isNewData == true ? pacoteAdicional.flagDadoOriginal = 'N' : pacoteAdicional.flagDadoOriginal = 'O';
+
+                    pacoteAdicional.idCatalogo = acessoPacoteAdicional.idCatalogo;
+                    pacoteAdicional.nome = acessoPacoteAdicional.nome;
+                    pacoteAdicional.idAtivo = acessoPacoteAdicional.idAtivo;
+                    pacoteAdicional.acao = acessoPacoteAdicional.acao;
+
+                    pacoteAdicionalArray.push(pacoteAdicional);
+                }
+            }
+        }
+    }
+
+    return pacoteAdicionalArray;
+
+    function mustRead(isNew, acao) {
+        if((isNew && acao != 'remover') || (!isNew && acao != 'adicionar'))
+            return true;
+
+        return false;
+    }
+  ]]></script>
+</script>

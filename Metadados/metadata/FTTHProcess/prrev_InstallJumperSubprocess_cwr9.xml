@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.InstallJumperSubprocess_cwr9">
+  <activity name="InstallJumperStart" type="seqActivity">
+    <guid>{0873c6ab-c48b-42a6-bd8c-fa7af1053db2}</guid>
+    <label>Install Jumper Start</label>
+    <x>45.62871</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InstallJumperManualTask" type="subflowActivity">
+        <element>prrev_FTTHUserInterface.InstallJumperManualTask_cwr6</element>
+        <guid>{037c8749-7c4d-4a25-888d-571dc0eaf6fe}</guid>
+        <label>Install Jumper Manual Task</label>
+        <x>59.16667</x>
+        <y>124.76094</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{54ba7470-19f3-4c94-9901-7149faca363a}</guid>
+        <label>Check Task Result</label>
+        <x>104.006836</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="Issue" type="caseActivity">
+            <guid>{c6dd3fd1-bfe6-4da5-a70b-8ac03dd44b7d}</guid>
+            <label>Issue</label>
+            <x>96.663086</x>
+            <y>712.4738</y>
+            <childList>
+              <child name="SolveIssueStart" type="seqActivity">
+                <guid>{b740ff53-fa20-4373-b913-2b3ce18b01c8}</guid>
+                <label>Solve Issue Start</label>
+                <x>133.06796</x>
+                <y>394.0197</y>
+                <childList>
+                  <child name="InstallJumperSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHHandleIssueProcess.InstallJumperHandleIssueSubprocess_cwr10</element>
+                    <guid>{b3526ad8-8ce3-4efd-bb56-9fb36f470f64}</guid>
+                    <label>Install Jumper Solve Issue Task</label>
+                    <x>134.33496</x>
+                    <y>487.3703</y>
+                    <methodList>
+                      <method name="cwOnProcActAfter" type="action">
+                        <category>script</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ord = this.process.processOrder;
+                          ord.ManualActivityData[ord.ManualActivityData.length -1].ManualActivityData.dataFechamento = new Date();
+                          ord.ManualActivityData[ord.ManualActivityData.length -1].ManualActivityData.statusAtividade = 1;
+                          ord.save();
+                        ]]></script>
+                      </method>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ord = this.process.processOrder;
+                          ord.OrderHeader.flagJumperIssue = true;
+                          ord.save();
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="Success" type="caseActivity">
+            <guid>{a40842ef-e9e6-4d19-96d8-1aaf98e31738}</guid>
+            <label>Success</label>
+            <x>50.0</x>
+            <y>391.66913</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  return (result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"));
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo gerenciamento da atividade manual de
+      Instalar Jumper. A atividade manual &#233; gerada para que possa ser
+      realizada pelo usu&#225;rio WMS. Caso a atividade seja finalizada com
+      pend&#234;ncia, uma atividade manual &quot;Instalar jumper - pend&#234;ncia&quot; &#233; gerada.
+      O usu&#225;rio dever&#225; fechar a pend&#234;ncia e uma nova atividade de Instalar
+      Jumper dever&#225; ser criada. Caso o usu&#225;rio finalize a atividade com
+      sucesso, o subprocesso &#233; encerrado e volta para o ponto do processo que
+      o chamou.
+    </p>
+  ]]></description>
+  <label>Install Jumper Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.InstallJumperSubprocess</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureHSIAPCSubprocess_cwr7">
+  <activity name="ConfigureHSIAPCStart" type="seqActivity">
+    <guid>{049295b3-b120-4c0c-82a0-822630325de4}</guid>
+    <label>Configure HSI APC Start</label>
+    <x>30.537891</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureHSIAPCAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureHSIAPCAutomaticTask</element>
+        <guid>{a9b30384-3fb7-4139-b619-05109a7a764f}</guid>
+        <label>Configure HSI APC Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{247fe876-1f69-4e64-9558-0b21a8fa568a}</guid>
+        <label>Check Task Result</label>
+        <x>65.762695</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{f5c7901d-99af-4cea-a377-a63ef31d130b}</guid>
+            <label>Success</label>
+            <x>34.844482</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_HSI_APC");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{6eb38919-6beb-4e61-80f2-571a37443a44}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{eacbcb53-040a-43a2-96ef-617605b1ef0a}</guid>
+                <label>Handle Error Start</label>
+                <x>118.51479</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="ConfigureHSIAPCHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureHSIAPCHandleErrorTask_cwr4</element>
+                    <guid>{1b46ceb2-481f-43c5-9e31-2bb0b61d38b0}</guid>
+                    <label>Configure HSI APC Handle Error Task</label>
+                    <x>155.15125</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{5db25148-d55d-46c8-ac84-59197015f456}</guid>
+                    <label>Check Error Handling</label>
+                    <x>119.80208</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{e60493e3-7340-4a8b-b904-3e6d3f42ff1a}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{cd791b32-ab55-4489-a7de-870722f84aaa}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.09726</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureHSIAPCSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConfigureHSIAPCHandleIssueSubprocess_cwr9</element>
+                                <guid>{a3983001-6703-4361-b427-2b6b2d385d4c}</guid>
+                                <label>Configure HSI APC Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConfigureHSIAPCSubprocess_cwr7/seqActivity_ConfigureHSIAPCStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{23884e78-a195-4775-bb91-b0c77e78144d}</guid>
+                                <label>Repeat</label>
+                                <x>151.77637</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_HSI_APC");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{179ecb9f-95ad-4d20-b450-35b1119be6ba}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConfigureHSIAPCSubprocess_cwr7/seqActivity_ConfigureHSIAPCStart</element>
+                            <guid>{13058ec9-c3f5-44fe-b341-10b441da38f8}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar HSI&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      HSI. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar HSI - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure HSI APC Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureHSIAPCSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

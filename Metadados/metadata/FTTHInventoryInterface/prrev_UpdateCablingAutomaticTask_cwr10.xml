@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision filenameHash="7df4fa3cd2996cd12dc8a6342bf01a64" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.UpdateCablingAutomaticTask_cwr10">
+  <activity name="UpdateCablingAutomaticTaskStart" type="seqActivity">
+    <guid>{2123de14-9887-4578-823b-3a34d7fa7558}</guid>
+    <label>Update Cabling Automatic Task Start</label>
+    <x>110.123924</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateCablingSendOperation" type="opActivity">
+        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_UpdateCablingSendOperation</element>
+        <guid>{26e7d411-5e12-483c-a10e-28a858b0f4a8}</guid>
+        <label>Update Cabling Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>175.39258</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHInventoryInterface.CreateInventoryMessage(this.process.processOrder, this.process.id,"ATUALIZAR_CABEAMENTO_INTERNO" ,this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update Cabling Automatic Task", "Update Cabling Send Operation", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update Cabling Automatic Task", "Update Cabling Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="UpdateCablingAutomaticTaskComplete" type="completeActivity">
+        <guid>{a5ac4a1e-476c-4847-a6f6-2c553cc8124f}</guid>
+        <label>Update Cabling Automatic Task Complete</label>
+        <x>265.51367</x>
+        <y>286.4461</y>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{f830061d-f3f7-4e5e-8e50-7c4348cd83d0}</guid>
+        <label>exceptionHandler</label>
+        <x>30.0</x>
+        <y>152.69316</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO"), Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{2dcb8d07-9cea-433d-b04e-b46897117407}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>99.51367</x>
+        <y>293.7967</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Atualizar
+      Facilidades. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de atualiza&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de
+      tempo pr&#233; determinado, ser&#227;o feitas mais algumas retentativas. A
+      quantidade de retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo
+      usu&#225;rio.
+    </p>
+    <p style="margin-top: 0">
+      Nesse processo o WMS dever&#225; enviar uma solicita&#231;&#227;o de commit para o
+      Sistema de Invent&#225;rio. Essa solicita&#231;&#227;o ser&#225; respons&#225;vel por confirmar a
+      libera&#231;&#227;o de facilidades feitas pela processo anterior (Liberar
+      Facilidades).
+    </p>
+  ]]></description>
+  <label>Update Cabling Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryInterface.UpdateCablingAutomaticTask</process>
+  <revision>10</revision>
+  <type>User</type>
+</process__revision>

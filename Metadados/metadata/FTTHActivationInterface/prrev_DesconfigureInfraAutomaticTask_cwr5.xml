@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.DesconfigureInfraAutomaticTask_cwr5">
+  <activity name="DesconfigureInfraAutomaticTaskStart" type="seqActivity">
+    <guid>{121ef0ad-ff16-4235-b7bf-7da8017aa82b}</guid>
+    <label>Desconfigure Infra Automatic Task Start</label>
+    <x>108.49414</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureInfraSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{9852f99c-d8db-4286-b698-28e5636e466a}</guid>
+        <label>Desconfigure Infra Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>175.39258</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{dd7340d7-43e4-40a7-b878-ec9a16bb6a1b}</guid>
+            <label>Check Send Operation Result</label>
+            <x>274.6286</x>
+            <y>271.74493</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{b7a02528-b914-4374-8324-b5442de8d98f}</guid>
+                <label>Success</label>
+                <x>274.07645</x>
+                <y>412.54962</y>
+                <childList>
+                  <child name="WaitAutomaticActivity" type="choiceActivity">
+                    <guid>{a2a5f08c-d7cd-4c6b-ba87-2d139989c0e0}</guid>
+                    <label>Wait Automatic Activity</label>
+                    <x>392.41327</x>
+                    <y>412.54962</y>
+                    <childList>
+                      <child name="TimeOutControl" type="timeoutActivity">
+                        <guid>{84ea8a03-29f6-4869-bddd-72f6981f10fa}</guid>
+                        <label>TimeOut Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>435.69403</x>
+                        <y>546.0037</y>
+                        <childList>
+                          <child name="TimeOutControl" type="scriptActivity">
+                            <guid>{80c2ea9e-182e-481a-9d7a-dcce03f56b98}</guid>
+                            <label>TimeOutControl</label>
+                            <x>416.35223</x>
+                            <y>686.8084</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Desconfigure Infra Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activity = Global.getConfigVariable("DESCONFIGURAR_INFRA");
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                       Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                       Global.getConfigVariable("DESCONFIGURAR_INFRA"),
+                                                       status,
+                                                       errorType.errorCode,
+                                                       errorType.errorDescription,
+                                                       this.process.id,
+                                                       Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                             Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                             Global.getConfigVariable("DESCONFIGURAR_INFRA"));
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="DesconfigureInfraReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{41c55ca8-e481-4580-ba3d-c2cdd945c984}</guid>
+                        <label>Desconfigure Infra Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>297.64716</x>
+                        <y>664.75665</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Desconfigure Infra Automatic Task", "Desconfigure Infra Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("DESCONFIGURAR_INFRA"), status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                   Global.getConfigVariable("DESCONFIGURAR_INFRA"),
+                                                   status,
+                                                   this.activityData.code,
+                                                   this.activityData.description,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                         Global.getConfigVariable("DESCONFIGURAR_INFRA"));
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA");
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT")){
+                                  FTTHActivationInterface.createSignalToSemaphoreActivation(this.process.id);
+                      return true;
+                            }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{0cb1553d-61e6-4b5b-bc5e-abfd664218fc}</guid>
+                <label>Error</label>
+                <x>182.88217</x>
+                <y>553.3543</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_ACTIVITY = "Desconfigurar Infra";
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+                              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Desconfigure Infra Automatic Task", "Desconfigure Infra Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("DESCONFIGURAR_INFRA"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                   Global.getConfigVariable("DESCONFIGURAR_INFRA"),
+                                   status,
+                                   this.activityData.code,
+                                   this.activityData.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                         Global.getConfigVariable("DESCONFIGURAR_INFRA"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="DesconfigureInfraAutomaticTaskComplete" type="completeActivity">
+        <guid>{18669b6b-79ed-4108-82ca-e8777e5f40bb}</guid>
+        <label>Desconfigure Infra Automatic Task Complete</label>
+        <x>290.8247</x>
+        <y>820.56134</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHActivationInterface.deleteSignalFromSemaphoreActivation(this.process.id);
+              Global.logInfo('Atividade Automática SIS Completa e semaforo excluido');
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{469c3169-ae1e-480d-be6b-f969f0e83065}</guid>
+        <label>exceptionHandler</label>
+        <x>30.0</x>
+        <y>145.34258</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id,Global.getConfigVariable("DESCONFIGURAR_INFRA"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{d627b773-d8a8-4e9e-99b6-c801531ef13b}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>108.628586</x>
+        <y>279.09552</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{ff7237fa-5709-467f-adc8-c6de714ea6ef}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>262.88217</x>
+        <y>538.65314</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Configurar
+      Infra. Inicialmente o fluxo envia para o sistema de Rede uma solicita&#231;&#227;o
+      de configura&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de tempo pr&#233;
+      determinado, ser&#227;o feitas mais algumas retentativas. A quantidade de
+      retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Desconfigure Infra Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.DesconfigureInfraAutomaticTask</process>
+  <revision>5</revision>
+  <type>User</type>
+</process__revision>

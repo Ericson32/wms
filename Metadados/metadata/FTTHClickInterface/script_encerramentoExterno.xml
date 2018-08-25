@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHClickInterface.encerramentoExterno">
+  <label>Encerramento Externo</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="wldoc" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="codEncerramento" type="rifp">
+      <type>dtype_FTTHClickInterface.codEncerramento</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var orderId = wldoc.OrderId;
+    var ord = Order.getOrderById(orderId);
+    var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+    var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+    var response = new DataStructure("FTTHClickWorkForceManager.externalCloseTaskResponse");
+
+    try {
+        var request = new DataStructure("FTTHClickWorkForceManager.externalCloseTaskRequest");
+
+        var indCancelamento = false;
+        request = FTTHClickInterface.createBAExternalCloseRequestMessage(ord, request, indCancelamento,  codEncerramento);
+        ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.codEncerramento =  request.workOrderItem.closingCodes.closingCode[0];
+        ord.save();
+        FTTHCommon.log(orderId, wldoc.SenderId, "Open BA Automatic Task", "Open BA Send Operation", "cwOnProcActBefore", request.toXML());
+
+        var messageDoc = new Document("cwf_pm:messageLog");
+        messageDoc.userData1 = ord.OrderHeader.numeroPedido;
+        messageDoc.userData2 = ord.OrderHeader.numeroOS;
+        messageDoc.userData3 = orderId;
+        UserProfile.setMsgLogDoc(messageDoc);
+
+        response = Global.invokeInterface("FTTHClickWorkForceManager:WorkForceManagerPortType", "externalCloseTask", request)[0];
+
+        if (response) {
+            var status = FTTHCommon.defineStatusAutomaticActivity(response.operationReturn.code, Global.getConfigVariable("CLICK_SYSTEM"));
+            FTTHCommon.setStatusActivity(orderId, activityId, status);
+
+            var isSuccess = (status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"));
+
+            if(!isSuccess){
+                Global.showUserMessage("CLICK RESPONSE\n\nCódigo de retorno: " + response.operationReturn.code + "\nDescription: " + response.operationReturn.description);
+            }
+
+            return isSuccess;
+        }
+
+    } catch(e){
+        var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+        var LOG_ACTIVITY = "Encerramento externo de BA";
+        var LOG_SCRIPT = "EquipmentExternalCloseSuccess";
+        var ONT_OPERATION = "EquipmentExternalCloseSuccess";
+        var LOG_MSG = "Erro ao executar script que invoca interface para encerramento externo de BA";
+
+        var messageDoc = new Document("cwf_pm:messageLog");
+        messageDoc.userData1 = ord.OrderHeader.numeroPedido;
+        messageDoc.userData2 = ord.OrderHeader.numeroOS;
+        messageDoc.userData3 = orderId;
+        UserProfile.setMsgLogDoc(messageDoc);
+
+        FTTHCommon.log(null, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+
+        var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+        FTTHCommon.setStatusActivity(orderId, activityId, status);
+
+        Global.showUserMessage("CLICK não está respondendo");
+        Global.logError("Encerramento Externo error: " + e);
+
+        return false;
+    }
+  ]]></script>
+</script>

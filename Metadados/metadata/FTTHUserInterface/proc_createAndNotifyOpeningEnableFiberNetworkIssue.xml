@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.createAndNotifyOpeningEnableFiberNetworkIssue">
+  <activity name="createAndNotifyOpeningEnableFiberNetworkProcess" type="seqActivity">
+    <guid>{7d0a9faf-49be-44ba-9e85-59981762fc66}</guid>
+    <label>Create And Notify Opening Enable Fiber Network Process</label>
+    <x>97.63271</x>
+    <y>30.0</y>
+    <childList>
+      <child name="createAndNotifyOpeningEnableFiberNetwork" type="opActivity">
+        <element>iface_FTTHUserInterface.enableFiberNetworkSolveIssueInterface/oper_enableFiberNetworkIssue</element>
+        <guid>{ee7883a9-5b45-4f6d-861c-7fa7e7652f16}</guid>
+        <label>Create And Notify Opening Enable Fiber Network</label>
+        <participant>part_FTTHUserInterface.enableFiberNetworkSolveIssueParticipant</participant>
+        <x>101.16553</x>
+        <y>136.52188</y>
+      </child>
+      <child name="notifyIssue" type="scriptActivity">
+        <guid>{45b4b865-6bd7-4330-baf7-64eb2ae48c50}</guid>
+        <label>Notify Issue</label>
+        <x>30.0</x>
+        <y>336.13126</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', process.processOrder.IssueData[process.processOrder.IssueData.length - 1].IssueData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="createIssue" type="scriptActivity">
+        <guid>{4d5bb493-123a-4600-9b65-cbe6deb7eb99}</guid>
+        <label>Create Issue</label>
+        <x>43.335938</x>
+        <y>462.23477</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var issue = new Document('FTTHCommon:OpenIssuePopUp');
+              issue.cwOrderId = process.processOrder.id;
+              issue.atividade = 'Viabilizar Rede FTTH';
+              issue.dataAbertura = new Date();
+              issue.observacao = 'Pendência de Viabilização de Rede aberta automaticamente pelo sistema';
+
+              var codPendResult = Finder.runSearch("FTTHCommon:IssuesScriptFinder", null);
+
+              for (var i=0; i < codPendResult.length; i++){
+                  if (codPendResult[i].codPendencia == '7039'){
+                      issue.codPendencia = codPendResult[i].cwDocId;
+                      issue.descPendencia = codPendResult[i].descPendencia;
+                      issue.tipoPendencia = codPendResult[i].tipoPendencia;
+                  }
+              }
+
+              FTTHCommon.ParticipantIssueAction(issue);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="enableFiberNetworkSolveIssueParticipant" type="participantActivity">
+        <guid>{ba5e9230-a537-411b-83b3-be44a735a3c7}</guid>
+        <label>Enable Fiber Network Solve Issue Participant</label>
+        <participant>part_FTTHUserInterface.enableFiberNetworkSolveIssueParticipant</participant>
+        <x>144.68945</x>
+        <y>306.7289</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{3a1d935a-2bf7-420f-a31d-4908157c7362}</guid>
+  <label>Create And Notify Opening Enable Fiber Network Issue</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

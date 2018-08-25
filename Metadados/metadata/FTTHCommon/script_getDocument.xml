@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.getDocument">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Scripts com fun&#231;&#245;es gen&#233;ricas para o document.
+    </p>
+  ]]></description>
+  <label>Get Document</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Ordem que cont&amp;#233;m o documento.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="documentName" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Documento&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="isOriginal" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Atributo que indica se o documento vai vim dos dados originais ou dos &#xd;
+      dados novos.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="index" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      index of the returned document&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_com.conceptwave.system.Integer</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    if(documentName=="Order Header")
+            return order.OrderHeader;
+    else if(documentName=="Client Data")
+            return order.ClientData;
+    else if(documentName=="Address Data"){
+        if(isOriginal)
+            if(order.OriginalData != null &&  order.OriginalData[0] != null)
+                return order.OriginalData[0].AddressData;
+            else
+                return null;
+        else
+            return order.AddressData;
+    }else if(documentName=="Product Data"){
+        if(isOriginal)
+            if(order.OriginalData != null && order.OriginalData[0] != null)
+                return order.OriginalData[0].ProductData;
+            else
+                return null;
+        else
+            return order.ProductData;
+    }else if(documentName=="Additional Package"){
+        if(isOriginal)
+            if(order.OriginalData != null && order.OriginalData[0] != null)
+                return order.OriginalData[0].AdditionalPackages;
+            else
+                return null;
+        else
+            return order.AdditionalPackages;
+    }else if(documentName=="Franchise Plan"){
+        if(isOriginal)
+            if(order.OriginalData != null && order.OriginalData[0] != null)
+                return order.OriginalData[0].FranchisePlans;
+            else
+                return null;
+        else
+            return order.FranchisePlans;
+    }else if(documentName=="Facility Data"){
+        if(isOriginal)
+            if(order.OriginalData != null && order.OriginalData[0] != null)
+                return order.OriginalData[0].FacilityData;
+            else
+                return null;
+        else
+            return order.FacilityData;
+    }else if(documentName=="Installation Data"){
+        if(isOriginal){
+            if(order.OriginalData != null && order.OriginalData[0] != null)
+                return order.OriginalData[0].InstallationData;
+            else
+                return null;
+        }else
+            return order.InstallationData;
+    }else if(documentName=="Equipament Base Data"){
+        if(isOriginal){
+            if(order.OriginalData != null && order.OriginalData[0] != null){
+                if(order.OriginalData[0].EquipmentData != null && order.OriginalData[0].EquipmentData[0] != null)
+                    return order.OriginalData[0].EquipmentData[0].BaseEquipmentData;
+                else
+                    return null;
+            }
+            else
+                return null;
+        } else {
+            if(order.EquipmentData != null && order.EquipmentData[0] != null)
+                return order.EquipmentData[0].BaseEquipmentData;
+            else
+                return null;
+        }
+    }else if(documentName=="Equipament Point Data"){
+        if(isOriginal){
+            if(order.OriginalData != null && order.OriginalData[0] != null){
+                if(order.OriginalData[0].EquipmentData != null && order.OriginalData[0].EquipmentData[0] != null
+                    && order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData != null && order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[0] != null)
+                    if(index != null)
+                        return order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[index].EquipmentPointData;
+                    else
+                        return order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData;
+                else
+                    return null;
+            }
+            else
+                return null;
+        } else {
+            if(order.EquipmentData != null && order.EquipmentData[0] != null && order.EquipmentData[0].AddPointsEquipmentData != null && order.EquipmentData[0].AddPointsEquipmentData[0] != null)
+                if(index != null)
+                        return order.EquipmentData[0].AddPointsEquipmentData[index].EquipmentPointData;
+                    else
+                        return order.EquipmentData[0].AddPointsEquipmentData;
+            else
+                return null;
+        }
+    }else{
+        Global.logError("Invalid Document => documentName:" + documentName);
+        Global.throwException("Invalid Document => documentName: " + documentName);
+    }
+  ]]></script>
+</script>

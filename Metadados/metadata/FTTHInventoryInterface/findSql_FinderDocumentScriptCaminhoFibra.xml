@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra">
+  <dbSchema>ORDER</dbSchema>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra</input>
+  <label>FinderDocumentScriptCaminhoFibra</label>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra</output>
+  <type>SQL</type>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        SELECT TF.CWORDERID, TF.CWDOCID, TF.ID_ACESSO_GPON,
+               TOS.NUM_PEDIDO, TF.CAMINHO_FIBRA, TOS.NUM_ORDEM_INVENTARIO,
+               TOS.NUM_ORDEM_SERVICO, TOS.TP_ORDEM_SERVICO
+        FROM TBI_ORDEM_SERVICO TOS,
+             TBI_FACILIDADE TF
+        WHERE TOS.CWORDERID = TF.CWORDERID
+          AND DESC_ESTADO_ORDEM_SERVICO = 'Em processamento'
+          AND TF.CAMINHO_FIBRA IS NOT NULL
+          AND TOS.CWORDERID NOT IN (SELECT TCF.CWORDERID FROM TBI_CAMINHO_FIBRA TCF WHERE TCF.CWORDERID = TF.CWORDERID)
+          AND ROWNUM <= 20
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <valueType>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="FinderDocumentScriptCaminhoFibraResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="cwOrderId" type="elfld">
+                        <label>CW Order Id</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra/leaf_cwOrderId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numPedido" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra/leaf_numPedido</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numeroOSInventario" type="elfld">
+                        <label>Numero Os Inventário</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra/leaf_numeroOSInventario</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numeroOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra/leaf_numeroOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="outros" type="elfld">
+                        <label>Outros</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra/leaf_outros</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="status" type="elfld">
+                        <label>Status</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHInventoryInterface.DocumentScriptCaminhFibra/leaf_status</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</base>
+            <extends>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfAdd" type="eldel"/>
+              <override name="cwfCopy" type="eldel"/>
+              <override name="cwfDelete" type="eldel"/>
+              <override name="cwfDetail" type="eldel"/>
+              <override name="cwfSearch" type="eldel"/>
+              <override name="cwfSelect" type="eldel"/>
+              <override name="cwfUpdate" type="eldel"/>
+              <override name="finderMenuLayout" type="elext">
+                <elementList>
+                  <element name="tratar" type="elmnu">
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/uimthd_UpdateCaminhoFibra</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconGo.gif</icon>
+                    <label>Tratar Backlog</label>
+                    <tooltip>Copy</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.UserInterface/uivar_model</variablePath>
+                        <variablePath>mdl_com.conceptwave.system.Model/permMethod_addPerm</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="UpdateCaminhoFibra" type="uimthd">
+        <script><![CDATA[
+          var STATUS_INICIO = "START";
+          var PROCESSANDO = "PROCESSANDO";
+          var ERRO = "ERRO";
+          var ERRO_PARAMETROS = "ERRO_PARAMETROS";
+          var SUCESSO = "SUCESSO";
+
+          //Variável para inicializar o resultdado da grid que é exibidad na tela.
+          var result = this.doInitFinder();
+          var flagDadoOriginal = "";
+          var docSearch = new Document('FTTHInventoryInterface:DocumentScriptCaminhFibra');
+          var listaDocumentScriptCaminhFibra =  Finder.runSearch('FTTHInventoryInterface:FinderDocumentScriptCaminhoFibra', docSearch );
+          var atividade = "";
+          var interfaceConsulta = "";
+          var operacaoInterface = "";
+          var countErrorSend = 0;
+          var message = "";
+
+
+          for(var i = 0; i < listaDocumentScriptCaminhFibra.length; i++){
+              result[i] = listaDocumentScriptCaminhFibra[i];
+
+              alterarStatusObejtoResultado(result[i], STATUS_INICIO);
+
+              var listaAtributos = new Array();
+              var passouValidacao = true;
+              var isOriginal = 0;
+
+              if( listaDocumentScriptCaminhFibra[i].tipoOrdem == "TIPO_ORDEM_INSTALACAO"){
+                  atividade = "CONSULTAR_FACILIDADE_FISICA_NOVA";
+                  interfaceConsulta = "FTTHInventoryInterface:InventoryOnChangeSenderInterface";
+                  operacaoInterface = "ConsultPhysicalFacilitySendOperation";
+                  flagDadoOriginal = "N";
+              }else{
+                  atividade = "CONSULTAR_FACILIDADE_FISICA_ORIGINAL";
+                  interfaceConsulta = "FTTHInventoryInterface:InventoryOriginalDataSenderInterface";
+                  operacaoInterface = "ConsultPhysicalFacilitySendOperation";
+                  flagDadoOriginal = "O";
+              }
+
+              alterarStatusObejtoResultado(result[i], PROCESSANDO);
+              setObjOutros(result[i], atividade, interfaceConsulta, operacaoInterface);
+
+              var order = Order.getOrderById(listaDocumentScriptCaminhFibra[i].cwOrderId);
+              var sender = new DataStructure("FTTHInventoryInterface:query");
+              sender.uniqueCode = listaDocumentScriptCaminhFibra[i].numeroOSInventario?listaDocumentScriptCaminhFibra[i].numeroOSInventario: listaDocumentScriptCaminhFibra[i].acessoGPON;
+              sender.type = "ServiceOrderExtKey";
+              sender.actor.sistema = "OM-R";
+
+              var searchDoc = new Document('FTTHInventoryInterface:AttributeInventory');
+              searchDoc.operacao = atividade;
+              searchDoc.idOS = order.id;
+              var atributos = Finder.runSearch('FTTHInventoryInterface:AttributeFinder', searchDoc);
+
+              for (var k = 0; k < atributos.length; k++) {
+                  var entrada = FTTHCommon.getDocument(order, atributos[k].nomeDocumento, isOriginal);
+                  var valor = entrada.getValueByName(atributos[k].identificadorCampo);
+                  if (valor != null){
+                      var key = new DataStructure('FTTHInventoryInterface.queryType');
+                      key.type = atributos[k].identificadorCampo;
+                      key.uniqueCode = valor;
+                      listaAtributos[listaAtributos.length] = key;
+                  }else if(valor == null && atributos[k].obrigatoriedade == 1){
+                      passouValidacao = false;
+                  }
+              }
+
+              if(passouValidacao){
+                  for(k = 0; k < listaAtributos.length; k++){
+                      sender.key[k].type = listaAtributos[k].type;
+                      sender.key[k].uniqueCode = listaAtributos[k].uniqueCode;
+                  }
+
+                  try{
+                      var response = Global.invokeInterface(interfaceConsulta, operacaoInterface, sender)[0];
+
+                      if(response.caminhoFibra){
+                          
+                          for (var j = 0; j < response.caminhoFibra.attributeList.attribute.length; j++) {
+                              var caminhoFibra = new Document("FTTHOrder:CaminhoDaFibra");
+                              caminhoFibra.cwOrderId =  order.id;
+                              caminhoFibra.valor = response.caminhoFibra.attributeList.attribute[j].value;
+                              caminhoFibra.campo = response.caminhoFibra.attributeList.attribute[j].name;
+                              caminhoFibra.flagDadoOriginal = flagDadoOriginal;
+                              caminhoFibra.save();
+
+                          }
+                      }
+
+                      countErrorSend = 0;
+                      alterarStatusObejtoResultado(result[i], SUCESSO);
+
+                  }catch(e){
+                      countErrorSend++;
+                      message = "O sistema não conseguiu salvar o document FTTHOrder:CaminhoDaFibra na ordem: " + order.id + " Serviço: " + atividade + " Interface: " + interfaceConsulta;
+                      result[i].outros = message;
+                      setMessageLog(message, order.id);
+                      alterarStatusObejtoResultado(result[i], ERRO);
+
+                      if (countErrorSend >= 3){
+                          message = "O sistema não conseguiu salvar o document FTTHOrder:CaminhoDaFibra em 3 tentativas consecutivas, por favor verificar. ";
+                          setMessageLog(message, order.id); //utilizando o order.id da ultima que deu erro;
+                          result[i].outros = message;
+                          return null;
+                      }
+                  }
+
+              }else{
+                  message = "Erro na validação dos parametros:: os campos obrigatórios estão faltando\n Atividade:: " +  atividade + " Interface:: " + interfaceConsulta + " OrderId:: " + order.id;
+                  setMessageLog(message, order.id);
+                  alterarStatusObejtoResultado(result[i], ERRO_PARAMETROS);
+              }
+          }
+
+
+          function setMessageLog(msg, id){
+              var date = Calendar.formatDate(new Date(), "yyyy/MM/dd'-'HH:mm:ss");
+              msg = "OM-R - " + date + " :: UpdateCaminhoFibra_TMP :: " + msg;
+              Global.logError(msg, id);
+          }
+
+
+          /**
+          * Set o valor Padronizado para o OBJ com o parametro outros.
+          */
+          function setObjOutros(objGrid, atividade, interfaceConsulta, operacaoInterface){
+
+              objGrid.outros = "Atividade --> " + atividade + " :: Interface de Consulta --> " + interfaceConsulta + " :: Operação --> " + operacaoInterface;
+          }
+
+          //alterar o status do document
+          function alterarStatusObejtoResultado(documentScriptCaminhFibra, status){
+              documentScriptCaminhFibra.status = status;
+          }
+        ]]></script>
+      </method>
+      <method name="doInitFinder" type="uimthd">
+        <script><![CDATA[
+          this.cw$super_doInitFinder();
+          return this.result;
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+  <viewList>
+    <view name="FinderDocumentScriptCaminhoFibraView" type="findVView">
+      <inputOverlay>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</inputOverlay>
+      <label>FinderDocumentScriptCaminhoFibraView</label>
+      <outputOverlay>findSql_FTTHInventoryInterface.FinderDocumentScriptCaminhoFibra/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+      <searchImmediately>true</searchImmediately>
+    </view>
+  </viewList>
+</findSql>

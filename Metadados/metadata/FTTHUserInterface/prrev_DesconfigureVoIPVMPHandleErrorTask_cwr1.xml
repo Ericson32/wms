@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DesconfigureVoIPVMPHandleErrorTask_cwr1">
+  <activity name="startDesconfigureVoIPVMPHandleError" type="seqActivity">
+    <guid>{a4e21f71-eb10-43a9-8e09-5ca224c8d38f}</guid>
+    <label>Start Desconfigure VoIP VMP Handle Error</label>
+    <x>90.952736</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureVoIPVMPSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPVMPHandleError</element>
+        <guid>{d25b76b2-27e7-4b9f-95ce-effe5bb3c459}</guid>
+        <label>Desconfigure VoIP VMP Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>91.35254</x>
+        <y>130.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{8ef5ccf1-bd97-4339-893d-de756eeac5ae}</guid>
+        <label>Wait Manual Activity</label>
+        <x>42.675293</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="DesconfigureVoIPVMPHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPVMPHandleErrorIssue</element>
+            <guid>{7e8c5c71-935d-4e8f-bf9d-353d2bf3be17}</guid>
+            <label>Desconfigure VoIP VMP Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>163.47998</x>
+            <y>411.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_VMP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="DesconfigureVoIPVMPHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPVMPHandleErrorResend</element>
+            <guid>{1e00ff87-8838-4de7-a951-a79f2a19e639}</guid>
+            <label>Desconfigure VoIP VMP Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>30.0</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_VMP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{720340c6-bf47-4506-bd3d-84be681549d2}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>134.04834</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_VMP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a desconfigurar VoIP autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Desconfigure VoIP VMP Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DesconfigureVoIPVMPHandleErrorTask</process>
+  <type>Sub-flow</type>
+</process__revision>

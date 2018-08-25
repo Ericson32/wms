@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateFacilityData">
+  <label>Create Facility Data</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+    <parameter name="facilityData" type="rifp">
+      <type>doc_FTTHOrder.FacilityData</type>
+    </parameter>
+    <parameter name="isNewData" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Facility Data');
+
+    /***** CR 133 ******************************
+    isNewData == true  - New Data (N)
+    isNewData == false - Original Data (O)
+    ********************************************/
+    isNewData == true ? facilityData.flagIsOriginal = 'N' : facilityData.flagIsOriginal = 'O';
+
+    if(facilityData.acessoGPON == null) {
+        for (var i = 0; i < requisicao.acessos.acesso.length; i++) {
+
+            var acesso = requisicao.acessos.acesso[i];
+
+            facilityData.validateGPON = true;
+
+            for (var j = 0; j < acesso.atributos.atributo.length; j++) {
+
+                var atributo = acesso.atributos.atributo[j];
+
+                if(isNewData){
+                    if(atributo.nome == 'idAcesso') {
+                        facilityData.acessoGPON = atributo.valor;
+                        facilityData.acessoGESTAO = atributo.valor;
+
+                    }if(atributo.nome == 'id_endereco_inventario'){
+                        facilityData.idEndereco = atributo.valor;
+
+                    }
+                }else if (!isNewData){
+                     if(atributo.nome == 'idAcessoAntigo') {
+                        facilityData.acessoGPON = atributo.valor;
+                        facilityData.acessoGESTAO = atributo.valor;
+                        break;
+                    }
+                }
+            }
+
+            if(facilityData.acessoGPON != null)
+            break;
+        }
+    }
+  ]]></script>
+</script>

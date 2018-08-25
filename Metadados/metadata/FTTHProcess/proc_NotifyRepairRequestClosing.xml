@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.NotifyRepairRequestClosing">
+  <activity name="NotifyRepairRequestClosingStart" type="seqActivity">
+    <guid>{df51b0a9-2160-4388-b29a-270eddb57bc2}</guid>
+    <label>Notify Repair Request Closing Start</label>
+    <x>49.63496</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyRepairRequestAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.NotifyRepairRequestAutomaticTask</element>
+        <guid>{940300ba-5ad4-4f59-bef4-f805048702df}</guid>
+        <label>Notify Repair Request Automatic Task</label>
+        <syc>true</syc>
+        <x>103.51172</x>
+        <y>130.6414</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{c8f42404-a963-4b3b-9f08-d905caed1e33}</guid>
+        <label>Check Task Result</label>
+        <x>113.19043</x>
+        <y>284.14728</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{8092c082-9b89-42db-9c1a-99e66e4b964c}</guid>
+            <label>Success</label>
+            <x>155.85938</x>
+            <y>410.2508</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("NOTIFICAR_ENCERRAMENTO");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{75b120f8-a1c4-4715-85f2-e9c4628ff4c8}</guid>
+            <label>Error</label>
+            <x>91.0</x>
+            <y>349.0</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{c6943b95-db76-42be-91d3-1598f1e5960b}</guid>
+                <label>Handle Error Start</label>
+                <x>51.178123</x>
+                <y>412.60138</y>
+                <childList>
+                  <child name="NotifyRepairRequestClosingHandleError" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.NotifyClosingHandleErrorTask</element>
+                    <guid>{d7684c56-a371-4f6a-aa2c-b5447a55de75}</guid>
+                    <label>Notify Repair Request Closing Handle Error</label>
+                    <x>63.51172</x>
+                    <y>506.95197</y>
+                  </child>
+                  <child name="SendToAutomaticTask" type="repeatActivity">
+                    <element>proc_FTTHProcess.NotifyRepairRequestClosing/seqActivity_NotifyRepairRequestClosingStart</element>
+                    <guid>{d822a9e7-569c-4997-81e8-2cc8b9781520}</guid>
+                    <label>Send To Automatic Task</label>
+                    <x>30.0</x>
+                    <y>677.159</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela notifica&#231;&#227;o do fechamento da solicita&#231;&#227;o de
+      reparo ao Siebel8 quando o SGFT retornar o fechamento do BA.
+    </p>
+  ]]></description>
+  <guid>{d7f5028d-8215-47c4-a4bc-c8761729c275}</guid>
+  <label>Notify Repair Request Closing</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

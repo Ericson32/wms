@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.NotifyEnrichmentHandleErrorTask">
+  <activity name="NotifyEnrichmentHandleErrorTaskStart" type="seqActivity">
+    <guid>{85364ffa-137f-4751-bbe0-f950ee9e0942}</guid>
+    <label>Notify Enrichment Handle Error Task Start</label>
+    <x>33.55391</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyEnrichmentSendOperation" type="opActivity">
+        <element>iface_FTTHUserInterface.OMHandleErrorInterface/oper_UpdateOMHandleError</element>
+        <guid>{a24e31e4-1a93-488c-a32e-4a8ce0e2b1b7}</guid>
+        <label>Notify Enrichment Send Operation</label>
+        <participant>part_FTTHUserInterface.OMHandleError</participant>
+        <x>38.154297</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="NotifyEnrichmentHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.OMHandleErrorInterface/oper_UpdateOMHandleErrorResend</element>
+            <guid>{11e1a328-031e-4e0a-9a68-192d1e46d224}</guid>
+            <label>Notify Enrichment Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.OMHandleError</participant>
+            <x>38.154297</x>
+            <y>384.84845</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("NOTIFICAR_ENRIQUECIMENTO");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="OMHandleError" type="participantActivity">
+        <guid>{0f1e39cd-fd95-40a7-b9c1-efb42ec34210}</guid>
+        <label>OM Handle Error</label>
+        <participant>part_FTTHUserInterface.OMHandleError</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("NOTIFICAR_ENRIQUECIMENTO");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{6485d5c4-6824-467a-abba-626530ae2963}</guid>
+  <label>Notify Enrichment Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

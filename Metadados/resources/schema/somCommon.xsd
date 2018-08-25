@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema targetNamespace="http://oi.com.br/som/common"
+		xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:somCommon="http://oi.com.br/som/common"
+	xmlns:cwf="http://www.conceptwave.com/system"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"	
+xmlns:cwf_system="http://www.conceptwave.com/com/conceptwave/system"
+	xmlns:somWorklist="http://oi.com.br/som/worklist"
+	xmlns:somOrder="http://oi.com.br/som/order"
+	xmlns:ifaceCRM="http://oi.com.br/ifaceCRM">
+
+
+	<import namespace="http://www.conceptwave.com/system" schemaLocation="cwf.xsd"/>
+	<import namespace="http://www.conceptwave.com/com/conceptwave/system" schemaLocation="cwf_system.xsd"/>
+	<import namespace="http://oi.com.br/som/worklist" schemaLocation="somWorklist.xsd"/>
+	<import namespace="http://oi.com.br/som/order" schemaLocation="somOrder.xsd"/>
+	<import namespace="http://oi.com.br/ifaceCRM" schemaLocation="ifaceCRM.xsd"/>
+
+	<annotation>
+		<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Namespace referente ao somCommon.    &lt;/p&gt;</documentation>
+		<appinfo>
+			<label>SOM Common</label>
+		</appinfo>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<simpleType name="SOMPrivileges">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Data type que contém o nome do privilégio no SOM.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>SOM Privileges</label>
+			</appinfo>
+		</annotation>
+		<restriction base="cwf:privilege">
+			<enumeration value="SOMUser">
+				<annotation>
+					<documentation>SOM User</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="SOMAdmin">
+				<annotation>
+					<documentation>SOM Admin</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="vertical">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Sistema que recebera o pedido.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>vertical</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="correlationID">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Data type que contém o correlationID.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>correlationID</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="messageID">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Data type que contém o Id da mensagem.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>messageID</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="system">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Data type que contém o nome do Sistema.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>System </label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="3"/>
+			<enumeration value="BIL">
+				<annotation>
+					<documentation>Billing</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="PRO">
+				<annotation>
+					<documentation>Provisioning</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="MED">
+				<annotation>
+					<documentation>Mediation</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="INV">
+				<annotation>
+					<documentation>Inventory</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<!-- Structures -->
+
+	<complexType name="serviceOrderSyncResponseType">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Resposta sincrona da ordem de servico.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>serviceOrderSyncResponseType</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="code" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="description" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<element name="serviceOrderAsyncResponse">
+		<complexType >
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Estrutura de dados que representa uma resposta assincrona de ordem de servico.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>ServiceOrderAsyncResponse</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="messageId" minOccurs="1" maxOccurs="1" type="somCommon:messageID"/>
+				<element name="correlationId" minOccurs="1" maxOccurs="1" type="somCommon:correlationID"/>
+				<element name="code" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="description" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<element name="serviceOrderRequest">
+		<complexType >
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Estrutura de dados que representa uma requisicao de ordem de servico.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>ServiceOrderRequest</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="messageID" minOccurs="1" maxOccurs="1" type="somCommon:messageID"/>
+				<element name="correlationID" minOccurs="1" maxOccurs="1" type="somCommon:correlationID"/>
+				<element name="vertical" minOccurs="1" maxOccurs="1" type="somCommon:vertical"/>
+				<element name="operationType" minOccurs="1" maxOccurs="1" type="somOrder:operationType"/>
+				<element name="productType" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="pedidoType" minOccurs="1" maxOccurs="1" type="ifaceCRM:Pedido"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="cacheDS">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Estrutura de dados que contem informacoes sobre o Cache.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>operationCacheDS</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="dummy" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<element name="serviceOrderSyncResponse" type="somCommon:serviceOrderSyncResponseType"/>
+
+	<!-- Documents -->
+
+	<complexType name="ServiceOrderProcessDocument">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Tabela listando os tipos de operacao com seu codigo de erro e texto de erro.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>ServiceOrderProcessDocument</label>
+			</appinfo>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="system" type="somCommon:system"/>
+						<element name="errorCodes" type="somWorklist:errorCodes"/>
+						<element name="errorText" type="somWorklist:errorText"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="RuleItemType">
+		<annotation>
+			<documentation>RuleItemType</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="sooperation" type="somOrder:operationType"/>
+						<element name="ruleItemType" type="xsd:string"/>
+						<element name="cwDocId" type="cwf:cwDocId"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="UserProcess">
+		<annotation>
+			<documentation>UserProcess</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="correlationID" type="xsd:string"/>
+						<element name="cwDocId" type="cwf:cwDocId"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="ProcessSearch">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Tabela listando os nomes de processo pelo tipo de ordem.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Process Search</label>
+			</appinfo>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="orderID" type="cwf:orderId"/>
+						<element name="processName" type="xsd:string"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+</schema>

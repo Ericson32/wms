@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHInventoryInterface.ConsultOriginalFacilityAutomaticTask1">
+  <activity name="ConsultOriginalFacilityAutomaticTaskStart" type="seqActivity">
+    <guid>{970abbec-343c-4485-ad55-21ff8abead05}</guid>
+    <label>Consult Original Facility Automatic Task Start</label>
+    <x>23.075394</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultOriginalPhysicalFacility" type="subflowActivity">
+        <element>proc_FTTHProcess.ConsultOriginalPhysicalFacilitySubProcess1</element>
+        <guid>{6e0352f1-4f03-43e8-8650-09e4431e0db6}</guid>
+        <label>Consult Original Physical Facility</label>
+        <x>34.34375</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+              if(result){
+                  return true;
+              }
+              else{
+                  return false;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConsultOriginalLogical1Facility" type="subflowActivity">
+        <element>proc_FTTHProcess.ConsultOriginalLogical1FacilitySubProcess1</element>
+        <guid>{46b64629-ff75-43e0-81ce-87c08eae4854}</guid>
+        <label>Consult Original Logical 1 Facility</label>
+        <x>32.66797</x>
+        <y>271.4461</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL");
+
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+              if(result){
+                  return true;
+              }
+              else{
+                  return false;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConsultOriginalLogical2Facility" type="subflowActivity">
+        <element>proc_FTTHProcess.ConsultOriginalLogical2FacilitySubProcess1</element>
+        <guid>{69450a62-c0fc-405d-a2f7-d79496a8bad9}</guid>
+        <label>Consult Original Logical 2 Facility</label>
+        <x>32.66797</x>
+        <y>412.2508</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL");
+
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+              if(result){
+                  return true;
+              }
+              else{
+                  return false;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConsultOriginalFacilityAutomaticTaskComplete" type="completeActivity">
+        <guid>{6bc90b55-00c8-409d-a03b-bfad8cc0d618}</guid>
+        <label>Consult Original Facility Automatic Task Complete</label>
+        <x>30.0</x>
+        <y>553.0555</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Consultar
+      Facilidades. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de consulta caso n&#227;o obtenha resposta em um intervalo de
+      tempo pr&#233; determinado, ser&#227;o feitas mais algumas retentativas. A
+      quantidade de retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo
+      usu&#225;rio.
+    </p>
+  ]]></description>
+  <document>doc_FTTHInventoryInterface.ProcessDoc</document>
+  <guid>{b0b738c7-58c8-40d7-af84-91deef5eea2d}</guid>
+  <label>Consult Original Facility Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>17</revision>
+  <type>User</type>
+</process>

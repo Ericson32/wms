@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.verifyWorklistOperation">
+  <label>verifyWorklistOperation</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="operation" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    AUTHOR:        MS - marcossouza@br.ibm.com
+    DESCRIPTION:   Script responsável por verificar se existe atividade aberta na worklist
+    e valida se a operação aberta é a passada por parametro.
+    */
+
+    var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+    searchDoc.OrderId = orderId;
+
+    var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+    if(worklist && worklist.length > 0){
+        for(var i=0; i < worklist.length;i++){
+            if(worklist[i].Operation == operation/*"FTTHUserInterface.ClickManualActivityInterface/BAOpenningOperation"*/){
+                return true;
+            }
+        }
+    }
+
+    return false;
+  ]]></script>
+</script>

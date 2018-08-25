@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.updateStatusActivityClick">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      orderId, atividadeId, operacao, numeroPedido, tipo ,equipId
+    </p>
+    <p style="margin-top: 0">
+      Atualiza o status das atividades da tabela TBI_ORDEM_ATIVIDADE_CLICK
+    </p>
+  ]]></description>
+  <label>Update Status Activity Click</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.orderId</type>
+    </parameter>
+    <parameter name="atividadeId" type="rifp">
+      <type>dtype_FTTHClickInterface.atividade</type>
+    </parameter>
+    <parameter name="operacao" type="rifp">
+      <type>dtype_FTTHClickInterface.operacao</type>
+    </parameter>
+    <parameter name="tipoEquipamento" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      ONT, HGW ou STB&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_FTTHClickInterface.tipoEquipamento</type>
+    </parameter>
+    <parameter name="equipamentId" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      ONT, HGW ou IdAtivo para STB&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_FTTHClickInterface.tipoEquipamento</type>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Novo status&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_FTTHCommon.statusAtividade</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var atividade = new Document("FTTHCommon:ActivityClick");
+    atividade.cwOrderId = orderId;
+    atividade.activityClickId = atividadeId;
+    atividade.operacao = operacao;
+    atividade.equipmentType = tipoEquipamento;
+    atividade.equipmentId = equipamentId;
+    var docAtividade = Finder.runSearch('FTTHCommon:activityClickFinder', atividade);
+
+    if(docAtividade.size == 1){ //NUNCA PODERÁ TER MAIS DE UM RESULTADO POIS PROCURA PELA PK
+        docAtividade[0].status = status;
+        docAtividade[0].save();
+    }
+  ]]></script>
+</script>

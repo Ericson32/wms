@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHOrderManagementInterface.NotifyEnrichmentAutomaticTask_cwr1">
+  <activity name="NotifyEnrichmentAutomaticTaskStart" type="seqActivity">
+    <guid>{d07dab87-461d-4ed0-bad7-74a90080f0c6}</guid>
+    <label>Notify Enrichment Automatic Task Start</label>
+    <x>107.331345</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyEnrichmentSendOperation" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMSenderInterface/oper_NotifyOperation</element>
+        <guid>{ecba8320-ad51-4231-ad93-f6c5488fc804}</guid>
+        <label>Notify Enrichment Send Operation</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>175.39258</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="NotifyEnrichmentAutomaticTaskComplete" type="completeActivity">
+            <guid>{03959ade-f6fd-4778-8def-0e6cbf630f86}</guid>
+            <label>Notify Enrichment Automatic Task Complete</label>
+            <x>268.2871</x>
+            <y>286.4461</y>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHOrderManagementInterface.NotifyEnrichmentInterfaceScript(this.process.processOrder, this.process.id, this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Notify Enrichment Automatic Task", "Notify Enrichment Send Operation", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Notify Enrichment Automatic Task", "Notify Enrichment Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("OM_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("NOTIFICAR_ENRIQUECIMENTO"), status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{2a238895-e15d-4f21-8672-bf79d1cc7dcd}</guid>
+        <label>exceptionHandler</label>
+        <x>30.0</x>
+        <y>152.69316</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("NOTIFICAR_ENRIQUECIMENTO"), Global.getConfigVariable("OM_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="OMSenderParticipant" type="participantActivity">
+        <guid>{3049bd3b-6a89-4cf1-a953-771dbeaf5515}</guid>
+        <label>OM Sender Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>102.28711</x>
+        <y>308.49786</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("NOTIFICAR_ENRIQUECIMENTO");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <label>Notify Enrichment Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHOrderManagementInterface.NotifyEnrichmentAutomaticTask</process>
+  <type>User</type>
+</process__revision>

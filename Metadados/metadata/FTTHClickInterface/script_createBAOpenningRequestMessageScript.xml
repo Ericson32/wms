@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHClickInterface.createBAOpenningRequestMessageScript">
+  <label>createBAOpenningRequestMessageScript</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ord" type="rifp">
+      <type>order_com.conceptwave.system.Order</type>
+    </parameter>
+    <parameter name="ds" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="pid" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="taskDesc" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="activityData" type="rifp">
+      <type>dstruct_FTTHClickWorkForceManager.createOrUpdateTaskRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var request = new DataStructure ("FTTHClickWorkForceManager:createOrUpdateTaskRequest");
+    var terminalType = Global.getConfigVariable("TERMINAL_TYPE");
+    try {
+        request.workOrderItem.works.work[0].correlationId = pid;
+
+      // Sergio - PRJ14008 - CR6776 e CR6781
+      var productData = ord.ProductData ? ord.ProductData : ord.OriginalData[0].ProductData;
+        var clientData = ord.ClientData;
+        var addressData = ord.AddressData ? ord.AddressData : ord.OriginalData[0].AddressData;
+
+        if (productData) {
+            request.workOrderItem.promotionName = productData.nomePromocao;//ok
+
+            request.workOrderItem.idPlanoHSI = productData.planoHSI;
+            request.workOrderItem.idPlanoIPTV = productData.planoIPTV;
+
+            if (productData.planoIPTV){
+              request.workOrderItem.idPlanoRFTV = productData.planoIPTV + "_RF";//ok
+              request.workOrderItem.idPlanoOTT = productData.planoIPTV + "_OTT";//ok
+            }
+
+            request.workOrderItem.customer.portableNumber = productData.portableNumber;//ok
+            request.workOrderItem.undFranquiaVoip = productData.unidadeFranquia;//ok
+            request.workOrderItem.valorFranquiaVoip = productData.valorFranquia;//ok
+            request.workOrderItem.tipoPlanoVoip = productData.tipoPlano;//ok
+            request.workOrderItem.tipoUsoVoip = productData.tipoUso;//ok
+            request.workOrderItem.numeroVoip = productData.numeroVoIP;//ok
+
+            if(ord.OrderHeader.tipoOS != 'TIPO_ORDEM_REPARO') {
+                request.workOrderItem.qtdPontosMaxSTBHDPago = productData.qtdPontosSTBHDPago;//ok
+                request.workOrderItem.qtdPontosMaxSTBDVRGratis = productData.qtdPontosSTBDVRGratis;//ok
+                request.workOrderItem.qtdPontosMaxSTBHDGratis = productData.qtdPontosSTBHDGratis;//ok
+                request.workOrderItem.qtdPontosMaxRFOverlay = productData.qtdPontosRFOverlay;//ok -> verificar para reparo = RFOverlayInstallationPoints
+
+                var listaServicos = productData.listaServicos.split("\n");
+                for (var i= 0; i < listaServicos.length; i++) {
+                    request.workOrderItem.ServiceList.itemServico[i] = listaServicos[i];
+                }
+            }
+        }
+
+        if (clientData) {
+            //request.workOrderItem.id = clientData.CPF;
+            request.workOrderItem.NomeRazaoSocial = clientData.nomeRazaoSocial;//ok
+        }
+
+        if (addressData) {
+            request.workOrderItem.idLogradouro = addressData.codigoLogradouro;//ok
+            request.workOrderItem.Localidade = addressData.siglaLocalidade;//  addressData.siglaLoc;
+        }
+
+        if(ord.OrderHeader.tipoOS == "TIPO_ORDEM_RETIRADA" && ord.OriginalData[0].ProductData){
+            request.workOrderItem.idHSI = ord.OriginalData[0].ProductData.identificadorHSI;
+            request.workOrderItem.idIPTV = ord.OriginalData[0].ProductData.identificadorIPTV;
+            request.workOrderItem.idRFTV = ord.OriginalData[0].ProductData.identificadorRFTV;
+            request.workOrderItem.idOTT = ord.OriginalData[0].ProductData.identificadorOTT;
+            request.workOrderItem.idVoIP = ord.OriginalData[0].ProductData.identificadorVoIP;
+            request.workOrderItem.qtdPontosHDGratis = ord.OriginalData[0].ProductData.qtdPontosHDGratis;
+            request.workOrderItem.qtdPontosHDPago = ord.OriginalData[0].ProductData.qtdPontosHDPago;
+            request.workOrderItem.RFOverlayInstallationPoints = ord.OriginalData[0].ProductData.quantidadePontosRFTV;
+            request.workOrderItem.qtdPontosDVRGratis = ord.OriginalData[0].ProductData.qtdPontosDVRGratis;
+            request.workOrderItem.qtdPontosHDGratis = ord.OriginalData[0].ProductData.qtdPontosHDGratis;
+            request.workOrderItem.portabilidadeReceptora = ord.OriginalData[0].ProductData.portabilidadeReceptora;
+            request.workOrderItem.portabilidadeInterna = ord.OriginalData[0].ProductData.portabilidadeInterna;
+            request.workOrderItem.portabilidadeInternaComTrocaDeTecnologia = ord.OriginalData[0].ProductData.portabilidadeInternaComTrocaDeTecnologia;
+            request.workOrderItem.bundleId = ord.OriginalData[0].ProductData.idBundle;
+            request.workOrderItem.nomePlanoHSI = ord.OriginalData[0].ProductData.nomePlanoHSI;
+            request.workOrderItem.velocidadeUpload = ord.OriginalData[0].ProductData.velocidadeUpload;
+            request.workOrderItem.velocidadeDownload = ord.OriginalData[0].ProductData.velocidadeDownload;
+            request.workOrderItem.nomePlanoIPTV = ord.OriginalData[0].ProductData.nomePlanoIPTV;
+            request.workOrderItem.installationPoints = ord.OriginalData[0].ProductData.quantidadePontosIPTV;
+            request.workOrderItem.nomePlanoRFTV = ord.OriginalData[0].ProductData.nomePlanoRFTV;
+            request.workOrderItem.quantidadePontosRFTV = ord.OriginalData[0].ProductData.quantidadePontosRFTV;
+            request.workOrderItem.nomePlanoOTT = ord.OriginalData[0].ProductData.nomePlanoOTT;
+            request.workOrderItem.nomePlanoVoIP = ord.OriginalData[0].ProductData.nomePlanoVoIP;
+            //PKE 31733 - reparo
+            request.workOrderItem.idPlanoVoip = ord.OriginalData[0].ProductData.planoVoIP;
+
+            request.workOrderItem.isCaixaPostal = ord.OriginalData[0].ProductData.isCaixaPostal;
+            request.workOrderItem.isBina = ord.OriginalData[0].ProductData.isBina;
+            request.workOrderItem.isChamadaEspera = ord.OriginalData[0].ProductData.isChamadaEspera;
+            request.workOrderItem.isConferencia = ord.OriginalData[0].ProductData.isConferencia;
+            request.workOrderItem.isSigame = ord.OriginalData[0].ProductData.isSigame;
+            request.workOrderItem.customer.customerContract.contractedPlanName = ord.OriginalData[0].ProductData.nomePacote;
+            request.workOrderItem.customer.customerContract.contractedSpeed = ord.OriginalData[0].ProductData.velocidadeContratada;
+            request.workOrderItem.customer.logicalPhoneNumber = ord.OriginalData[0].ProductData.numeroVoIP;
+        }
+         //Manoella
+        if(ord.ProductData){
+            //MS - marcossouza@br.ibm.com - mapeando o campo numero portado/portableNumber - 19/11/2017
+            //request.workOrderItem.customer.portableNumber = ord.ProductData.portableNumber;
+            //end MS
+            request.workOrderItem.idHSI = ord.ProductData.identificadorHSI;
+            request.workOrderItem.idIPTV = ord.ProductData.identificadorIPTV;
+            request.workOrderItem.idRFTV = ord.ProductData.identificadorRFTV;
+            request.workOrderItem.idOTT = ord.ProductData.identificadorOTT;
+            request.workOrderItem.idVoIP = ord.ProductData.identificadorVoIP;
+            request.workOrderItem.qtdPontosHDGratis = ord.ProductData.qtdPontosHDGratis;
+            request.workOrderItem.qtdPontosHDPago = ord.ProductData.qtdPontosHDPago;
+            request.workOrderItem.RFOverlayInstallationPoints = ord.ProductData.quantidadePontosRFTV;
+            request.workOrderItem.qtdPontosDVRGratis = ord.ProductData.qtdPontosDVRGratis;
+            request.workOrderItem.qtdPontosHDGratis = ord.ProductData.qtdPontosHDGratis;
+            request.workOrderItem.portabilidadeReceptora = ord.ProductData.portabilidadeReceptora;
+            request.workOrderItem.portabilidadeInterna = ord.ProductData.portabilidadeInterna;
+            request.workOrderItem.portabilidadeInternaComTrocaDeTecnologia = ord.ProductData.portabilidadeInternaComTrocaDeTecnologia;
+
+            //request.workOrderItem.bundleId = ord.ProductData.idBundle;
+
+            request.workOrderItem.nomePlanoHSI = ord.ProductData.nomePlanoHSI;
+            request.workOrderItem.velocidadeUpload = ord.ProductData.velocidadeUpload;
+            request.workOrderItem.velocidadeDownload = ord.ProductData.velocidadeDownload;
+            request.workOrderItem.nomePlanoIPTV = ord.ProductData.nomePlanoIPTV;
+            request.workOrderItem.installationPoints = ord.ProductData.quantidadePontosIPTV;
+            request.workOrderItem.nomePlanoRFTV = ord.ProductData.nomePlanoRFTV;
+            request.workOrderItem.quantidadePontosRFTV = ord.ProductData.quantidadePontosRFTV;
+            request.workOrderItem.nomePlanoOTT = ord.ProductData.nomePlanoOTT;
+            request.workOrderItem.nomePlanoVoIP = ord.ProductData.nomePlanoVoIP;
+            //PKE 31733
+            request.workOrderItem.idPlanoVoip = ord.ProductData.planoVoIP;
+
+            request.workOrderItem.isCaixaPostal = ord.ProductData.isCaixaPostal;
+            request.workOrderItem.isBina = ord.ProductData.isBina;
+            request.workOrderItem.isChamadaEspera = ord.ProductData.isChamadaEspera;
+            request.workOrderItem.isConferencia = ord.ProductData.isConferencia;
+            request.workOrderItem.isSigame = ord.ProductData.isSigame;
+
+            request.workOrderItem.customer.customerContract.contractedPlanName = ord.ProductData.nomePacote;
+            request.workOrderItem.customer.customerContract.contractedSpeed = ord.ProductData.velocidadeContratada;
+            request.workOrderItem.customer.logicalPhoneNumber = ord.ProductData.numeroVoIP;
+            //request.workOrderItem.customer.physicalPhoneNumber = ord.ProductData.numeroFisico;//Recebe no SOM mas não passa para o OM-R
+
+            request.workOrderItem.portability = ((ord.ProductData.portabilidadeReceptora == 'Y')||(ord.ProductData.portabilidadeInterna == 'Y')||(ord.ProductData.portabilidadeInternaComTrocaDeTecnologia == 'Y')) ? 'S' : 'N';
+       }
+
+        if(ord.ClientData){
+            request.workOrderItem.alertaPropensao = ord.ClientData.alertaPropensao;
+
+            //unidade mercado
+            request.workOrderItem.businessUnity = ord.ClientData.unidadeNegocio;
+            //telefone contato 1
+            if(ord.ClientData.telefoneContato1){
+               request.workOrderItem.customer.contacts.contact[0].phoneNumber = ord.ClientData.telefoneContato1;
+               //nome solicitante
+               request.workOrderItem.customer.contacts.contact[0].name = ord.ClientData.nomeContato;//verificar
+            }
+            if(ord.ClientData.telefoneContato2){
+                request.workOrderItem.customer.contacts.contact[1].phoneNumber = ord.ClientData.telefoneContato2;
+                 //nome solicitante
+                request.workOrderItem.customer.contacts.contact[1].name = ord.ClientData.nomeContato;//verificar
+            }
+            if(ord.ClientData.telefoneContato3){
+                request.workOrderItem.customer.contacts.contact[2].phoneNumber = ord.ClientData.telefoneContato3;
+                 //nome solicitante
+                request.workOrderItem.customer.contacts.contact[2].name = ord.ClientData.nomeContato;//verificar
+            }
+
+            //request.workOrderItem.customer.customerProfile = ""; //verificar
+            request.workOrderItem.customer.id = ord.ClientData.numeroDocumento;
+            request.workOrderItem.customer.name = ord.ClientData.nome;
+            request.workOrderItem.customer.phoneNumber = ord.ClientData.telefoneContato1;//verificar
+        }
+
+
+        if(ord.OrderHeader.tipoOS == "TIPO_ORDEM_RETIRADA" && ord.OriginalData[0].FacilityData){
+            request.workOrderItem.CVLAN1 = ord.OriginalData[0].FacilityData.CVLAN1;
+            request.workOrderItem.CVLAN2 = ord.OriginalData[0].FacilityData.CVLAN2;
+            request.workOrderItem.SVLAN1 = ord.OriginalData[0].FacilityData.SVLAN1;
+            request.workOrderItem.SVLAN2 = ord.OriginalData[0].FacilityData.SVLAN2;
+            request.workOrderItem.works.work[0].workforceResourceFacilities.workforceResourceFacility[0].name = ord.OriginalData[0].FacilityData.estacao;
+
+            try{
+                //20/07/2018 - Correção PKE_34064
+                if (ord.OriginalData[0].FacilityData.estacao.length > 0){
+                    request.workOrderItem.works.work[0].workforceResourceFacilities.workforceResourceFacility[0].type = 'StationID';
+                }
+                //end 20/07/2018
+            } catch(e){
+                Global.logError("FacilityData.estacao não foi recebido na ordem");
+
+                Global.logError(e);
+            }
+
+
+            request.workOrderItem.acessoGPON = ord.OriginalData[0].FacilityData.acessoGPON;
+            request.workOrderItem.OLTGALC = ord.OriginalData[0].FacilityData.OLTGALC;
+            request.workOrderItem.OLTRACK = ord.OriginalData[0].FacilityData.OLTRACK;
+            request.workOrderItem.OLTSHELF = ord.OriginalData[0].FacilityData.OLTSHELF;
+            request.workOrderItem.OLTSLOT = ord.OriginalData[0].FacilityData.OLTSLOT;
+            request.workOrderItem.OLTPORT = ord.OriginalData[0].FacilityData.OLTPORT;
+            request.workOrderItem.ICX = ord.OriginalData[0].FacilityData.ICX;
+            request.workOrderItem.DGO = ord.OriginalData[0].FacilityData.DGO;
+            request.workOrderItem.CDO = ord.OriginalData[0].FacilityData.CDO;
+            request.workOrderItem.BSP = ord.OriginalData[0].FacilityData.BSP;
+            request.workOrderItem.ARDO = ord.OriginalData[0].FacilityData.ARDO;
+            request.workOrderItem.LINEID1 = ord.OriginalData[0].FacilityData.LINEID1;
+            request.workOrderItem.LINEID2 = ord.OriginalData[0].FacilityData.LINEID2;
+            request.workOrderItem.splitterPort = ord.OriginalData[0].FacilityData.splitterPort;
+        }
+
+        if(ord.FacilityData){
+            request.workOrderItem.CVLAN1 = ord.FacilityData.CVLAN1;
+            request.workOrderItem.CVLAN2 = ord.FacilityData.CVLAN2;
+            request.workOrderItem.SVLAN1 = ord.FacilityData.SVLAN1;
+            request.workOrderItem.SVLAN2 = ord.FacilityData.SVLAN2;
+            request.workOrderItem.works.work[0].workforceResourceFacilities.workforceResourceFacility[0].name = ord.FacilityData.estacao;
+
+            try{
+               //felipevm - Solicitacao do Click para que o campo "sigla estacao" seja enviado junto com type "StationID"
+               if (ord.FacilityData.estacao.length > 0){
+                   request.workOrderItem.works.work[0].workforceResourceFacilities.workforceResourceFacility[0].type = 'StationID';
+               }
+            } catch(e){
+                Global.logError("FacilityData.estacao não foi recebido na ordem");
+
+                Global.logError(e);
+            }
+
+
+            request.workOrderItem.acessoGPON = ord.FacilityData.acessoGPON;
+            request.workOrderItem.OLTGALC = ord.FacilityData.OLTGALC;
+            request.workOrderItem.OLTRACK = ord.FacilityData.OLTRACK;
+            request.workOrderItem.OLTSHELF = ord.FacilityData.OLTSHELF;
+            request.workOrderItem.OLTSLOT = ord.FacilityData.OLTSLOT;
+            request.workOrderItem.OLTPORT = ord.FacilityData.OLTPORT;
+            request.workOrderItem.ICX = ord.FacilityData.ICX;
+            request.workOrderItem.DGO = ord.FacilityData.DGO;
+            request.workOrderItem.CDO = ord.FacilityData.CDO;
+            request.workOrderItem.BSP = ord.FacilityData.BSP;
+            request.workOrderItem.ARDO = ord.FacilityData.ARDO;
+            request.workOrderItem.LINEID1 = ord.FacilityData.LINEID1;
+            request.workOrderItem.LINEID2 = ord.FacilityData.LINEID2;
+            request.workOrderItem.splitterPort = ord.FacilityData.splitterPort;
+        }
+
+        if(ord.OrderHeader.tipoOS == "TIPO_ORDEM_RETIRADA" && ord.OriginalData[0].AddressData)
+        {
+            request.workOrderItem.activityAddress.ZipCode = ord.OriginalData[0].AddressData.CEP;
+            request.workOrderItem.activityAddress.Neighborhood = ord.OriginalData[0].AddressData.bairro;
+            request.workOrderItem.activityAddress.ComplementType[0] = ord.OriginalData[0].AddressData.tipoComplemento1;
+            request.workOrderItem.activityAddress.ComplementType[1] = ord.OriginalData[0].AddressData.tipoComplemento2;
+            request.workOrderItem.activityAddress.ComplementType[2] = ord.OriginalData[0].AddressData.tipoComplemento3;
+            request.workOrderItem.activityAddress.ComplementTypeAbbreviation[0] = ord.OriginalData[0].AddressData.complemento1;
+            request.workOrderItem.activityAddress.ComplementTypeAbbreviation[1] = ord.OriginalData[0].AddressData.complemento2;
+            request.workOrderItem.activityAddress.ComplementTypeAbbreviation[2] = ord.OriginalData[0].AddressData.complemento3;
+            request.workOrderItem.activityAddress.place.PlaceTitle = ord.OriginalData[0].AddressData.nomeLogradouro;
+            request.workOrderItem.activityAddress.place.FederationUnitAbbreviation =  ord.OriginalData[0].AddressData.estadoLogradouro;
+            request.workOrderItem.activityAddress.place.City = ord.OriginalData[0].AddressData.cidade;
+           request.workOrderItem.activityAddress.place.Location = ord.OriginalData[0].AddressData.localidade;
+            request.workOrderItem.activityAddress.place.PlaceType = ord.OriginalData[0].AddressData.tipoLogradouro;
+            request.workOrderItem.activityAddress.place.ReferencePoint = ord.OriginalData[0].AddressData.pontoReferencia;
+            request.workOrderItem.activityAddress.FrontNumber = ord.OriginalData[0].AddressData.numeroLogradouro;
+        }
+         //marcos souza
+        if(ord.AddressData){
+            request.workOrderItem.activityAddress.ZipCode = ord.AddressData.CEP;
+            request.workOrderItem.activityAddress.Neighborhood = ord.AddressData.bairro;
+            request.workOrderItem.activityAddress.ComplementType[0] = ord.AddressData.tipoComplemento1;
+            request.workOrderItem.activityAddress.ComplementType[1] = ord.AddressData.tipoComplemento2;
+            request.workOrderItem.activityAddress.ComplementType[2] = ord.AddressData.tipoComplemento3;
+            request.workOrderItem.activityAddress.ComplementTypeAbbreviation[0] = ord.AddressData.complemento1;
+            request.workOrderItem.activityAddress.ComplementTypeAbbreviation[1] = ord.AddressData.complemento2;
+            request.workOrderItem.activityAddress.ComplementTypeAbbreviation[2] = ord.AddressData.complemento3;
+            request.workOrderItem.activityAddress.place.PlaceTitle = ord.AddressData.nomeLogradouro;
+            request.workOrderItem.activityAddress.place.FederationUnitAbbreviation =  ord.AddressData.estadoLogradouro;
+            request.workOrderItem.activityAddress.place.City = ord.AddressData.cidade;
+            request.workOrderItem.activityAddress.place.Location = ord.AddressData.localidade;
+            request.workOrderItem.activityAddress.place.PlaceType = ord.AddressData.tipoLogradouro;
+            request.workOrderItem.activityAddress.place.ReferencePoint = ord.AddressData.pontoReferencia;
+
+            //MS - marcossouza - 20170904 - mapeamento alinhado por email com Victor Araujo
+            request.workOrderItem.activityAddress.FrontNumber = ord.AddressData.numeroLogradouro;
+        }
+
+        if(ord.OrderHeader){
+            request.workOrderItem.works.work[0].cwOrderId = ord.OrderHeader.orderId;
+
+            if (taskDesc == Global.getConfigVariable('ACTIVITY_BA_JUMPER'))
+                request.workOrderItem.activityType = Global.getConfigVariable('COD_ACTIVITY_TYPE_JUMPER');
+            else
+            request.workOrderItem.activityType = ord.OrderHeader.codAtividade;
+
+            request.workOrderItem.associatedDocument[0] = ord.OrderHeader.numeroPedido;
+            request.workOrderItem.possibleDeliveryDate[0] = ord.OrderHeader.dataPromessa;       //Data/hora do promessa
+
+            var searchDoc = new Document("override_cwf_pm:processSearch");
+            searchDoc.ORDER_ID = ord.OrderHeader.orderId;
+
+            var result = Finder.runSearch("override_cwf_pm:processFinder", searchDoc);
+
+            if(result && result[0]){
+                searchDoc.PROCESS_ID = result[0].ROOT_ID;
+                result = Finder.runSearch("override_cwf_pm:processFinder", searchDoc);
+
+                request.workOrderItem.associatedDocumentCreationDateTime = result[0].STARTTIME;
+            }
+            request.workOrderItem.bundleId = ord.OrderHeader.bundleId;
+            request.workOrderItem.works.IdUnitTransaction = ord.OrderHeader.idUnitTransaction;
+        }
+
+        /*
+        * PRJ14008 CR7234 - Inclusão campo Motivo Retirada
+        */
+        if(ord.OriginalData && ord.OriginalData[0].ProductData && ord.OriginalData[0].ProductData.motivoRetirada){
+            request.workOrderItem.RemovalReason = ord.OriginalData[0].ProductData.motivoRetirada;
+        }
+        request.workOrderItem.comments.comment[0].description = "FTTH";
+        request.workOrderItem.hasDeadlineDate =  ord.OrderHeader.aprazado;
+        //request.workOrderItem.installationDate = ;//verificar   campo que virá na criação da OS     Data Instalação    OS de modificação
+        //request.workOrderItem.normativeIndicatorDate[0] = ;//OS reparo      Data/hora do indicador Anatel
+        request.workOrderItem.origin = ord.OrderHeader.origemPedido;//verificar     verificar com o barramento qual o domínio   Origem
+        request.workOrderItem.originSystem = "OM";
+        //request.workOrderItem.priority = ;//OS reparo       Prioridade BA
+        //request.workOrderItem.psup = ;// OS Reparo      Indicativo de Utilidade Pública
+        //request.workOrderItem.repairInWarranty = ;// OS Reparo      Reparo em garantia
+
+
+        //caminho fibra - PÓS import do WSDL - MS - marcossouza@br.ibm.com - 20170904
+        var searchDoc2 = new Document("FTTHOrder:CaminhoDaFibra");
+        searchDoc2.cwOrderId = ord.OrderHeader.orderId;
+        //verificar se deve enviar dados novos e dados originais ou só dados novos
+
+
+        var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+        ops.cwOrderId = ord.OrderHeader.cwOrderId;
+
+        var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+        var isTipoModEndereco = false;
+
+
+        if (orderRequest.size > 0) {
+            for (var i = 0; i < orderRequest.size; i++) {
+
+                if(orderRequest[i].idSolicitacao == 'MUDANCA_ENDERECO'){
+                    isTipoModEndereco = true;
+                    break;
+                }
+            }
+        }
+
+        if(isTipoModEndereco){
+            searchDoc2.flagDadoOriginal = 'N';
+        }
+
+        var result2 = Finder.runSearch("FTTHOrder:caminhoFibraFinder", searchDoc2);
+
+        for (var i = 0; i < result2.length; i++){
+            switch(result2[i].campo) {
+                case "CDO":
+                  request.workOrderItem.caminhoDaFibra.GrupoCDOs.CDO[request.workOrderItem.caminhoDaFibra.GrupoCDOs.CDO.length] = result2[i].valor;
+                  break;
+
+                case "CEO":
+                  request.workOrderItem.caminhoDaFibra.GrupoCEOs.CEO[request.workOrderItem.caminhoDaFibra.GrupoCEOs.CEO.length] = result2[i].valor;
+                  break;
+
+                case "CEOS":
+                  request.workOrderItem.caminhoDaFibra.GrupoCEOSs.CEOS[request.workOrderItem.caminhoDaFibra.GrupoCEOSs.CEOS.length] = result2[i].valor;
+                  break;
+
+                case "enderecoCDO":
+                  request.workOrderItem.caminhoDaFibra.enderecoCDO = result2[i].valor;
+                  break;
+            }
+        }
+
+        //Preenchendo dados dos equipamentos pós import do WSDL - MS - marcossouza@br.ibm.com - 20170904
+        //Equipamento BASE
+        searchDoc2 = new Document("FTTHOrder:BaseEquipmentData");
+        searchDoc2.clearData();
+        searchDoc2.cwOrderId = ord.OrderHeader.orderId;
+
+
+        if(isTipoModEndereco){
+            searchDoc2.flagDadoOriginal = 'O';
+        }
+
+        result = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc2);
+
+        var nEquips = 0;
+
+        if(taskDesc !=  Global.getConfigVariable('ACTIVITY_BA_JUMPER')){
+            var possuiHGW = false;
+
+            for (var i = 0; i < result.length; i++){
+
+                if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+                    request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].action = "remover";
+                } else if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+                    request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].action = "adicionar";
+                } else{
+                    //Não envia a tag ação
+                }
+
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].serialNumber = result[i].numeroSerieONT_Original;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].codMaterial  = result[i].codEquipamentoONT_Original;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].foiDevolvidoEquipamento  = result[i].foiDevolvidoONT;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].MotivoEquipamento  = result[i].motivoONT;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].materialType = "ONT";//result[i].codEquipamento;
+
+                nEquips++;
+
+                //21/06/2018 - Correção para PROD
+                if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+                    if(FTTHCommon.parseBoolean(Global.getConfigVariable("NEED_SEND_HGW_ONT_INTEGRADA"))){//Se true envia o equipamento HGW
+                        possuiHGW = true;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].action = "adicionar";
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].serialNumber = result[i].numeroSerieHGW_Original;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].codMaterial  = result[i].codEquipamentoHGW_Original;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].foiDevolvidoEquipamento  = result[i].foiDevolvidoHomeGateway;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].MotivoEquipamento  = result[i].motivoHomeGateway;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].materialType = "Home Gateway";//result[i].codEquipamento;
+                    } else{
+                        //Não envia o equipamento HGW
+                    }
+                } else{
+                    if ((FTTHCommon.getNomeCPE(result[i].codEquipamentoONT_Original) == "ONT Integrada") &&
+                        (FTTHCommon.parseBoolean(Global.getConfigVariable("NEED_SEND_HGW_ONT_INTEGRADA"))) &&
+                        (result[i].numeroSerieHGW_Original && result[i].numeroSerieHGW_Original.trim() != '')){
+
+                        possuiHGW = true;
+                        if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+                            request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].action = "remover";
+                        } else if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+                            request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].action = "adicionar";
+                        } else{
+                            //Não envia a tag ação
+                        }
+
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].serialNumber = result[i].numeroSerieHGW_Original;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].codMaterial  = result[i].codEquipamentoHGW_Original;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].foiDevolvidoEquipamento  = result[i].foiDevolvidoHomeGateway;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].MotivoEquipamento  = result[i].motivoHomeGateway;
+                        request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].materialType = "Home Gateway";//result[i].codEquipamento;
+                    } else if (FTTHCommon.getNomeCPE(result[i].codEquipamentoONT_Original) != "ONT Integrada") {
+
+                                possuiHGW = true;
+                                if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+                                    request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].action = "remover";
+                                } else if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+                                    request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].action = "adicionar";
+                                } else{
+                                    //Não envia a tag ação
+                                }
+
+                                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].serialNumber = result[i].numeroSerieHGW_Original;
+                                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].codMaterial  = result[i].codEquipamentoHGW_Original;
+                                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].foiDevolvidoEquipamento  = result[i].foiDevolvidoHomeGateway;
+                                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].MotivoEquipamento  = result[i].motivoHomeGateway;
+                                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].materialType = "Home Gateway";//result[i].codEquipamento;
+                    }
+                }
+
+                nEquips++;
+            }
+
+            request.workOrderItem.technology = getTecnologia(possuiHGW);
+            //Equipamento PONTA
+            searchDoc2 = new Document("FTTHOrder:EquipmentData");
+            searchDoc2.clearData();
+            searchDoc2.cwOrderId = ord.OrderHeader.orderId;
+
+
+            if(isTipoModEndereco){
+                searchDoc2.flagDadoOriginal = 'O';
+            }
+
+            result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc2);
+
+            for (var i = 0; i < result.length; i++){
+                //só envia a tag açao se a ação for diferente de '-'
+                if(result[i].acao != "-"){
+                    request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].action = result[i].acao;
+                }
+
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].serialNumber  = result[i].numeroSerieSetTopBox_Original;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].codMaterial  = result[i].codEquipamento_Original;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].possuiDVRIntegrado  = result[i].possuiDVRIntegrado;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].foiDevolvidoEquipamento  = result[i].foiDevolvidoSetTopBox;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].MotivoEquipamento  = result[i].motivoSetTopBox;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].instalado  = result[i].instalado;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].deviceGUID = result[i].deviceGUID;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].idAtivo = result[i].idAtivo;
+                request.workOrderItem.works.work[0].workforceResourceMaterials.workforceResourceMaterial[nEquips].materialType = "STB";//result[i].codEquipamento;
+
+                nEquips++;
+            }
+        }
+
+        request.workOrderItem.terminalType = terminalType;
+        if(ord.OrderHeader.tipoOS == 'TIPO_ORDEM_REPARO'){
+            request.workOrderItem.ocorrencia = ord.OrderHeader.revisao;
+            request.workOrderItem.comments.comment[0].type = "Observações";
+            request.workOrderItem.comments.comment[0].description = ord.SRTicketActivityData[0].SRTicketActivityData.descLivre;
+            request.workOrderItem.descriptions.description[0].type = "Complaint";
+            request.workOrderItem.descriptions.description[0].description = ord.SRTicketActivityData[0].SRTicketActivityData.reclamacao;
+            // CR 7155 Inclusão do campo Informação Complementar machadoe - Inicio
+
+          request.workOrderItem.comments.comment[1].type ="Informações Complementares";
+
+            if(request.workOrderItem.comments.comment[0].description != null){
+                request.workOrderItem.comments.comment[1].description = ord.SRTicketActivityData[0].SRTicketActivityData.informacoes;
+            }
+            else{
+                request.workOrderItem.comments.comment[0].description =  ord.SRTicketActivityData[0].SRTicketActivityData.informacoes;
+            }
+            // CR7155  Inclusão do campo Informação Complementar machadoe - Fim
+            request.workOrderItem.RFOverlayInstallationPoints = ord.OriginalData[0].ProductData.qtdPontosRFOverlay;
+        }
+        return request;
+
+    } catch(e){
+        var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+        var LOG_ACTIVITY = "Criação ou Atulização de BA";
+        var LOG_SCRIPT = "BAOpenningSendOperation";
+        var ONT_OPERATION = "BAOpenningSendOperation";
+        var LOG_MSG = "Erro ao executar script que invoca interface para criação ou atualização de BA";
+
+        FTTHCommon.log(null, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+
+        return null;
+    }
+
+
+    function getTecnologia(possuiHGW){
+
+            var tecnologia = "ONT";
+
+            if (possuiHGW){
+              tecnologia = tecnologia.concat(" + HG");
+            }
+
+            var identificadorIPTV;
+            var equipmentData;
+
+            if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA") /*|| ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")*/){
+                identificadorIPTV = ord.OriginalData[0].ProductData.identificadorIPTV;
+                equipmentData = ord.OriginalData[0].EquipmentData;
+
+                if (identificadorIPTV != "" && identificadorIPTV){
+                    if(equipmentData.length > 0 && equipmentData[0].AddPointsEquipmentData){
+
+                        for (var i = 0; i < equipmentData[0].AddPointsEquipmentData.length; i++) {
+
+                            tecnologia = tecnologia.concat(" + STB");
+                        }
+                    }
+                }
+            }else{
+                identificadorIPTV = ord.ProductData.identificadorIPTV;
+                //equipmentData = ord.EquipmentData;
+
+                if (identificadorIPTV != "" && identificadorIPTV){
+                var searchDocP = new Document("FTTHOrder:EquipmentData");
+                searchDocP.cwDocId = null;
+                searchDocP.cwOrderId = ord.OrderHeader.orderId;
+                searchDocP.idAtivo = null;
+                searchDocP.flgValidado = null;
+                searchDocP.flagDadoOriginal = null;
+                    //searchDocP.flagDadoOriginal = 'O'; Se estiver comentado poderam existir duplicatas
+                var equipamentoPonta = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDocP);
+
+                    if(equipamentoPonta.length > 0){ //podem existir duplicatas - PRJ14008 #1099
+                        var idAtivos = []; //usado para remoção das duplicatas
+                            for(var i = 0; i< equipamentoPonta.length;i++){
+                            if (idAtivos.indexOf(equipamentoPonta[i].idAtivo) < 0){
+                                idAtivos.push(equipamentoPonta[i].idAtivo);
+                                tecnologia = tecnologia.concat(" + STB");
+                            }
+                        }
+                }
+            }
+            }
+
+            return tecnologia;
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DesconfigureOTTIESFSolveIssueTask_cwr1">
+  <activity name="startDesconfigureOTTIESFSolveIssue" type="seqActivity">
+    <guid>{c5c031ce-ecea-4ba9-9718-c03240d710b8}</guid>
+    <label>Start Desconfigure OTT iESF Solve Issue</label>
+    <x>32.747658</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureOTTIESFSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureOTTIESFSolveIssue</element>
+        <guid>{43aa65b8-780d-413b-b228-f3757a588a61}</guid>
+        <label>Desconfigure OTT iESF Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>124.76094</y>
+      </child>
+      <child name="DesconfigureOTTIESFSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureOTTIESFSolveIssueSuccess</element>
+        <guid>{7594ed2a-433b-453b-9d1f-298ed4933811}</guid>
+        <label>Desconfigure OTT iESF Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>362.26678</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESCONFIGURAR_OTT_IESF");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{ad692686-9a4b-41e2-990d-31a2d1716c15}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>250.86444</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_OTT_IESF");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Desconfigurar OTT - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Desconfigure OTT iESF Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DesconfigureOTTIESFSolveIssueTask</process>
+  <type>Sub-flow</type>
+</process__revision>

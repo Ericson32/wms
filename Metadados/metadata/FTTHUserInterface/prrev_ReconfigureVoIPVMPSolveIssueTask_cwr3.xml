@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ReconfigureVoIPVMPSolveIssueTask_cwr3">
+  <activity name="startReconfigureVoIPVMPSolveIssue" type="seqActivity">
+    <guid>{143e93fe-b0c8-47cb-987a-1a538d44fb3a}</guid>
+    <label>Start Reconfigure VoIP VMP Solve Issue</label>
+    <x>87.35274</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureVoIPVMPSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPVMPSolveIssue</element>
+        <guid>{42dce9fa-a42f-4796-bcd2-cb7d3b58096a}</guid>
+        <label>Reconfigure VoIP VMP Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>88.35254</x>
+        <y>130.6414</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{b2f54feb-ac0a-437a-b0f3-becbc475abe6}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>36.183105</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ReconfigureVoIPVMPSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPVMPSolveIssueChangeIssue</element>
+            <guid>{863b61be-444b-488b-9ed4-cfc0aa39b435}</guid>
+            <label>Reconfigure VoIP VMP Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>159.64404</x>
+            <y>412.54962</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{642d4eb5-e5e0-4ce4-b7f4-4788757d9b33}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>146.71387</x>
+                <y>576.40607</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_VMP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReconfigureVoIPVMPSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPVMPSolveIssueSuccess</element>
+            <guid>{5b1db33b-35e7-48bf-a65e-1ccd07e09aee}</guid>
+            <label>Reconfigure VoIP VMP Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>419.9002</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{c5d674a4-1521-482b-8012-2e2fbe62689f}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>35.666992</x>
+                <y>568.0555</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_VMP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{415d9d95-7e14-4032-881d-653402581fec}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>128.2124</x>
+        <y>278.7967</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_VMP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE"){
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Reconfigurar VoIP - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Reconfigure VoIP VMP Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ReconfigureVoIPVMPSolveIssueTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

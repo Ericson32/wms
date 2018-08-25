@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHUserInterface.enableFiberNetworkManualTaskParticipant">
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M1DT0H0M0S</length>
+  </duration>
+  <guid>{93121c96-4664-460c-8d5e-9f16940d0a8e}</guid>
+  <interface>iface_FTTHUserInterface.enableFiberNetworkManualTaskInterface</interface>
+  <label>Enable Fiber Network Manual Task Participant</label>
+  <metaVersion>4</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.enableFiberNetworkManualTaskInterface/oper_enableFiberNetworkPlanningSuccess</operation>
+      <tasksList>
+        <tasks>enableFiberNetworkPlanning</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return true;</script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //validação de campos
+            return true;
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //persistencia dos dados
+            return true;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.enableFiberNetworkManualTaskInterface/oper_enableFiberNetworkPlanningIssue</operation>
+      <tasksList>
+        <tasks>enableFiberNetworkPlanning</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return true;</script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Q003", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem, idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+
+            var matriculaUsuario;// = Global.trim(userDoc.profileId);
+            var nomeUsuario;// = Global.trim(userDoc.userName);
+            if(userDoc){
+                matriculaUsuario = Global.trim(userDoc.profileId);
+                nomeUsuario = Global.trim(userDoc.userName);
+            }
+
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+
+            ord.save();
+
+            try{
+                if(confirmObject && confirmObject == "ROLLOUTAR_OS"){
+
+                    Global.logInfo('OS pega pelo GP, pendenciando com pendencia 7032');
+                    Global.logError('OS pega pelo GP, pendenciando com pendencia 7032');
+
+                    var isCloseBA  = false;
+                    var newIssueDoc = FTTHHandleIssueProcess.createNewIssue(ord, "7032", "PENDÊNCIA DE ROLLOUT", "Pendencia de Rollout", worklistItem.workItemDocument.Operation, isCloseBA);
+                    //Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', newIssueDoc);
+                }
+            } catch(e){
+                Global.logInfo('OS pega pelo GP, pendenciando com pendencia 7032 - ERRO - ' + ord.OrderHeader.cwOrderId);
+                Global.logError('OS pega pelo GP, pendenciando com pendencia 7032 - ERRO - ' + ord.OrderHeader.cwOrderId);
+            }
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.enableFiberNetworkManualTaskInterface/oper_enableFiberNetworkExeccutionSuccess</operation>
+      <tasksList>
+        <tasks>enableFiberNetworkExeccution</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return true;</script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //validação de campos
+            return true;
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //persistencia dos dados
+            return true;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.enableFiberNetworkManualTaskInterface/oper_enableFiberNetworkExeccutionIssue</operation>
+      <tasksList>
+        <tasks>enableFiberNetworkExeccution</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return true;</script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Q004", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem, idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+
+            var matriculaUsuario;// = Global.trim(userDoc.profileId);
+            var nomeUsuario;// = Global.trim(userDoc.userName);
+            if(userDoc){
+                matriculaUsuario = Global.trim(userDoc.profileId);
+                nomeUsuario = Global.trim(userDoc.userName);
+            }
+
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+
+            ord.save();
+
+            try{
+                if(confirmObject && confirmObject == "ROLLOUTAR_OS"){
+
+                    Global.logInfo('OS pega pelo GP, pendenciando com pendencia 7032');
+                    Global.logError('OS pega pelo GP, pendenciando com pendencia 7032');
+
+                    var isCloseBA  = false;
+                    var newIssueDoc = FTTHHandleIssueProcess.createNewIssue(ord, "7032", "PENDÊNCIA DE ROLLOUT", "Pendencia de Rollout", worklistItem.workItemDocument.Operation, isCloseBA);
+                    //Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', newIssueDoc);
+                }
+            } catch(e){
+                Global.logInfo('OS pega pelo GP, pendenciando com pendencia 7032 - ERRO - ' + ord.OrderHeader.cwOrderId);
+                Global.logError('OS pega pelo GP, pendenciando com pendencia 7032 - ERRO - ' + ord.OrderHeader.cwOrderId);
+            }
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>UPAdmin</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

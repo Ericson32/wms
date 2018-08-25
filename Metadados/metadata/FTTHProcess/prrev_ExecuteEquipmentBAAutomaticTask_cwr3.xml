@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ExecuteEquipmentBAAutomaticTask_cwr3">
+  <activity name="EquipmentBAStart" type="seqActivity">
+    <guid>{f3503839-6860-41c2-8489-86b33cc63949}</guid>
+    <label>Equipment BA Start</label>
+    <x>77.177444</x>
+    <y>527.34045</y>
+    <childList>
+      <child name="notifyScheduleIssueSubprocess" type="subflowActivity">
+        <element>prrev_FTTHHandleIssueProcess.ScheduleHandleIssueSubprocess_cwr2</element>
+        <guid>{0e281fbc-6e24-457d-942e-ea439fd3f8d8}</guid>
+        <label>Notify Schedule Issue Subprocess</label>
+        <x>72.177246</x>
+        <y>637.77264</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              /* PRJ17683 - CR
+               * accd@br.ibm.com
+               * Reparo não tem pendência de agendamento
+               */
+              return this.process.processOrder.OrderHeader.tipoOS != 'TIPO_ORDEM_REPARO';
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="BAOppeningAutomaticTaskStart" type="seqActivity">
+        <guid>{71c91a7e-4b96-4d19-a02a-19325d0c4566}</guid>
+        <label>BA Oppening Automatic Task Start</label>
+        <x>131.29532</x>
+        <y>778.5774</y>
+        <childList>
+          <child name="BAOpenningSendOperation" type="opActivity">
+            <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAOpenningOperation</element>
+            <guid>{a44eeddb-b858-4bfa-9ae1-65825adde2ee}</guid>
+            <label>BA Openning Send Operation</label>
+            <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+            <x>287.2334</x>
+            <y>879.2188</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  /*
+                  AUTHOR:    Marcos Souza
+                  */
+                  //MS - marcossouza@br.ibm.com - PRJ14008 - 01/08/2017
+
+                  var msg = FTTHClickInterface.createBAOpenningRequestMessageScript(process.processOrder, document, process.id, "aberturaBA", this.activityData);
+                  //end MS
+                  //Atualizando o status da Ordem de Serviço após o fechamento da pendência 7029.
+                  FTTHCommon.setStatusOrder(this.process.processOrder.id, Global.getConfigVariable("ACTIVITY_AUTOMATIC"));
+
+                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Open BA Automatic Task", "Open BA Send Operation", "cwOnProcActBefore", msg.toXML());
+                  var messageDoc = new Document("cwf_pm:messageLog");
+                  messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                  messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                  messageDoc.userData3 = this.process.processOrder.order.id;
+                  UserProfile.setMsgLogDoc(messageDoc);
+
+
+                  //Reinserindo código removido nos commits
+                  var atividade = FTTHCommon.getActivityNameOrConfigVariable(this.process.processOrder.order.OrderHeader.tipoOS, 3);
+
+                  var sistema = Global.getConfigVariable("CLICK_SYSTEM");
+
+                  try{
+                      var syncResp = Global.invokeInterface("FTTHClickWorkForceManager:WorkForceManagerPortType", "createOrUpdateTask", msg)[0];
+
+                      if(syncResp && syncResp.operationReturn){
+                          //Status da atividade
+                          var status = FTTHCommon.defineStatusAutomaticActivity(syncResp.operationReturn.code, Global.getConfigVariable("CLICK_SYSTEM"));
+
+                          if (status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                              status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+                          }
+
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                          FTTHCommon.saveEvent(this.process.processOrder.id,
+                          sistema,
+                          atividade,
+                          status,
+                          syncResp.operationReturn.code,
+                          syncResp.operationReturn.description,
+                          this.process.id,
+                          Global.getConfigVariable("SYNC_REQUEST"));
+
+                          FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+
+
+                          var ord = process.processOrder;
+
+                          //convertendo string para number
+                          var returnCode = syncResp.operationReturn.code;
+                          try{
+                              returnCode = Number(returnCode);
+                          } catch(e){
+                              //se der erro, o valor não é alterado
+                          }
+
+                          var erroCampo = false;
+
+                          try{
+                              if(returnCode == 0){
+                                  ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.numeroBA = syncResp.workOrderItem.id;
+
+                                  //MS - marcossouza@br.ibm.com - 05/12/2017 - Mapeando em ordens de reparo, o numero BA para o TICKET
+                                  try{
+                                      if(ord.SRTicketActivityData && ord.SRTicketActivityData.length > 0 && ord.SRTicketActivityData[0].SRTicketActivityData){
+                                          ord.SRTicketActivityData[0].SRTicketActivityData.numBA = syncResp.workOrderItem.id;
+                                      }
+                                  } catch(e){
+                                      Global.logError("Execeção ao tentar recuperar o formulário de TICKET do REPARO!! - " + e);
+                                  }
+                                  //end MS
+
+                                  ord.save();
+
+                                  // se no retorno da mensagem, não houver o número BA, setar erro
+                                  if(!syncResp.workOrderItem.id){
+                                      erroCampo = true;
+                                  }
+
+                                  //ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.observacao = syncResp.workOrderItem.id; //verificar onde recebemos essa info
+                              }
+                          } catch(e){
+                              //se erro, o número do BA não recebido
+                              erroCampo = true;
+                          }
+
+                          if (erroCampo){
+                              status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                              sistema,
+                              atividade,
+                              "CLICK ERROR",
+                              "-1",//syncResp.operationReturn.code,
+                              "Campo obrigatório 'numeroBA' não recebido do CLICK",//syncResp.operationReturn.description,
+                              this.process.id,
+                              Global.getConfigVariable("SYNC_REQUEST"));
+
+                          }
+
+                          ord.save();
+                      } else{
+                          FTTHCommon.log(this.process.processOrder.id, this.process.id, "Open BA Automatic Task", "Open BA Send Operation", "cwOnProcActBefore", "Interface com CLICK não pode ser invokada");
+
+                          FTTHCommon.saveEvent(this.process.processOrder.id,
+                          sistema,
+                          atividade,
+                          "TIMEOUT",
+                          "-1",//syncResp.operationReturn.code,
+                          "CLICK FORA",//syncResp.operationReturn.description,
+                          this.process.id,
+                          Global.getConfigVariable("SYNC_REQUEST"));
+
+                          var status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                          FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+                      }
+
+                  } catch(e){
+                      var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+                      var LOG_ACTIVITY = "Criação ou Atulização de BA";
+                      var LOG_SCRIPT = "BAOpenningSendOperation";
+                      var ONT_OPERATION = "BAOpenningSendOperation";
+                      var LOG_MSG = "Erro ao invocar interface para criação ou atualização de BA do CLICK";
+
+                      FTTHCommon.log(null, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+
+                      FTTHCommon.log(this.process.processOrder.id, this.process.id, "Open BA Automatic Task", "Open BA Send Operation", "cwOnProcActBefore", syncResp);
+
+                      FTTHCommon.saveEvent(this.process.processOrder.id,
+                      sistema,
+                      atividade,
+                      "TIMEOUT EXCP",
+                      "-1",//syncResp.operationReturn.code,
+                      "TIMEOUT EXCP",//syncResp.operationReturn.description,
+                      this.process.id,
+                      Global.getConfigVariable("SYNC_REQUEST"));
+
+
+                      var status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                      FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+
+                      return null;
+                  }
+
+                  //Feito para o CANCELAMENTO
+                  var statusActivity = FTTHCommon.getStatusActivity(this.process.processOrder.id, atividade);
+
+                  if (statusActivity == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, Global.getConfigVariable("ACTIVITY_RETURN_WAIT"));
+                  }
+
+                  return msg;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="verificaFechamentoWorklist" type="scriptActivity">
+            <guid>{5f4025f8-c032-493d-926b-f89ff8cfdc68}</guid>
+            <label>Verifica Fechamento Worklist</label>
+            <x>280.23145</x>
+            <y>1020.02344</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = this.process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                  var atividadeManual = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData;
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result !=  Global.getConfigVariable("ACTIVITY_RETURN_WAIT")){
+                      //pegar a worklist
+                      var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+                      searchDoc.OrderId = orderId;
+
+                      var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+                      if(worklist){
+                          Process.performWorklistAction(worklist[0], null, "BAAutomaticClosingIssue", false, ord, null);
+                      }
+                      //Se ocorreu erro ao abrir BA, a mensagem será reenviada, porém a atividade manual não pode estar como encerrada!
+
+                      if(result == "OPEN_BA_ERROR")
+                      {
+                          atividadeManual.statusAtividade = 0;
+                          atividadeManual.dataFechamento = null;
+                          atividadeManual.save();
+                      }
+                      //Process.performWorklistAction(Document wDoc, Document mDoc, String operation, Boolean close, Order order, Object cObj)
+                      //Process.performWorklistAction(worklistDoc, null, "finalizarComPendenciaFixo", false, ord, confirm);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="notifyBAOpening" type="subflowActivity">
+            <element>prrev_FTTHProcess.NotifyActivityTicketEnrichment_cwr1</element>
+            <guid>{475274ee-170c-4bd9-8525-5ee211b61af6}</guid>
+            <label>Notify BA Opening</label>
+            <x>143.78369</x>
+            <y>1146.127</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  /*
+                       MS - marcossouza@bri.ibm.com - 20170901 - PRJ14008
+                   */
+
+                  var ord = this.process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  //TODO verificar casos de erro que nao deve executar
+                  //se a abertura de BA teve erro, não executa esta atividade
+                  if(result == Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR"))
+                      return false;
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR"))
+                      return false;
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                      return false;
+
+
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="waitingBAClosing" type="choiceActivity">
+            <guid>{c79692d1-bf07-4af1-95de-db295c977149}</guid>
+            <label>Waiting BA Closing</label>
+            <x>145.0459</x>
+            <y>37.350586</y>
+            <childList>
+              <child name="EquipmentExternalCloseSuccess" type="opActivity">
+                <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAExternalClosingSuccess</element>
+                <guid>{9c3d9999-55df-4138-a1d4-ef81012f0a96}</guid>
+                <label>Equipment External Close Success</label>
+                <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+                <x>397.8545</x>
+                <y>261.10352</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      //Correção defeito PRJ14008#932 - 06/03/2018
+                      var ord = this.process.processOrder;
+                      var orderId = ord.OrderHeader.cwOrderId;
+                      var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                      var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="EquipmentExternalCloseError" type="opActivity">
+                <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAExternalClosingIssue</element>
+                <guid>{730eae34-a777-4002-a1c2-90ba81288827}</guid>
+                <label>Equipment External Close Error</label>
+                <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+                <x>289.1748</x>
+                <y>268.4541</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ord = this.process.processOrder;
+                      var orderId = ord.OrderHeader.cwOrderId;
+                      var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                      var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+
+                          var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+                          var LOG_ACTIVITY = "Encerramento externo de BA";
+                          var LOG_SCRIPT = "EquipmentExternalCloseError";
+                          var ONT_OPERATION = "EquipmentExternalCloseError";
+                          var LOG_MSG = "Erro ao executar script que invoca interface para encerramento externo de BA";
+                          FTTHCommon.log(null, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+
+                          var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="EquipmentBAClickSuccess" type="opActivity">
+                <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAAutomaticClosingSuccess</element>
+                <guid>{73d476cb-4d9a-4206-b491-5ed98836eb33}</guid>
+                <label>Equipment BA Click Success</label>
+                <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+                <x>159.36914</x>
+                <y>268.4541</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ord = this.process.processOrder;
+                      var orderId = ord.OrderHeader.cwOrderId;
+                      var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                      var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="EquipmentBAClickError" type="opActivity">
+                <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAAutomaticClosingIssue</element>
+                <guid>{bea9f355-a7f7-4a48-bc2b-67509ef02478}</guid>
+                <label>Equipment BA Click Error</label>
+                <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+                <x>50.0</x>
+                <y>268.4541</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ord = this.process.processOrder;
+                      var orderId = ord.OrderHeader.cwOrderId;
+                      var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                      //ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.codEncerramento = ord.IssueData[ord.IssueData.length -1].IssueData.codigoPendencia.refData.codPendencia;
+                      //ord.save();
+                      var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                      if(FTTHCommon.getStatusActivity(orderId, activityId) !=  Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR")){
+                          var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+                          FTTHCommon.setStatusActivity(orderId, activityId, status);
+                      }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="CheckNeedToResend" type="seqActivity">
+            <guid>{3686170e-d61c-4ca8-8e72-19f5ed16248d}</guid>
+            <label>Check Need To Resend</label>
+            <x>214.63052</x>
+            <y>416.9082</y>
+            <childList>
+              <child name="CheckNeedToResend" type="switchActivity">
+                <guid>{a3772874-a07e-4266-8ccc-a8019acf55e9}</guid>
+                <label>Check Need To Resend</label>
+                <x>242.5581</x>
+                <y>511.66913</y>
+                <childList>
+                  <child name="Yes" type="caseActivity">
+                    <guid>{0023cb9e-8eec-4749-a36f-10d963f5d0ac}</guid>
+                    <label>Yes</label>
+                    <x>110.13564</x>
+                    <y>330.0</y>
+                    <childList>
+                      <child name="ResendToStart" type="repeatActivity">
+                        <element>prrev_FTTHProcess.ExecuteEquipmentBAAutomaticTask_cwr3/seqActivity_EquipmentBAStart/seqActivity_BAOppeningAutomaticTaskStart</element>
+                        <guid>{422bbf68-fc45-4768-97c8-877fe9ee1106}</guid>
+                        <label>Resend To Start</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var ord = this.processOrder;
+                                  var orderId = ord.OrderHeader.cwOrderId;
+                                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+
+
+                                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                                  return FTTHActivationInterface.checkTimetoResend(ord.OrderHeader.cwOrderId, activityId, Global.getConfigVariable("CLICK_SYSTEM"));
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>187.54639</x>
+                        <y>652.4738</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ord = this.process.processOrder;
+                          var orderId = ord.OrderHeader.cwOrderId;
+                          var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                          var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                          if(FTTHCommon.getStatusActivity(orderId, activityId) ==  Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR")){
+                              //return true;
+                              return (!(FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, activityId, Global.getConfigVariable("CLICK_SYSTEM"))));
+                          }
+
+                          return false;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="No" type="caseActivity">
+                    <guid>{2fbe5b83-aabe-42c6-9a0d-6ef392548151}</guid>
+                    <label>No</label>
+                    <x>298.2456</x>
+                    <y>659.8244</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var ord = this.process.processOrder;
+              var count = ord.ManualActivityData.length;
+              ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 0;
+
+              ord.save();
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ClickManualActivity" type="participantActivity">
+        <guid>{93d2d702-631f-47da-aef5-3ad368f78494}</guid>
+        <label>Click Manual Activity</label>
+        <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+        <x>256.40137</x>
+        <y>30.0</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Execute Equipment BA Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ExecuteEquipmentBAAutomaticTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

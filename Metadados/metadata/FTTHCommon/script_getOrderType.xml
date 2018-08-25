@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.getOrderType">
+  
+  <label>Get Order Type</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /* 18/04/2018 - Responsável por verificar o tipo da Ordem */
+
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = cwOrderId;
+    var isMudancaEndereco = false;
+
+    var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+    if (orderRequest.size > 0) {
+        for (var i = 0; i < orderRequest.size; i++) {
+            var solicitacao = orderRequest[i];
+
+            if(solicitacao.idSolicitacao == "MUDANCA_ENDERECO"){
+                return "MUDANCA_ENDERECO";
+            }
+
+            if(solicitacao.tipoOrdemServico == 'TIPO_ORDEM_RETIRADA'){
+                return "RETIRADA";
+            }
+        }
+    }
+
+    return "";
+  ]]></script>
+</script>

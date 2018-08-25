@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.SaveRequestParameters">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Registra as solicita&#231;&#245;es e a&#231;&#245;es enviadas pelo OM
+    </p>
+  ]]></description>
+  <label>Save Request Parameters</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+    <parameter name="orderId" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      id da ordem no WMS&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Save Request Parameters');
+
+    var operacao;
+    var idCatalogo;
+    var acao;
+
+    var hasBloqueio;
+    var qtBloqueios;
+    var bloqueio;
+    var idCatalogoBloqueio;
+    var acaoBloqueio;
+
+    for (var i = 0; i < requisicao.operacoes.operacao.length; i++) {
+
+        operacao = requisicao.operacoes.operacao[i].operacao; //CR2
+
+        for (var j = 0; j < requisicao.acessos.acesso.length; j++) {
+
+            var acesso = requisicao.acessos.acesso[j];
+
+            idCatalogo = acesso.idCatalogo;
+            acao = acesso.acao;
+
+            if(operacao == 'manterBloqueioFTTH' || operacao == 'removerBloqueioFTTH'){
+                if(acao == 'adicionar' || acao == 'modificar' || acao == 'remover') {
+
+                    for (var b=0; b < acesso.bloqueios.bloqueio.length; b++) {
+                        idCatalogoBloqueio = acesso.bloqueios.bloqueio[b].idCatalogo;
+                        acaoBloqueio = acesso.bloqueios.bloqueio[b].acao;
+
+                        if(idCatalogoBloqueio && (acaoBloqueio == 'adicionar' || acaoBloqueio == 'remover')) {
+                            saveParameter(orderId, operacao, idCatalogoBloqueio, acaoBloqueio);
+                        }
+                    }
+
+                }
+            }else if(operacao == 'remanejamentoFTTH'){
+                acao = '-'
+            }
+            saveParameter(orderId, operacao, idCatalogo, acao);
+        }
+    }
+
+    /*
+    for (var i = 0; i < requisicao.operacoes.operacao.length; i++) {
+
+        operacao = requisicao.operacoes.operacao[i].operacao; //CR2
+
+        for (var j = 0; j < requisicao.acessos.acesso.length; j++) {
+
+            var acesso = requisicao.acessos.acesso[j];
+
+            idCatalogo = acesso.idCatalogo;
+            acao = acesso.acao;
+
+            if(acao == 'adicionar' || acao == 'modificar') {
+
+                if(acesso.bloqueios.bloqueio.length) {
+                    for (var b=0; b < acesso.bloqueios.bloqueio.length; b++) {
+                        idCatalogoBloqueio = acesso.bloqueios.bloqueio[b].idCatalogo;
+                        acaoBloqueio = acesso.bloqueios.bloqueio[b].acao;
+                        saveParameter(orderId, operacao, idCatalogoBloqueio, acaoBloqueio);
+                    }
+                }
+                else
+                    saveParameter(orderId, operacao, idCatalogo, acao);
+            }
+
+            else if(acao == 'remover') saveParameter(orderId, operacao, idCatalogo, acao);
+        }
+    }
+    */
+    function saveParameter(orderId, operacao, idCatalogo, acao) {
+
+        var docParameter = new Document('FTTHOrderManagementInterface.OrderParameters');
+
+        docParameter.orderId = orderId;
+        docParameter.operacao = operacao;
+        docParameter.idCatalogo = idCatalogo;
+        docParameter.acao = acao;
+        docParameter.indCancelamento = false;
+
+        docParameter.save();
+    }
+  ]]></script>
+</script>

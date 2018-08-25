@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.DesconfigureIPTVNASSAutomaticTask_cwr6">
+  <activity name="DesconfigureIPTVNASSAutomaticTaskStart" type="seqActivity">
+    <guid>{836baa52-9564-4621-b6e7-84981649f771}</guid>
+    <label>Desconfigure IPTV NASS Automatic Task Start</label>
+    <x>109.61636</x>
+    <y>950.7545</y>
+    <childList>
+      <child name="DesconfigureIPTVNASSSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{e1f096c7-9e7f-44e2-b8d7-99fe687ac7fc}</guid>
+        <label>Desconfigure IPTV NASS Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>238.95912</x>
+        <y>1078.8281</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{0538ab13-11c1-42a5-a19f-77984c699cc9}</guid>
+            <label>Check Send Operation Result</label>
+            <x>257.26318</x>
+            <y>30.0</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{02f4a5b8-4e69-45e5-8f7a-ec127115ccc3}</guid>
+                <label>Success</label>
+                <x>274.07645</x>
+                <y>412.54962</y>
+                <childList>
+                  <child name="WaitAutomaticActivity" type="choiceActivity">
+                    <guid>{6c5f05c1-86d7-426e-bcb2-ca2d2f91023b}</guid>
+                    <label>Wait Automatic Activity</label>
+                    <x>85.25928</x>
+                    <y>185.80469</y>
+                    <childList>
+                      <child name="TimeOutControl" type="timeoutActivity">
+                        <guid>{a479265f-b970-4156-abc1-c4086b5be6eb}</guid>
+                        <label>TimeOut Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>49.341797</x>
+                        <y>319.2588</y>
+                        <childList>
+                          <child name="TimeOutControl" type="scriptActivity">
+                            <guid>{3fb18edf-c032-4985-b0e2-c9d2a5176aef}</guid>
+                            <label>TimeOutControl</label>
+                            <x>30.0</x>
+                            <y>460.06348</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Desconfigure IPTV NASS Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activity = Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS");
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                       Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                       Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"),
+                                                       status,
+                                                       errorType.errorCode,
+                                                       errorType.errorDescription,
+                                                       this.process.id,
+                                                       Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                             Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                             Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"));
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="DesconfigureIPTVNASSReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{90bdeeba-51c7-4579-9109-952961cf15ef}</guid>
+                        <label>Desconfigure IPTV NASS Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>162.6914</x>
+                        <y>437.01172</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Desconfigure IPTV NASS Automatic Task", "Desconfigure IPTV NASS Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"), status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                   Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"),
+                                                   status,
+                                                   this.activityData.code,
+                                                   this.activityData.description,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                         Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"));
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS");
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"))
+                      return true;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{99e87c00-c709-4059-8b05-78601c7a4aff}</guid>
+                <label>Error</label>
+                <x>316.16144</x>
+                <y>326.60938</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_ACTIVITY = "Desconfigurar IPTV NASS";
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+                              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Desconfigure IPTV NASS Automatic Task", "Desconfigure IPTV NASS Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                   Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"),
+                                   status,
+                                   this.activityData.code,
+                                   this.activityData.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                         Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{77bdcad1-e67b-4acb-aa84-8c47f48b8797}</guid>
+        <label>exceptionHandler</label>
+        <x>90.53779</x>
+        <y>1100.8799</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id,Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{9a036135-eb10-4e40-ae9e-b44d8e21642d}</guid>
+        <label>Check Resend</label>
+        <x>177.12854</x>
+        <y>593.8164</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>154.14684</x>
+            <y>685.8164</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "DESCONFIGURAR_IPTV_NASS", "ACTIVATION_SYSTEM");
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHActivationInterface.DesconfigureIPTVNASSAutomaticTask_cwr6/seqActivity_DesconfigureIPTVNASSAutomaticTaskStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <x>116.55113</x>
+                    <y>811.9199</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>239.2611</x>
+                <y>819.2705</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, "DESCONFIGURAR_IPTV_NASS", "ACTIVATION_SYSTEM"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="DesconfigureIPTVNASSAutomaticTaskComplete" type="completeActivity">
+        <guid>{e015da91-b809-4f3d-98d2-c2f3626037fe}</guid>
+        <label>Desconfigure IPTV NASS Automatic Task Complete</label>
+        <x>219.90074</x>
+        <y>923.32227</y>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{e362fea9-b91f-4d44-b174-36c3c984b6aa}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>217.31168</x>
+        <y>1219.6328</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{a3eb9feb-d208-4007-b919-6cff34f78301}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>154.16145</x>
+        <y>311.9082</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Desconfigurar
+      IPTV. Inicialmente o fluxo envia para o sistema de Rede uma solicita&#231;&#227;o
+      de desconfigura&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de tempo
+      pr&#233; determinado, ser&#227;o feitas mais algumas retentativas. A quantidade de
+      retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Desconfigure IPTV NASS Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.DesconfigureIPTVNASSAutomaticTask</process>
+  <revision>6</revision>
+  <type>User</type>
+</process__revision>

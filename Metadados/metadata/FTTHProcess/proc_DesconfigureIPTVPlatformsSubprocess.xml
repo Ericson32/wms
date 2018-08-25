@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.DesconfigureIPTVPlatformsSubprocess">
+  <activity name="DesconfigureIPTVStart" type="seqActivity">
+    <guid>{bd0262f4-80e0-4d5b-93f4-faf179f80a45}</guid>
+    <label>Desconfigure IPTV Start</label>
+    <x>61.39189</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureIPTVAPCSubprocess" type="subflowActivity">
+        <element>proc_FTTHProcess.DesconfigureIPTVAPCSubprocess</element>
+        <guid>{bcd9bf8c-ffc8-43ad-a928-ced47fed3a2b}</guid>
+        <label>Desconfigure IPTV APC Subprocess</label>
+        <x>62.32373</x>
+        <y>124.760925</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "DESCONFIGURAR_IPTV_APC";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="DesconfigureIPTVHDMSubprocess" type="subflowActivity">
+        <element>proc_FTTHProcess.DesconfigureIPTVHDMSubprocess</element>
+        <guid>{c5663579-ee2b-494b-ab37-68c2a6277e3f}</guid>
+        <label>Desconfigure IPTV HDM Subprocess</label>
+        <x>62.32373</x>
+        <y>250.86444</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "DESCONFIGURAR_IPTV_HDM";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="DesconfigureIPTVNASSSubprocess" type="subflowActivity">
+        <element>proc_FTTHProcess.DesconfigureIPTVNASSSubprocess</element>
+        <guid>{55854e75-5ffe-4d4b-9286-9606a3a4901b}</guid>
+        <label>Desconfigure IPTV NASS Subprocess</label>
+        <x>62.32373</x>
+        <y>376.96796</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "DESCONFIGURAR_IPTV_NASS";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="HDTVConfiguration" type="seqActivity">
+        <guid>{a85b3a43-32ff-49d7-a8a3-52928f05c265}</guid>
+        <label>HD TV Configuration</label>
+        <x>73.12471</x>
+        <y>503.07147</y>
+        <childList>
+          <child name="IsHDTV" type="switchActivity">
+            <guid>{c8942b6d-6f8f-49b3-9525-35fd13b58c5d}</guid>
+            <label>Is HD TV?</label>
+            <x>70.00537</x>
+            <y>597.8324</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{75fd9c51-c12b-4936-b534-21c526750fdd}</guid>
+                <label>Yes</label>
+                <x>181.29028</x>
+                <y>672.6466</y>
+                <childList>
+                  <child name="DesconfigureIPTVIESFSubprocess" type="subflowActivity">
+                    <element>proc_FTTHProcess.DesconfigureIPTVIESFSubprocess</element>
+                    <guid>{94455348-151e-44cd-b8c3-6fc4e42c5eda}</guid>
+                    <label>Desconfigure IPTV IESF Subprocess</label>
+                    <x>114.0</x>
+                    <y>694.53357</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+                      ops.cwOrderId = this.process.processOrder.OrderHeader.cwOrderId;
+
+                      var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+                      var ehMudancaEndereco = false;
+
+                      if (orderRequest.size > 0) {
+                          for (var i = 0; i < orderRequest.size; i++) {
+                              if(orderRequest[i].nomeSolicitacao == 'Mudança de Endereço'){
+                                  ehMudancaEndereco = true;
+                                  break;
+                              }
+                          }
+                      }
+
+                      var activityId = 'DESCONFIGURAR_IPTV_IESF';
+                      var result = FTTHCommon.defineActivityNecessity(ops.cwOrderId, activityId);
+
+                      return FTTHOrderManagementInterface.checkNeedTVIESF(this.process.processOrder.OrderHeader.cwOrderId, "desconfigurar") && !ehMudancaEndereco && result;
+                      /*
+
+                      if(process.processOrder.ProductData.needTVIESF){
+                          if(process.processOrder.OriginalData && process.processOrder.OriginalData[0] && process.processOrder.OriginalData[0].ProductData){
+                              if(process.processOrder.OriginalData[0].ProductData.needTVIESF != false){
+                                  return true;
+                              } else{
+                                  return false;
+                              }
+                          } else{
+                              return true;
+                          }
+                      } else if(process.processOrder.ProductData.needTVIESF == null){
+                          if (process.processOrder.OriginalData && process.processOrder.OriginalData[0] && process.processOrder.OriginalData[0].ProductData){
+                              if(process.processOrder.OriginalData[0].ProductData.needTVIESF){
+                                  return true;
+                              }
+                          }
+                      }
+                      return false;
+                      */
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{c89c163c-80c8-4801-b5e3-8d75fb1e7fe3}</guid>
+                <label>No</label>
+                <x>30.0</x>
+                <y>709.23474</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de infra de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <guid>{6182fb30-bdb6-4802-9c07-6a4a79f6d51a}</guid>
+  <label>Desconfigure IPTV Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>10</revision>
+  <type>Sub-flow</type>
+</process>

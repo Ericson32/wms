@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.log">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Funcionar para registrar informa&#231;&#245;es sobre a execu&#231;&#227;o do programa. Esta
+      informa&#231;&#227;o &#233; normalmente utilizada para fins de depura&#231;&#227;o.
+    </p>
+  ]]></description>
+  <label>Log</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="activity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="operation" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="script" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="message" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="coderro" type="rifp">
+      <type>dtype_com.conceptwave.system.Integer</type>
+    </parameter>
+    <parameter name="sistema" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="niveldebug" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="nivellog" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        DESCRIPTION: Function to record information about program execution. This information is typically used for debugging purposes.
+        AUTHOR: Eduardo Chiote
+        DATE: 12/09/2012
+
+        Parametros:
+        * orderId
+        * processId
+        * activity      (designar_facilidade)
+        * operation     (listener or sender?)
+        * script        (after? before? outro)
+        * message
+        * cod_erro
+        * sistema       (INVENTORY/ACTIVATION/USERINTERFACE/OM/PROCESS/COMMON/REPORT)
+        * nivel_debug   (nivel cadastrado no config)
+        * nivel_log     (nivel a qual essa chamada se refere)
+
+        Niveis de DEBUG/LOG:
+        0 - DESLIGADO
+        1 - ERROR      //apenas imprime erros
+        2 - INFO       //imprime erros e informaticos de inicio/fim de cada script
+        3 - DEBUG      //imprime erros, informativos e passos dentro dos scripts
+        4 - TRACE      //imprime erros, informativos e passos dentro dos scripts c/valores
+
+        historico de alteracoes:
+        -----------------------------------------------------------------------------
+        RRR        3/10/2012        Criacao de novos parametros e niveis de debug
+    */
+
+
+    if(orderId==null) orderId=0;
+    if(processId==null) processId=0;
+    if(activity==null) activity=0;
+    if(script==null) script=0;
+    if(message==null) message=0;
+    if(nivellog==null) nivellog="tbd";
+    if(niveldebug==null) niveldebug="tbd";
+    if(sistema==null) sistema="tbd";
+
+    var FLAG_CSV=0;
+    var FLAG_IMPRIME = 0;
+
+    if (niveldebug == "TRACE") FLAG_IMPRIME = 1;
+    else if ((niveldebug == "DEBUG") && (nivellog != "TRACE") ) FLAG_IMPRIME = 1;
+    else if ((niveldebug == "INFO") && ( (nivellog == "INFO") || (nivellog == "ERROR"))) FLAG_IMPRIME = 1;
+    else if (niveldebug == nivellog) FLAG_IMPRIME = 1;
+    else if (niveldebug == null) FLAG_IMPRIME = 1;
+
+    //Global.logInfo(niveldebug + "." + nivellog + " flag=[" + FLAG_IMPRIME + "]   script:[" + script + "]");
+
+
+    if (FLAG_IMPRIME)
+    {
+        var date = Calendar.formatDate(new Date(), "yyyy/MM/dd'-'HH:mm:ss");
+        //tipo csv
+        if (FLAG_CSV)
+            var msg = "OM-R;" + date + ";" + nivellog + ";" + sistema + ";" + orderId + ";" + processId + ";" + activity + ";" + operation + ";" + script + ";" + message;
+        else //tipo normal c/ espacos
+            var msg = "OM-R." + date + "." + nivellog + "." + sistema + ": [" + orderId + "] [" + processId + "] " + activity + " / " + operation + " / " + script + " / " + message;
+        Global.logInfo(msg);
+    }
+  ]]></script>
+</script>

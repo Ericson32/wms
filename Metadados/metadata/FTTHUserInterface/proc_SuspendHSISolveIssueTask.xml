@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.SuspendHSISolveIssueTask">
+  <activity name="SuspendHSISolveIssueTaskStart" type="seqActivity">
+    <guid>{ec4fecf5-a30a-46e1-a134-cc6780617085}</guid>
+    <label>Suspend HSI Solve Issue Task Start</label>
+    <x>81.97353</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendHSISolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendHSISolveIssue</element>
+        <guid>{767b6c8d-2302-4199-b45b-bbf5026de22d}</guid>
+        <label>Suspend HSI Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>87.84424</x>
+        <y>130.64142</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{d488b3b4-c0dc-4707-ad04-ff74f37190b7}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>30.0</x>
+        <y>256.74493</y>
+        <childList>
+          <child name="SuspendHSISolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendHSISolveIssueChangeIssue</element>
+            <guid>{d1c5cd4e-4cf3-4fb7-a0e6-b1bb6ad9df44}</guid>
+            <label>Suspend HSI Solve Issue Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>157.24414</x>
+            <y>397.84845</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_HSI");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="SuspendHSISolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendHSISolveIssueSuccess</element>
+            <guid>{67fd9a1b-0f7a-4092-93d3-d5eb3c710ae4}</guid>
+            <label>Suspend HSI Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>35.166504</x>
+            <y>405.19904</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_HSI");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{838ad909-25db-45f0-bfe0-d5984409b8fa}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>122.0293</x>
+        <y>264.09552</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Bloquear HSI - Erro tenha sido
+      finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual ser&#225;
+      gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <guid>{61f0a934-d020-4854-a54f-e56c3a171414}</guid>
+  <highlight>22</highlight>
+  <label>Suspend HSI Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process>

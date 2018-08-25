@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.mandatoryFieldsManualActivitiesDoc">
+  <label>Mandatory Fields Manual Activities Doc</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="activity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="manualActivity" type="rifp">
+      <type>doc_FTTHOrder.ManualActivityData</type>
+    </parameter>
+    <parameter name="tipoOS" type="rifp">
+      <type>dtype_FTTHCommon.tipoOS</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var campo;
+    var msg = "";
+    var i;
+    var countManualActivity;
+    var camposObrigatoriosResult;
+    var searchDoc = new Document("FTTHCommon:MandatoryFields");
+
+    searchDoc.nomeAtividade = activity; //esse campo deve dizer se e Instalar ou Remover Equipamento
+    searchDoc.tipoOS = tipoOS;
+    camposObrigatoriosResult  = Finder.runSearch ("FTTHCommon.MandatoryFieldsFinder", searchDoc);
+
+    for (i = 0; i < camposObrigatoriosResult.length; i++){
+        if(camposObrigatoriosResult[i].getValueByName("nomeDocument") == "ManualActivityData"){
+            campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+            if(manualActivity.getValueByName(campo) == null){
+                msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+            }
+        }
+    }
+    if(manualActivity.dataHoraInicio == null || manualActivity.dataHoraFim == null )
+    {
+        msg = msg + "\n" + "- " + "campos obrigatorios data hora inicio e/ou data hora fim não foram preenchidos " ;
+    }
+    else
+    {
+        if (manualActivity.dataHoraInicio >= manualActivity.dataHoraFim){
+            msg = msg + "\n" + "- " + "dataHoraInicio deve ser menor que dataHoraFim";
+        }
+    }
+
+    return msg;
+  ]]></script>
+</script>

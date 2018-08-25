@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ConfigureHSINASSHandleIssueSubprocess_cwr7">
+  <activity name="ConfigureHSINASSHandleIssueStart" type="seqActivity">
+    <guid>{428c588a-11cd-475c-95a2-301af51d2c3d}</guid>
+    <label>Configure HSI NASS Handle Issue Start</label>
+    <x>103.8914</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{58809184-7fdf-49fd-a5d9-6fa76badc1eb}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>95.8875</x>
+        <y>130.64142</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{af0c0498-8c52-4edb-8902-e3103dbdf721}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>98.68652</x>
+            <y>225.40234</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{0b2f5ae0-3d82-43b4-af65-e91fb6442f01}</guid>
+        <label>Check Issue Type</label>
+        <x>100.69238</x>
+        <y>351.50586</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{a8a815d3-6b8a-406a-9ec4-7286105d6b8d}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="SolveTechnicalIssue" type="seqActivity">
+                <guid>{14ca567d-b6e7-48cf-be43-c9edfe18ca65}</guid>
+                <label>Solve Technical Issue</label>
+                <x>161.17403</x>
+                <y>462.9082</y>
+                <childList>
+                  <child name="ConfigureHSINASSSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureHSINASSSolveIssueTask_cwr3</element>
+                    <guid>{0add7813-cad2-48b3-8356-2ab5a3653489}</guid>
+                    <label>Configure HSI NASS Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>557.6691</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{9a7add58-0928-4184-9e5a-4d8d379729e7}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>164.37207</x>
+                    <y>698.4738</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{c6bd0cac-e880-4214-bd15-d9c45d990acb}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{e2dfe6f6-084b-4b91-8b8a-a044814593aa}</guid>
+                <label>Client Issue</label>
+                <x>47.020508</x>
+                <y>464.28867</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{03ce9acb-8de0-409f-b807-84a1ed9c9da3}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.0</x>
+                    <y>566.0197</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar HSI&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      HSI. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar HSI - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure HSI NASS Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ConfigureHSINASSHandleIssueSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

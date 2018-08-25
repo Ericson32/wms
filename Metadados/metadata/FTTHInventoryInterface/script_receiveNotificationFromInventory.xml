@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script filenameHash="b881916bfef538988280acafb10df6f5" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.receiveNotificationFromInventory">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel por:
+    </p>
+    <p style="margin-top: 0">
+      - Validar o script recebido pelo sistema de Invent&#225;rio;
+    </p>
+    <p style="margin-top: 0">
+      - Validar se todos os campos obrigat&#243;rios est&#227;o sendo recebidos
+      corretamente;
+    </p>
+    <p style="margin-top: 0">
+      - Mapear os campo srecebidos para o DB do WMS;
+    </p>
+  ]]></description>
+  <label>Receive Notification From Inventory</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="notificacao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      XML de Notificacao originada pelo Inventario/barramento&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHInventoryInterface.response</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     funcao para tratamento inicial das notificacoes originadas pelo NetWin/listener
+
+     parametros:
+     notificacao          (this.activity)             tipo FTTHInventoryInterface.response
+    */
+
+    //Parametros de LOG
+    var LOG_INTERFACE = "INVENTORY";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_INVENTORY');
+    var LOG_ACTIVITY = "LISTENER_NOTIFICACAO";
+    var LOG_SCRIPT = "receiveNotificationFromInventory";
+    var LOG_OPERATION = "Listener";
+
+    var LOG_MSG = "Receive Notification Interface Script";
+    FTTHCommon.log( null, null, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                    LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+
+    var errors = notificacao.validate(5, true, true);
+    var hasErrors = (errors!=null) && (errors.length>0);
+
+    var output = new DataStructure('FTTHInventoryInterface.acknowledge');
+
+    var msgLogDoc = UserProfile.getMsgLogDoc();
+
+    var LOG_MSG = "Id:[" + msgLogDoc.id + "] [XML == >>>" + notificacao.toXML() + "<<<]";
+    FTTHCommon.log( null, notificacao.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                    LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+    var searchDoc = new Document("FTTHCommon:LogMessageUserDataDocument");
+    searchDoc.correlationId = notificacao.correlationId;
+    var result = Finder.runSearch("FTTHCommon:LogMessageUserDataFinder", searchDoc);
+    if (result != null && result.size>0) {
+        var userData = result.start;
+        if(msgLogDoc != null){
+            msgLogDoc.userData1 = userData.numeroPedido;
+            msgLogDoc.userData2 = userData.numeroOS;
+            msgLogDoc.userData3 = userData.cwOrderId;
+            msgLogDoc.save();
+        }
+    }
+    if(!hasErrors) {
+        if (notificacao.attributeList == null || notificacao.attributeList.attribute == null || notificacao.attributeList.attribute.length == 0) {
+            var LOG_MSG = "Notificação inválida: array vazio. >>>" + notificacao.toXML() + "<<<";
+            FTTHCommon.log( null, notificacao.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1,
+                            LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+            output.code = '-1';
+            output.description = 'Notificação sem lista de atributos.';
+            output.key = '0';
+            return output;
+        } else
+            var processId = notificacao.correlationId;
+            var processo = Process.getProcessInfo(processId);
+            if(!processo) {
+                var LOG_MSG = "processo interno nao encontrado com processId [" + processId + "] - XML >>>" + notificacao.toXML() + "<<<";
+                FTTHCommon.log( null, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1000,
+                        LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                output.code='-1000';
+                output.description='Processo nao existente com correlationId [' + processId + ']';
+                output.key='0';
+                return output;
+            }
+            Process.sendMessageToQueue('FTTHInventoryInterface:InitiateNotifyProcess', 'InitiateNotify', notificacao);
+    } else {
+        var LOG_MSG = "Notificação inválida: ";
+        for(var i=0; i < errors.length; i=i+2){
+            LOG_MSG = LOG_MSG + errors[i] + ' - ' + errors[i+1] + '\n';
+        }
+        FTTHCommon.log( null, notificacao.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1,
+                        LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        output.code = '-1';
+        output.description = 'Mensagem Recebida com erros. ' + LOG_MSG;
+        output.key = '0';
+        return output;
+    }
+    output.code = '0';
+    output.description = 'Mensagem Recebida com Sucesso';
+    output.key = '0';
+
+    var LOG_MSG = "Receive Notification Interface Script ** END";
+    FTTHCommon.log( null, notificacao.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                    LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+    return output;
+  ]]></script>
+</script>

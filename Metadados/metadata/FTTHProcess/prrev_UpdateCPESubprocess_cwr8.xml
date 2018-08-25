@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.UpdateCPESubprocess_cwr8">
+  <activity name="UpdateCPEStart" type="seqActivity">
+    <guid>{f9c4b2de-15c5-4bbc-b048-6b72af02f547}</guid>
+    <label>Update CPE Start</label>
+    <x>22.533985</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="UpdateCPEAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.UpdateCPEAutomaticTask</element>
+        <guid>{d54aaf48-ccbc-43f5-8e19-eda5c7a895d4}</guid>
+        <label>Update CPE Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>359.8047</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{9b05c8ca-852a-4569-93c4-5bbe088d7784}</guid>
+        <label>Check Task Result</label>
+        <x>65.7666</x>
+        <y>498.60938</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{56677ac1-0b4f-48fb-95b8-ee0047c854ea}</guid>
+            <label>Success</label>
+            <x>33.84839</x>
+            <y>624.7129</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{a82688d7-d6b8-4f2a-8d79-6d2330d35756}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{f1eef781-ab97-4945-9ebe-22a0b1c630cd}</guid>
+                <label>Handle Error Start</label>
+                <x>118.5187</x>
+                <y>627.0635</y>
+                <childList>
+                  <child name="UpdateCPEHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.UpdateCPEHandleErrorTask_cwr5</element>
+                    <guid>{e9a7c0da-375e-44f2-a3fd-9a70da0e70a9}</guid>
+                    <label>Update CPE Handle Error Task</label>
+                    <x>157.83582</x>
+                    <y>721.41406</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{4ede68fa-0e6c-474d-813b-9eb10b9bb604}</guid>
+                    <label>Check Error Handling</label>
+                    <x>119.80501</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{369dcff6-018f-4253-985d-7b21db7f9a2f}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{c7cb6afd-2353-4edf-8c39-cedddf871f21}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.10019</x>
+                            <y>267.8047</y>
+                            <childList>
+                              <child name="UpdateCPESolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.UpdateCPEHandleIssueSubprocess_cwr11</element>
+                                <guid>{28eb5737-dbee-409d-823d-ed4d3ea10c04}</guid>
+                                <label>Update CPE Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>366.15527</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.UpdateCPESubprocess_cwr8/seqActivity_UpdateCPEStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{a3e76720-5624-4675-8e59-2626c6ac9aa2}</guid>
+                                <label>Repeat</label>
+                                <x>151.78027</x>
+                                <y>513.31055</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{9303b75b-2394-4500-9014-efef03d16dcb}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.UpdateCPESubprocess_cwr8/seqActivity_UpdateCPEStart</element>
+                            <guid>{2c9ea1bd-6a36-4baf-9ad4-aece00aca4ef}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Atualizar CPE&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Invent&#225;rio a solicita&#231;&#227;o de atualiza&#231;&#227;o de CPE. Caso o
+      Invent&#225;rio retorne algum erro, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de atualiza&#231;&#227;o de CPE para o sistema de Invent&#225;rio.
+      Ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Atualizar CPE - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Update CPE Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.UpdateCPESubprocess</process>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process__revision>

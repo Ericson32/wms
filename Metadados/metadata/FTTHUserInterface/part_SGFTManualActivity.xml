@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHUserInterface.SGFTManualActivity">
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M1DT0H0M0S</length>
+  </duration>
+  <guid>{1cf2cb56-423c-49c5-8070-f7503a168319}</guid>
+  
+  <interface>iface_FTTHUserInterface.SGFTManualActivityInterface</interface>
+  <label>SGFT Manual Activity</label>
+  <metaVersion>4</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.SGFTManualActivityInterface/oper_SGFTBAAutomaticClosingSuccess</operation>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.SGFTManualActivityInterface/oper_SGFTBAAutomaticClosingIssue</operation>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.SGFTManualActivityInterface/oper_SGFTBAExternalClosingSuccess</operation>
+      <tasksList>
+        <tasks>SGFTBAOpenning</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+
+            var matriculaUsuario;
+            var nomeUsuario;
+            if(userDoc){
+                matriculaUsuario = Global.trim(userDoc.profileId);
+                nomeUsuario = Global.trim(userDoc.userName);
+            }
+
+            try{
+                if(confirmObject && confirmObject == "REDIRECIONAR_ROLLOUT_CLICK"){
+
+                    ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+                    ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+                    ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+                    ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+                    ord.ManualActivityData[count -1].ManualActivityData.codEncerramento = '7032';
+                    ord.save();
+                }
+            } catch(e){
+                Global.logInfo('OS pega pelo GP, pendenciando com pendencia 7032 - ERRO - ' + ord.OrderHeader.cwOrderId);
+                Global.logError('OS pega pelo GP, pendenciando com pendencia 7032 - ERRO - ' + ord.OrderHeader.cwOrderId);
+            }
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.SGFTManualActivityInterface/oper_SGFTBAExternalClosingIssue</operation>
+      <tasksList>
+        <tasks>SGFTBAOpenning</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>manualActivity</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

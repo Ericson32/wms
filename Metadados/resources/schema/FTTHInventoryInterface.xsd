@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema elementFormDefault="qualified" targetNamespace="FTTHInventoryInterface"	
+	xmlns="http://www.w3.org/2001/XMLSchema"	
+	xmlns:FTTHInventoryInterface="FTTHInventoryInterface"	
+	xmlns:cwf="http://www.conceptwave.com/system"	
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"	
+	xmlns:FTTHCommon="FTTHCommon"	
+	xmlns:cwt_common="http://www.conceptwave.com/templates/common">
+
+
+	<import namespace="http://www.conceptwave.com/system" schemaLocation="cwf.xsd"/>
+
+	<import namespace="FTTHCommon" schemaLocation="FTTHCommon.xsd"/>
+	<import namespace="http://www.conceptwave.com/templates/common" schemaLocation="cwt_common.xsd"/>
+
+	<annotation>
+		<documentation>FTTH Inventory Interface</documentation>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<simpleType name="idEndereco">
+		<annotation>
+			<documentation>Id Endereço</documentation>
+		</annotation>
+		<restriction base="cwf:String64">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="nomeCampo">
+		<annotation>
+			<documentation>Nome Campo</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="32"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="ID_ORDEM_SERVICO">
+		<annotation>
+			<documentation>ID_ORDEM_SERVICO</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="16"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="COD_SOLICITACAO">
+		<annotation>
+			<documentation>COD_SOLICITACAO</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="32"/>
+		</restriction>
+	</simpleType>
+
+	<!-- Structures -->
+
+	<element name="query">
+		<complexType >
+		<annotation>
+			<documentation>query</documentation>
+		</annotation>
+			<sequence>
+				<element name="actor" minOccurs="0" maxOccurs="1" type="FTTHCommon:AtorType"/>
+				<element name="uniqueCode" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="type" minOccurs="1" maxOccurs="1" type="FTTHInventoryInterface:nomeCampo"/>
+				<element name="key" minOccurs="1" maxOccurs="unbounded" type="FTTHInventoryInterface:queryType"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<element name="attributeType">
+		<complexType >
+		<annotation>
+			<documentation>atributo</documentation>
+			<appinfo>
+				<label>attributeType</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="name" minOccurs="1" maxOccurs="1" type="FTTHInventoryInterface:nomeCampo"/>
+				<element name="value" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="action" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="originalValue" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="type" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="queryType">
+		<annotation>
+			<documentation>queryType</documentation>
+		</annotation>
+			<sequence>
+				<element name="type" minOccurs="1" maxOccurs="1" type="FTTHInventoryInterface:nomeCampo"/>
+				<element name="uniqueCode" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<element name="request">
+		<complexType >
+		<annotation>
+			<documentation>request</documentation>
+		</annotation>
+			<sequence>
+				<element name="actor" minOccurs="0" maxOccurs="1" type="FTTHCommon:AtorType"/>
+				<element name="correlationId" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="messageId" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="sendDate" minOccurs="1" maxOccurs="1" type="xsd:dateTime"/>
+				<element name="operation" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="attributeList" minOccurs="0" maxOccurs="1">
+					<annotation>
+						<documentation>Lista de Atributos</documentation>
+						<appinfo>
+							<label>attributeList</label>
+						</appinfo>
+					</annotation>
+					<complexType>
+						<sequence>
+							<element minOccurs="0" maxOccurs="unbounded" ref="FTTHInventoryInterface:attributeType"/>
+						</sequence>
+					</complexType>
+				</element>
+			</sequence>
+		</complexType>
+	</element>
+
+	<element name="acknowledge">
+		<complexType >
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Resposta sincrona da ordem de servico
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>acknowledge</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="code" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="description" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="key" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<element name="response">
+		<complexType >
+		<annotation>
+			<documentation>response</documentation>
+		</annotation>
+			<sequence>
+				<element name="correlationId" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="messageId" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="sendDate" minOccurs="0" maxOccurs="1" type="xsd:dateTime"/>
+				<element name="operation" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="attributeList" minOccurs="0" maxOccurs="1">
+					<annotation>
+						<documentation>Lista de Atributos</documentation>
+						<appinfo>
+							<label>attributeList</label>
+						</appinfo>
+					</annotation>
+					<complexType>
+						<sequence>
+							<element minOccurs="0" maxOccurs="unbounded" ref="FTTHInventoryInterface:attributeType"/>
+						</sequence>
+					</complexType>
+				</element>
+				<element name="code" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="description" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="caminhoFibra" minOccurs="0" maxOccurs="1">
+					<annotation>
+						<documentation>Caminho da Fibra</documentation>
+						<appinfo>
+							<label>caminhoFibra</label>
+						</appinfo>
+					</annotation>
+					<complexType>
+						<sequence>
+							<element name="attributeList" minOccurs="0" maxOccurs="1">
+								<annotation>
+									<documentation>Lista de Atributos</documentation>
+									<appinfo>
+										<label>attributeList</label>
+									</appinfo>
+								</annotation>
+								<complexType>
+									<sequence>
+										<element minOccurs="0" maxOccurs="unbounded" ref="FTTHInventoryInterface:attributeType"/>
+									</sequence>
+								</complexType>
+							</element>
+						</sequence>
+					</complexType>
+				</element>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="notification">
+		<annotation>
+			<documentation>Notifica&amp;#231;&amp;#227;o</documentation>
+			<appinfo>
+				<label>notification</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="correlationId" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="messageId" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="code" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="description" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<!-- Documents -->
+
+	<complexType name="ConjoinedOperations">
+		<annotation>
+			<documentation>conjoinedOperations</documentation>
+		</annotation>
+			<sequence>
+				<element name="operation" type="FTTHCommon:operacao"/>
+				<element name="joined" type="FTTHCommon:operacao"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="ProcessDoc">
+		<annotation>
+			<documentation>ProcessDoc</documentation>
+		</annotation>
+			<sequence>
+				<element name="oldIndCancel" type="xsd:integer"/>
+				<element name="atividade" type="FTTHCommon:atividade"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="AttributeInventory">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document que representa a tabela de configura&amp;#231;&amp;#227;o dos atributos do
+  invent&amp;#225;rio.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Attribute Inventory Document</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="operacao" type="FTTHCommon:operacao"/>
+				<element name="nomeDocumento" type="FTTHCommon:nomeDocument"/>
+				<element name="identificadorCampo" type="FTTHCommon:identificadorCampo"/>
+				<element name="obrigatoriedade" type="xsd:boolean"/>
+				<element name="enviarDadoOriginal" type="xsd:integer"/>
+				<element name="acao" type="cwt_common:string32"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="tipoAcao" type="cwt_common:string32"/>
+				<element name="tipoAtributo" type="cwt_common:string32"/>
+				<element name="tipoSolicitacao" type="cwt_common:string32"/>
+				<element name="idOS" type="cwt_common:string32"/>
+			</sequence>
+		</complexType>
+
+</schema>

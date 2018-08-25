@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.execValidateProcess">
+  <label>Exec Validate Process</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="operation" type="rifp"/>
+    <parameter name="equipmentType" type="rifp"/>
+    <parameter name="model" type="rifp"/>
+    <parameter name="activity" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    Global.showUserMessage("Processo Iniciado");
+    var ordem = model.order;
+
+    var ValidateEquipmentDoc = new Document("FTTHClickInterface:ValidateEquipmentDoc");
+
+    var userId = Global.getUserId();
+    var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+    searchDoc.OrderId = ordem.OrderHeader.cwOrderId;
+    var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+    var correlationId = (worklist && worklist.length > 0) ? worklist[0].SenderId : null;
+
+    ValidateEquipmentDoc.userId                     = userId;
+    ValidateEquipmentDoc.codPSR                     = ordem.ManualActivityData[ordem.ManualActivityData.length -1].ManualActivityData.codigoPSR;
+    ValidateEquipmentDoc.nomePSR                    = ordem.ManualActivityData[ordem.ManualActivityData.length -1].ManualActivityData.nomePSR;
+    ValidateEquipmentDoc.numPedido                  = ordem.OrderHeader.numeroPedido;
+    ValidateEquipmentDoc.operacao                   = operation;
+    ValidateEquipmentDoc.orderId                    = ordem.OrderHeader.cwOrderId;
+    ValidateEquipmentDoc.tipoEquipamentoNovo        = equipmentType;
+    ValidateEquipmentDoc.idAtivoNovo                = model.idAtivo;
+    ValidateEquipmentDoc.acaoNovo                   = "adicionar";
+    ValidateEquipmentDoc.correlationId              = correlationId;
+    ValidateEquipmentDoc.isOriginalData             = (model.flagDadoOriginal == "O" ? true : false);
+
+    switch(equipmentType){
+        case "STB":
+            ValidateEquipmentDoc.numeroSerieEquipamentoNovo = model.numeroSerieSetTopBox;
+            ValidateEquipmentDoc.codMaterialNovo            = model.codEquipamento;
+
+            if(operation == "Trocar CPE"){
+                ValidateEquipmentDoc.numeroSerieEquipamentoOriginal      = model.numeroSerieSetTopBox_Original;
+                ValidateEquipmentDoc.tipoEquipamentoOriginal             = equipmentType;
+                ValidateEquipmentDoc.idAtivoOriginal                     = model.idAtivo;
+                ValidateEquipmentDoc.codMaterialOriginal                 = model.codEquipamento_Original;
+                ValidateEquipmentDoc.acaoOriginal                        = "remover";
+            }
+            break;
+        case "ONT":
+            ValidateEquipmentDoc.numeroSerieEquipamentoNovo = model.numeroSerieONT;
+            ValidateEquipmentDoc.codMaterialNovo            = model.codEquipamento;
+
+            if(operation == "Trocar CPE"){
+                ValidateEquipmentDoc.numeroSerieEquipamentoOriginal = model.numeroSerieONT_Original;
+                ValidateEquipmentDoc.tipoEquipamentoOriginal        = equipmentType;
+                ValidateEquipmentDoc.idAtivoOriginal                = model.idAtivo;
+                ValidateEquipmentDoc.codMaterialOriginal            = model.codEquipamentoONT_Original;
+                ValidateEquipmentDoc.acaoOriginal                   = "remover";
+            }
+            break;
+        case "HGW":
+            ValidateEquipmentDoc.numeroSerieEquipamentoNovo = model.numeroSerieHomeGateway;
+            ValidateEquipmentDoc.codMaterialNovo            = model.codEquipamentoHGW;
+
+            if(operation == "Trocar CPE"){
+                ValidateEquipmentDoc.numeroSerieEquipamentoOriginal = model.numeroSerieHGW_Original;
+                ValidateEquipmentDoc.tipoEquipamentoOriginal        = equipmentType;
+                ValidateEquipmentDoc.idAtivoOriginal                = model.idAtivoHGW;
+                ValidateEquipmentDoc.codMaterialOriginal            = model.codEquipamentoHGW_Original;
+                ValidateEquipmentDoc.acaoOriginal                   = "remover";
+            }
+            break;
+    }
+
+    if( FTTHOrder.isEquipmentLocked( handleEquipmentId(ValidateEquipmentDoc, (operation == "Trocar CPE")), equipmentType, ordem.OrderHeader.cwOrderId) ){
+        Global.showUserMessage("Já existe processo sendo executado para este equipamento.");
+        return;
+    }
+
+    switch(operation){
+        case "Validar CPE":
+            createOrUpdateAtividade(ValidateEquipmentDoc.orderId, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"));
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+               ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, false));
+            break;
+        case "Associar CPE":
+            createOrUpdateAtividade(ValidateEquipmentDoc.orderId, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"));
+            createOrUpdateAtividade(ValidateEquipmentDoc.orderId, "ATUALIZAR_EQUIPAMENTO_CLIENTE");
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+               ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, false));
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE"), ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+               ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, false));
+
+            if(equipmentType == "ONT"){
+                createOrUpdateAtividade(ValidateEquipmentDoc.orderId, "ASSOCIAR_ONT_APC");
+                createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, "ASSOCIAR_ONT_APC", ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+               ValidateEquipmentDoc.tipoEquipamentoNovo, 'ONT');
+            }
+            break
+        case "Trocar CPE":
+            createOrUpdateAtividade(ValidateEquipmentDoc.orderId, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"));
+            createOrUpdateAtividade(ValidateEquipmentDoc.orderId, "ATUALIZAR_EQUIPAMENTO_CLIENTE");
+            createOrUpdateAtividade(ValidateEquipmentDoc.orderId, "ATUALIZAR_ESTOQUE");
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+               ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, false));
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE"), ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+               ValidateEquipmentDoc.tipoEquipamentoNovo, handleEquipmentId(ValidateEquipmentDoc, false));
+            createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE"), ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+               ValidateEquipmentDoc.tipoEquipamentoOriginal, handleEquipmentId(ValidateEquipmentDoc, true));
+
+            if(equipmentType == "STB"){
+                createOrUpdateAtividade(ValidateEquipmentDoc.orderId, "DISSOCIAR_STB");
+                createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, "DISSOCIAR_STB", ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+               ValidateEquipmentDoc.tipoEquipamentoOriginal, handleEquipmentId(ValidateEquipmentDoc, true));
+            }
+
+            if(equipmentType == "ONT"){
+                createOrUpdateAtividade(ValidateEquipmentDoc.orderId, "ASSOCIAR_ONT_APC");
+                createOrUpdateAtividadeClick(ValidateEquipmentDoc.orderId, "ASSOCIAR_ONT_APC", ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.numPedido,
+                ValidateEquipmentDoc.tipoEquipamentoNovo, 'ONT');
+            }
+            break;
+    }
+
+    ordem.save();
+    model.save();
+
+    Process.startSubProcess("FTTHProcess.ValidateChangeAssociateEquipmentsProcess", correlationId, ValidateEquipmentDoc);
+
+    //==================================================== METODOS ==============================================================
+
+    function createOrUpdateAtividade(orderId, atividadeId ){
+        var atividade = new Document("FTTHCommon:Activity");
+        atividade.orderId = orderId;
+        atividade.activityId = atividadeId;
+        var docAtividade = Finder.runSearch('FTTHClickInterface:RecuperarAtividade', atividade);
+
+
+        if(docAtividade.size > 0){
+            docAtividade[0].status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            docAtividade[0].indCancelamento = false;
+            docAtividade[0].save();
+        }else{
+            atividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            atividade.indCancelamento = false;
+            atividade.save();
+        }
+    }
+
+    function handleEquipmentId(validateEquip, original) {
+        if (!original){
+            if (validateEquip.tipoEquipamentoNovo == 'STB') {
+                if (validateEquip.idAtivoNovo) {
+                    return validateEquip.idAtivoNovo;
+                } else {
+                    return validateEquip.numeroSerieEquipamentoNovo;
+                }
+            } else {
+                return validateEquip.tipoEquipamentoNovo;
+            }
+            return (validateEquip.tipoEquipamentoNovo == 'STB') ? validateEquip.idAtivoNovo: validateEquip.tipoEquipamentoNovo
+        } else {
+             if (validateEquip.tipoEquipamentoOriginal == 'STB') {
+                if (validateEquip.idAtivoOriginal) {
+                    return validateEquip.idAtivoOriginal;
+                } else {
+                    return validateEquip.numeroSerieEquipamentoOriginal;
+                }
+            } else {
+                return validateEquip.tipoEquipamentoOriginal;
+            }
+            return (validateEquip.tipoEquipamentoOriginal == 'STB') ? validateEquip.idAtivoOriginal: validateEquip.tipoEquipamentoOriginal
+        }
+    }
+
+    function createOrUpdateAtividadeClick(orderId, atividadeId, operacao, numeroPedido, tipo ,equipId){
+
+        var atividade = new Document("FTTHCommon:ActivityClick");
+        atividade.cwOrderId = orderId;
+        atividade.activityClickId = atividadeId;
+        atividade.operacao = operacao;
+        atividade.numeroPedido = numeroPedido;
+        atividade.initialDate = new Date();
+        atividade.endDate = null;
+        atividade.equipmentType = tipo;
+        atividade.equipmentId = equipId;
+        var docAtividade = Finder.runSearch('FTTHCommon:activityClickFinder', atividade);
+
+        if(docAtividade.size > 0){
+            docAtividade[0].status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            docAtividade[0].save();
+        }else{
+            atividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            atividade.save();
+        }
+    }
+  ]]></script>
+</script>

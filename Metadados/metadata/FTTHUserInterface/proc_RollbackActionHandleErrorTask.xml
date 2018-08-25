@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.RollbackActionHandleErrorTask">
+  <activity name="RollbackActionHandleErrorTaskStart" type="seqActivity">
+    <guid>{17ee90d8-9e3a-4b6d-9e29-f506a27644cf}</guid>
+    <label>Rollback Action Handle Error Task Start</label>
+    <x>79.57588</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RollbackActionHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackActionHandleError</element>
+        <guid>{99a8a828-04d9-4824-8f72-cc72b6711c54}</guid>
+        <label>Rollback Action Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>93.51123</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{d631f6ad-8cea-4b34-ae51-396397b3bdb6}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="RollbackActionHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackActionHandleErrorIssue</element>
+                <guid>{5e86469e-6d9d-4be3-af30-1f4af96b1a63}</guid>
+                <label>Rollback Action Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>161.02214</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("CANCELAR_DESIGNACAO");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="RollbackActionHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackActionHandleErrorResend</element>
+                <guid>{d0f975d1-6f37-4dc4-961b-102ce1682b49}</guid>
+                <label>Rollback Action Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>46.50049</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("CANCELAR_DESIGNACAO");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryHandleError" type="participantActivity">
+        <guid>{a23630e7-a69f-4db6-84e3-e75cd8c0fd9c}</guid>
+        <label>Inventory Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CANCELAR_DESIGNACAO");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a atualiza&#231;&#227;o de CPE autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{59884548-df37-43bf-b9e8-6f9ba8c2191a}</guid>
+  <label>Rollback Action Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process>

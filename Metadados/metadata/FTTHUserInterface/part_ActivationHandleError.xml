@@ -1,0 +1,2752 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHUserInterface.ActivationHandleError">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Esse participant representa a pessoa respons&#225;vel por realizar as
+      atividades de tratamento de erro manual para as opera&#231;&#245;es da Rede.
+    </p>
+  ]]></description>
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M1DT0H0M0S</length>
+  </duration>
+  <guid>{e39c18c3-603a-4397-a3bb-268c171358a6}</guid>
+  <interface>iface_FTTHUserInterface.ActivationHandleErrorInterface</interface>
+  <label>Activation Handle Error</label>
+  <metaVersion>3</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureHSIHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+
+            var atividade = Global.getConfigVariable("CONFIGURAR_HSI");
+            var order = worklistOrder;
+            var operation = worklistItem.workItemDocument.Operation;
+            var userId = worklistItem.workItemDocument.userId;
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(atividade, order, operation, userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_HSI"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureHSIHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_VOIP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_VOIP"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_IPTV"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_IPTV"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureOTTHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureOTTHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_OTT"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_OTT"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureOTTHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureOTTHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureHSIHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem =worklistOrder.order.OriginalData[0].ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_HSI"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureHSIHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_VOIP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureIPTVHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_IPTV"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureIPTVHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureOTTHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureOTTHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_OTT"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_OTT"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureOTTHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureOTTHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreFacilityHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreFacilityHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_FACILIDADE"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreFacilityHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreFacilityHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendFacilityHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreFacilityHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_FACILIDADE"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_FACILIDADE"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendFacilityHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendFacilityHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DissociateSTBHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DissociateSTBHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var atividade = MetadataElement.getElement(document.workItemDocument.Operation.replace('/','.')).label;
+            var tipoOS = order.OrderHeader.tipoOS;
+            var msg = "";
+
+            if(atividade == "Dissociar STB Erro"){
+                if(order.OriginalData[0].EquipmentData != null && order.OriginalData[0].EquipmentData[0] != null){
+                    if(order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData){
+                                for(var i = 0; i< order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length; i++){
+                                    if(order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData){
+                                       var result = FTTHCommon.mandatoryFieldsManualActivitiesPointEquipment(atividade, order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData, tipoOS);
+                                       if(result != "")
+                                           msg = msg + "\n Formulário Dados dos Equipamento de Ponta " + i + " deve ser preenchido com os seguintes campos para a retirada: "  + result  + "\n";
+
+                                    }
+                                }
+                            }
+                }
+            }
+
+            if(msg != ""){
+               var doc = new Document ("FTTHCommon.MandatoryMessage");
+                doc.fields = msg;
+                return doc;
+            }
+
+            return true;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DissociateSTBHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DissociateSTBHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DISSOCIAR_STB"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DISSOCIAR_STB"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureHSIHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("RECONFIGURAR_HSI"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_HSI"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureHSIHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureVoIPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_VOIP"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureVoIPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureIPTVHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureIPTVHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("RECONFIGURAR_IPTV"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_IPTV"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureIPTVHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureIPTVHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureOTTHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureOTTHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("RECONFIGURAR_OTT"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_OTT"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureOTTHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureOTTHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendHSIHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendHSIHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_HSI"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_HSI"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendHSIHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendHSIHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendVoIPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_VOIP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_VOIP"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendVoIPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendIPTVHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_IPTV"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_IPTV"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendIPTVHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendOTTHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendOTTHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_OTT"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_OTT"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendOTTHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendOTTHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreHSIHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreHSIHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_HSI"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_HSI"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreHSIHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreHSIHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVoIPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreVoIPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_VOIP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_VOIP"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVoIPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreVoIPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreIPTVHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_IPTV"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_IPTV"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreIPTVHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreOTTHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreOTTHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_OTT"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_OTT"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreOTTHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreOTTHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureInfraHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_INFRA"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_INFRA"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureInfraHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DesconfigureInfraHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureInfraHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_INFRA"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_INFRA"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DesconfigureInfraHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureInfraHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureInfraHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureInfraHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_INFRA"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureInfraHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureInfraHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureHSIAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_HSI_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var atividade = Global.getConfigVariable("CONFIGURAR_HSI_APC");
+            var order = worklistOrder;
+            var operation = worklistItem.workItemDocument.Operation;
+            var userId = worklistItem.workItemDocument.userId;
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(atividade, order, operation, userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureHSIAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSINASSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureHSINASSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_HSI_NASS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var atividade = Global.getConfigVariable("CONFIGURAR_HSI_NASS");
+            var order = worklistOrder;
+            var operation = worklistItem.workItemDocument.Operation;
+            var userId = worklistItem.workItemDocument.userId;
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(atividade, order, operation, userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSINASSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureHSINASSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureHSIHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureHSIHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureHSIHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_HSI_HDM"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var atividade = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+            var order = worklistOrder;
+            var operation = worklistItem.workItemDocument.Operation;
+            var userId = worklistItem.workItemDocument.userId;
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(atividade, order, operation, userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_VOIP_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_VOIP_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPIMSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPIMSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_VOIP_IMS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_VOIP_IMS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPIMSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPIMSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_VOIP_HDM"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_VOIP_HDM"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPVMPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPVMPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_VOIP_VMP"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_VOIP_VMP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureVoIPVMPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureVoIPVMPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_IPTV_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_IPTV_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVNASSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVNASSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_IPTV_NASS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_IPTV_NASS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVNASSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVNASSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_IPTV_HDM"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_IPTV_HDM"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVIESFHandleErrorTask</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_IPTV_IESF"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_IPTV_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVIESFHandleErrorTask</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureOTTIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureOTTiESFHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_OTT_IESF"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_OTT_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureOTTIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureOTTiESFHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureInfraAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_INFRA_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_INFRA_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureInfraAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureInfraHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_INFRA_HDM"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_INFRA_HDM"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureInfraHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraNASSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureInfraNASSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_INFRA_NASS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_INFRA_NASS"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureInfraNASSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureInfraNASSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureInfraAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureInfraAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_INFRA_APC"));
+            return result;
+
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_INFRA_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureInfraAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureInfraAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureInfraHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureInfraHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_INFRA_HDM"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_INFRA_HDM"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureInfraHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureInfraHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureInfraNASSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureInfraNASSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_INFRA_NASS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_INFRA_NASS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId,idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureInfraNASSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureInfraNASSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureHSIAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_HSI_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem =worklistOrder.order.OriginalData[0].ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_HSI_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureHSIAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSINASSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureHSINASSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_HSI_NASS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem =worklistOrder.order.OriginalData[0].ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_HSI_NASS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSINASSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureHSINASSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureHSIHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_HSI_HDM"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem =worklistOrder.order.OriginalData[0].ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_HSI_HDM"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureHSIHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureHSIHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_VOIP_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_VOIP_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPIMSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPIMSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_VOIP_IMS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_VOIP_IMS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPIMSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPIMSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_VOIP_HDM"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_VOIP_HDM"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPVMPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPVMPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_VOIP_VMP"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_VOIP_VMP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureVoIPVMPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DisconfigureVoIPVMPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureIPTVAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_IPTV_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_IPTV_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureIPTVAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVNASSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureIPTVNASSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_IPTV_NASS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVNASSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureIPTVNASSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureIPTVHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_IPTV_HDM"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_IPTV_HDM"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureIPTVHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureIPTVIESFHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_IPTV_IESF"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_IPTV_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureIPTVIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureIPTVIESFHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureOTTIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DesconfigureOTTIESFHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESCONFIGURAR_OTT_IESF"));
+            return result;
+
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.order.OriginalData[0].ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESCONFIGURAR_OTT_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DisconfigureOTTIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DesconfigureOTTIESFHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSINASSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureHSINASSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSINASSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureHSINASSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_HSI_NASS"));
+            return result;
+
+            return false;;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("RECONFIGURAR_HSI_NASS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureHSIAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureHSIAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureHSIAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_HSI_APC"));
+            return result;
+
+            //return false;;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorHSI;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("RECONFIGURAR_HSI_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureIPTVIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureIPTVIESFHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureIPTVIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureIPTVIESFHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_IPTV_IESF"));
+            return result;
+
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("RECONFIGURAR_IPTV_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPIMSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureVoIPIMSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPIMSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureVoIPIMSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_VOIP_IMS"));
+            return result;
+
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHDMHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureVoIPHDMHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHDMHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureVoIPHDMHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_VOIP_HDM"));
+            return result;
+
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPVMPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigureVoIPVMPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPVMPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigureVoIPVMPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_VOIP_VMP"));
+            return result;
+
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendHSIAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendHSIAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendHSIAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendHSIAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_HSI_APC"));
+            return result;
+
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorHSI;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_HSI_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPIMSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendVOIPIMSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPIMSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendVOIPIMSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_VOIP_IMS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_VOIP_IMS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendIPTVAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendIPTVAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_IPTV_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_IPTV_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendIPTVIESFHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendIPTVIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendIPTVIESFHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_IPTV_IESF"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_IPTV_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendOTTIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendOTTIESFHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendOTTIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendOTTIESFHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_OTT_IESF"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_OTT_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPVMPServiceHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendVOIPVMPServiceHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_InsertFranchiseHandleErrorResend</operation>
+      <tasksList>
+        <tasks>InsertFranchiseHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPVMPServiceHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendVOIPVMPServiceHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_VOIP_VMP_SERVICO"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_VOIP_VMP_SERVICO"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_InsertFranchiseHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>InsertFranchiseHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  "INSERIR_FRANQUIA_IN");
+            return result;
+
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation("INSERIR_FRANQUIA_IN", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPIMSServiceHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendVOIPIMSServiceHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DeleteFranchiseHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DeleteFranchiseHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPIMSServiceHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendVOIPIMSServiceHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("BLOQUEAR_VOIP_IMS_SERVICO"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEAR_VOIP_IMS_SERVICO"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DeleteFranchiseHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DeleteFranchiseHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  "REMOVER_FRANQUIA_IN");
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation("REMOVER_FRANQUIA_IN", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_UpdateFranchiseHandleErrorResend</operation>
+      <tasksList>
+        <tasks>UpdateFranchiseHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_UpdateFranchiseHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>UpdateFranchiseHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  "ALTERAR_FRANQUIA_IN");
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation("ALTERAR_FRANQUIA_IN", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureDigitalServiceHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureDigitalServiceHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_SERVICO_DIGITAL"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_SERVICO_DIGITAL"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureDigitalServiceHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureDigitalServiceHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVagoVMPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>SuspendVagoVMPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  "BLOQUEIO_VAGO_VMP");
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("BLOQUEIO_VAGO_VMP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVagoVMPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>SuspendVagoVMPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVagoVMPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreVagoVMPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+
+            //var idItem = worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.identificadorVoIP : worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEIO_VAGO_VMP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVagoVMPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreVagoVMPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVIESFProfileHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVIESFProfileHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVIESFProfileHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfigureIPTVIESFProfileHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreHSIAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreHSIAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_HSI_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorHSI;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_HSI_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreHSIAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreHSIAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVOIPIMSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreVOIPIMSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_VOIP_IMS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            /**** CR 2 ****/
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorVoIP;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_VOIP_IMS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreVOIPIMSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreVOIPIMSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVAPCHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreIPTVAPCHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_IPTV_APC"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_IPTV_APC"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVAPCHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreIPTVAPCHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreIPTVIESFHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_IPTV_IESF"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_IPTV_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreIPTVIESFHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreOTTIESFHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RestoreOTTIESFHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESBLOQUEAR_OTT_IESF"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = worklistOrder.OriginalData[0].ProductData.identificadorIPTV;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESBLOQUEAR_OTT_IESF"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreOTTIESFHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RestoreOTTIESFHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_InsertAdditionalPackageHandleErrorResend</operation>
+      <tasksList>
+        <tasks>InsertAdditionalPackageHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_InsertAdditionalPackageHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>InsertAdditionalPackageHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DeleteAdditionalPackageHandleErrorResend</operation>
+      <tasksList>
+        <tasks>DeleteAdditionalPackageHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_DeleteAdditionalPackageHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>DeleteAdditionalPackageHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = worklistOrder.ProductData.identificadorIPTV;
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ModificarPlanoVoIPIMSHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ModificarPlanoVoIPIMSHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("MODIFICAR_PLANO_VOIP_IMS"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("MODIFICAR_PLANO_VOIP_IMS"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ModificarPlanoVoIPIMSHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ModificarPlanoVoIPIMSHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ModificarPlanoVoIPVMPHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ModificarPlanoVoIPVMPHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("MODIFICAR_PLANO_VOIP_VMP"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("MODIFICAR_PLANO_VOIP_VMP"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ModificarPlanoVoIPVMPHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ModificarPlanoVoIPVMPHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigurarVoIPINHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ReconfigurarVoIPINHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigurarVoIPINHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ReconfigurarVoIPINHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem = worklistOrder.ProductData.identificadorVoIP;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("RECONFIGURAR_VOIP_IN"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("RECONFIGURAR_VOIP_IN"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>errorActivity</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

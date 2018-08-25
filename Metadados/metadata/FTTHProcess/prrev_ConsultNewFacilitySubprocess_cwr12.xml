@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConsultNewFacilitySubprocess_cwr12">
+  <activity name="ConsultFacilityStart" type="seqActivity">
+    <guid>{d64fb969-a6e6-4f08-a7f5-fbdcde0cd2e1}</guid>
+    <label>Consult Facility Start</label>
+    <x>33.802734</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConsultNewFacilityAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.ConsultNewFacilityAutomaticTask</element>
+        <guid>{b368258f-bcb6-4580-93b2-00fd3f793f23}</guid>
+        <label>Consult New Facility Automatic Task</label>
+        <syc>true</syc>
+        <x>35.0</x>
+        <y>366.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{049bc53f-f8e0-45d9-b69e-fea4d7ebaabe}</guid>
+        <label>Check Task Result</label>
+        <x>78.68701</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{6b5e4b9f-f488-4cd4-a782-ade3d38c7f7a}</guid>
+            <label>Success</label>
+            <x>46.7688</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var LOG_INTERFACE = "INVENTORY";
+                  var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_INVENTORY');
+                  var LOG_ACTIVITY = "Retorno das consultas";
+                  var LOG_SCRIPT = "cwOnProcActCond";
+                  var LOG_OPERATION = "Sender";
+
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                  var activityIdLogica1;
+                  var resultLogica1;
+                  var activityIdLogica2;
+                  var resultLogica2;
+                  var atividade;
+                  var activityIdFisicaNova;
+                  var resultFisicaNova;
+
+                  atividade = "CONSULTAR_FACILIDADE_FISICA_NOVA";
+                  var resultLogica2Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  if(resultLogica2Necessity){
+                      activityIdFisicaNova = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_NOVA");
+                      resultFisicaNova = FTTHCommon.getStatusActivity(orderId, activityIdFisicaNova);
+                  }
+
+                  atividade = "CONSULTAR_FACILIDADE_LOGICA_1_NOVA";
+                  var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  if(resultLogica1Necessity){
+                      activityIdLogica1 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA");
+                      resultLogica1 = FTTHCommon.getStatusActivity(orderId, activityIdLogica1);
+                  }
+
+                  var msg = " resultlogic 1 : [" + resultLogica1 + "]   activity log 1 [" + activityIdLogica1 + "]";
+                  FTTHCommon.log( orderId, this.process.id, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, msg, null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+                  atividade = "CONSULTAR_FACILIDADE_LOGICA_2_NOVA";
+                  var resultLogica2Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  if(resultLogica2Necessity){
+                      activityIdLogica2 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_NOVA");
+                      resultLogica2 = FTTHCommon.getStatusActivity(orderId, activityIdLogica2);
+                  }
+
+                  var msg = " resultlogic 2 : [" + resultLogica2 + "]   activity log 2 [" + activityIdLogica2 + "]";
+                  FTTHCommon.log( orderId, this.process.id, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, msg, null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+                  if( ((resultFisicaNova == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")) || (resultFisicaNova == null )) &&
+                      ((resultLogica1 == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")) || (resultLogica1 == null )) &&
+                      ((resultLogica2 == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")) || (resultLogica2 == null)) )
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{6f3d9678-f83a-4f52-81f1-3078bccc50dc}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{a5e11c1d-cc42-4bcb-9c03-a2cfc2e9077e}</guid>
+                <label>Handle Error Start</label>
+                <x>131.43912</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="ConsultNewFacilityHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConsultNewFacilityHandleErrorTask_cwr10</element>
+                    <guid>{7334bd05-4e63-4244-9af7-fa814ca3868e}</guid>
+                    <label>Consult New Facility Handle Error Task</label>
+                    <x>171.42053</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{6da011a6-a9b3-40f0-ab56-49bec9b85d99}</guid>
+                    <label>Check Error Handling</label>
+                    <x>131.24252</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{28f8d0cb-00c4-4c2d-8088-567934c4444f}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{e771da04-c167-4d63-8ba8-62e81461a10b}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>141.42441</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConsultNewFacilitySolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConsultNewFacilityHandleIssueSubprocess_cwr11</element>
+                                <guid>{39880632-05e0-43e5-b2da-91a499bb6466}</guid>
+                                <label>Consult New Facility Solve Issue Task</label>
+                                <x>142.6914</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConsultNewFacilitySubprocess_cwr12/seqActivity_ConsultFacilityStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{c55e0026-274b-4d89-83c7-13dcff90f111}</guid>
+                                <label>Repeat</label>
+                                <x>164.70068</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                              var activityIdLogica1;
+                              var resultLogica1;
+                              var activityIdLogica2;
+                              var resultLogica2;
+                              var atividade;
+                              var resultFisicaNova;
+                              var activityIdFisicaNova;
+
+                              atividade = "CONSULTAR_FACILIDADE_FISICA_NOVA";
+                              var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              if(resultLogica1Necessity){
+                                  activityIdFisicaNova = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_NOVA");
+                                  resultFisicaNova = FTTHCommon.getStatusActivity(orderId, activityIdFisicaNova);
+                              }
+
+                              atividade = "CONSULTAR_FACILIDADE_LOGICA_1_NOVA";
+                              var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              if(resultLogica1Necessity){
+                                  activityIdLogica1 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA");
+                                  resultLogica1 = FTTHCommon.getStatusActivity(orderId, activityIdLogica1);
+                              }
+
+                              atividade = "CONSULTAR_FACILIDADE_LOGICA_2_NOVA";
+                              var resultLogica2Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              if(resultLogica2Necessity){
+                                  activityIdLogica2 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_NOVA");
+                                  resultLogica2 = FTTHCommon.getStatusActivity(orderId, activityIdLogica2);
+                              }
+
+                              if( ((resultFisicaNova == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")) || (resultFisicaNova == null )) &&
+                                  ((resultLogica1 == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")) || (resultLogica1 == null )) &&
+                                  ((resultLogica2 == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")) || (resultLogica2 == null)) )
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{0b7e3a9b-18c6-434e-9d3d-f85c652dcedc}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConsultNewFacilitySubprocess_cwr12/seqActivity_ConsultFacilityStart</element>
+                            <guid>{005a801c-51d3-4f5e-84fa-ca6c6ccf2847}</guid>
+                            <label>Repeat</label>
+                            <x>42.998047</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryHandleError" type="participantActivity">
+        <guid>{846b8cc0-5504-483e-b2a7-ccbc68d97b21}</guid>
+        <label>Inventory Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Consultar
+      Facilidades&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio
+      sistema envia para o sistema de Invent&#225;rio a solicita&#231;&#227;o de consulta de
+      facilidades. Caso o Invent&#225;rio retorne algum erro, uma atividade manual
+      &#233; gerada para que o usu&#225;rio de tratamento de erro possa definir uma
+      solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar a atividade com reenvio, nesse caso
+      o sistema enviar&#225; uma nova solicita&#231;&#227;o de consulta de facilidade para o
+      sistema de Invent&#225;rio. Ou poder&#225; finalizar a atividade com pend&#234;ncia e
+      ent&#227;o o subprocesso de Consultar Facilidade - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Consult New Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConsultNewFacilitySubprocess</process>
+  <revision>12</revision>
+  <type>Sub-flow</type>
+</process__revision>

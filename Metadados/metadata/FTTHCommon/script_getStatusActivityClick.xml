@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.getStatusActivityClick">
+  <label>Get Status Activity</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="activityId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="operation" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Validar CPE, Trocar CPE ou Associar CPE&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_FTTHClickInterface.operacao</type>
+    </parameter>
+    <parameter name="equipId" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      ONT,HGW, IdAtivo (no caso de STB)&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_FTTHClickInterface.tipoEquipamento</type>
+    </parameter>
+    <parameter name="tipoEquipamento" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      ONT, HGW, ou STB&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_FTTHClickInterface.tipoEquipamento</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var statusActivity;
+    var searchDoc = new Document("FTTHCommon:ActivityClick");
+
+    searchDoc.cwOrderId = orderId;
+    searchDoc.activityClickId = activityId;
+    searchDoc.equipmentType = tipoEquipamento;
+    searchDoc.equipmentId = equipId;
+    searchDoc.operacao = operation;
+    statusActivity = Finder.runSearch ("FTTHCommon.activityClickFinder", searchDoc);
+
+    if (statusActivity.length > 0 && statusActivity[0] != null ) return statusActivity[0].status;
+    else 'ACHEI DOIS OU NENHUM VALOR(ES)! IMPOSSIVEL POIS É PK';
+  ]]></script>
+</script>

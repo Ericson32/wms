@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document filenameHash="7325a40d0e9f0582aacae82ad4cb9c1" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="override_cwf_pm.ActivitiesBO">
+  <dbSchema>ORDER</dbSchema>
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{de678324-a5f9-49ae-8aa1-ea47c85c5763}</guid>
+  <label>Activities Backoffice</label>
+  <metaVersion>3</metaVersion>
+  <variableList>
+    <variable name="PROCESS_ID" type="leaf">
+      <column>PROCESS_ID</column>
+      <key>2</key>
+      <label>Process ID</label>
+      <propertyElement type="elfld"/>
+      <table>CWPACTIVITY</table>
+      <valueType>dtype_cwf.processId</valueType>
+    </variable>
+    <variable name="ACTIVITY_INDEX" type="leaf">
+      <column>ACTIVITY_INDEX</column>
+      <key>1</key>
+      <label>Activity Index</label>
+      <propertyElement type="elfld"/>
+      <table>CWPACTIVITY</table>
+      <valueType>dtype_cwf_pm.actIndex</valueType>
+    </variable>
+    <variable name="MESSAGE_TYPE" type="leaf">
+      <column>MESSAGE_TYPE</column>
+      <label>Numeric metadata type</label>
+      <propertyElement type="elfld"/>
+      <table>CWPACTIVITY</table>
+      <valueType>dtype_cwf.metadataIntId</valueType>
+    </variable>
+    <variable name="START_TIME" type="leaf">
+      <column>START_TIME</column>
+      <label>Date/Time (sec)</label>
+      <propertyElement type="eldatetime">
+        <displayFormat>dd/MM/yyyy HH:mm:ss</displayFormat>
+      </propertyElement>
+      <table>CWPACTIVITY</table>
+      <valueType>dtype_cwf.dateTimeSec</valueType>
+    </variable>
+    <variable name="COMPLETION_TIME" type="leaf">
+      <column>COMPLETION_TIME</column>
+      <label>Date/Time (sec)</label>
+      <propertyElement type="eldatetime">
+        <displayFormat>dd/MM/yyyy HH:mm:ss</displayFormat>
+      </propertyElement>
+      <table>CWPACTIVITY</table>
+      <valueType>dtype_cwf.dateTimeSec</valueType>
+    </variable>
+    <variable name="CWPACTIVITY_STATUS" type="leaf">
+      <column>STATUS</column>
+      <label>Activity Status</label>
+      <propertyElement type="elfld"/>
+      <table>CWPACTIVITY</table>
+      <valueType>dtype_cwf_pm.CWPACTIVITY_STATUS</valueType>
+    </variable>
+  </variableList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_override_cwf_pm.ActivitiesBO</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="GridLayout" type="elgrd">
+                <colWidths>195px,195px</colWidths>
+                <fillSpace>true</fillSpace>
+                <numOfCols>2</numOfCols>
+                <elementList>
+                  <element name="START_TIME" type="eldatetime">
+                    <label>Started</label>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/ui_UserInterface/uivar_model</variablePath>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/leaf_START_TIME</variablePath>
+                      </variablePathList>
+                    </variable>
+                  </element>
+                  <element name="COMPLETION_TIME" type="eldatetime">
+                    <label>Ended</label>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/ui_UserInterface/uivar_model</variablePath>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/leaf_COMPLETION_TIME</variablePath>
+                      </variablePathList>
+                    </variable>
+                  </element>
+                  <element name="calculateActivity" type="elfld">
+                    <columnSpan>2</columnSpan>
+                    <editable type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                      </variablePathList>
+                    </editable>
+                    <label>Activity</label>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/ui_UserInterface/uimthd_calculateActivity</variablePath>
+                      </variablePathList>
+                    </variable>
+                  </element>
+                  <element name="ACTIVITY_INDEX" type="elfld">
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/ui_UserInterface/uivar_model</variablePath>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/leaf_ACTIVITY_INDEX</variablePath>
+                      </variablePathList>
+                    </variable>
+                  </element>
+                  <element name="CWPACTIVITY_STATUS" type="elfld">
+                    <label>Status</label>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/ui_UserInterface/uivar_model</variablePath>
+                        <variablePath>doc_override_cwf_pm.ActivitiesBO/leaf_CWPACTIVITY_STATUS</variablePath>
+                      </variablePathList>
+                    </variable>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</base>
+            <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfSave" type="elmnu">
+                <clickMethod type="varPath">
+                  <variablePathList>
+                    <variablePath>doc_override_cwf_pm.ActivitiesBO/ui_UserInterface/usrActionMethod_cwfSave_menu</variablePath>
+                  </variablePathList>
+                </clickMethod>
+                <icon>/cwf/MenuIconSave.gif</icon>
+                <label>Save</label>
+                <tooltip>Save</tooltip>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>doc_com.conceptwave.system.Document/ui_UserInterface/uivar_model</variablePath>
+                    <variablePath>doc_com.conceptwave.system.Document/permMethod_cwfSaveView</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="cwfSave_menu" type="usrActionMethod">
+        <script><![CDATA[
+          var result = this.cwfSave();
+          Global.runContentDisplayScript(this, "displayScript");
+          return result;
+        ]]></script>
+      </method>
+      <method name="cwfSave" type="usrActionMethod">
+        <allowInvalidObject>true</allowInvalidObject>
+        <validate>true</validate>
+        <script><![CDATA[
+          var document = this.model;
+          var auditLog       = null;
+          var oldCfg            = null;
+          var newCfg            = null;
+          var fdr                  = null;
+
+          fdr = new Finder("override_cwf_pm:activitiesFinderBO");
+
+          fdr.searchDocument.PROCESS_ID           = document.PROCESS_ID;
+          fdr.searchDocument.ACTIVITY_INDEX        = document.ACTIVITY_INDEX;
+
+          oldCfg = FTTHBackoffice.dolToArray( fdr.search() );
+          oldCfg = oldCfg.length == 0 ? null : oldCfg[0];
+
+          document.save();
+
+          newCfg = FTTHBackoffice.dolToArray( fdr.search() );
+          newCfg = newCfg[0];
+
+          if( oldCfg ){
+              FTTHBackoffice.addAuditEntry( Global.getUserId(), 'PRC_MAN', 'UPDATE', "<OLD_CFG>" + oldCfg.toXML() + "</OLD_CFG>" + "<NEW_CFG>" + newCfg.toXML() + "</NEW_CFG>", "ACTIVITIES");
+          }else{
+              FTTHBackoffice.addAuditEntry( Global.getUserId(),"PRC_MAN", "INSERT", "<NEW_CFG>" + newCfg.toXML() + "</NEW_CFG>", "ACTIVITIES");
+          }
+        ]]></script>
+      </method>
+      <method name="Result" type="uimthd">
+        <parameterList>
+          <parameter name="event" type="rifp">
+            <type>ui_com.conceptwave.system.Event</type>
+          </parameter>
+        </parameterList>
+        <valueType>dtype_com.conceptwave.system.String</valueType>
+        <script><![CDATA[
+          var p = this.model.owner.owner.selected[0];
+          return ProcessActivity.getActivityPathInternal(p.PROCESS_METADATYPE,
+                p.METADATATYPE_VER, this.model.ACTIVITY_INDEX);
+        ]]></script>
+      </method>
+      <method name="newele" type="usrActionMethod">
+        <script>var elementName = Global.getCurrentElementActionCulprit();</script>
+      </method>
+      <method name="calculateActivity" type="uimthd">
+        <valueType>dtype_com.conceptwave.system.String</valueType>
+        <script><![CDATA[
+          var p = this.model.owner.selected[0];
+          return ProcessActivity.getActivityPathInternal(p.PROCESS_METADATYPE,
+                p.METADATATYPE_VER, this.model.ACTIVITY_INDEX);
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

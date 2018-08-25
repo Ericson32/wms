@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ReconfigureIPTVSolveIssueTask_cwr2">
+  <activity name="startReconfigureIPTVSolveIssue" type="seqActivity">
+    <guid>{985fbff3-cc78-49a6-ba48-3209236ba255}</guid>
+    <label>Start Reconfigure IPTV Solve Issue</label>
+    <x>87.35274</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureIPTVSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureIPTVSolveIssue</element>
+        <guid>{abb60680-ab77-4e90-a267-4166623611f4}</guid>
+        <label>Reconfigure IPTV Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>88.35254</x>
+        <y>124.760925</y>
+      </child>
+      <child name="WaitingManualActive" type="choiceActivity">
+        <guid>{d7c0a4b0-5886-44d4-92bf-2b7a873f2418}</guid>
+        <label>Waiting Manual Active</label>
+        <x>36.183105</x>
+        <y>250.86444</y>
+        <childList>
+          <child name="ReconfigureIPTVSolveIssueSuccessChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPSolveIssueChangeIssue</element>
+            <guid>{e7e29b26-b703-4243-9519-e905994b6c9a}</guid>
+            <label>Reconfigure IPTV Solve Issue Seccess - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>159.64404</x>
+            <y>391.96796</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_IPTV");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReconfigureIPTVSolveIssueSeccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureIPTVSolveIssueSuccess</element>
+            <guid>{91d091c7-78bb-4f42-9a9e-473b1cad5e27}</guid>
+            <label>Reconfigure IPTV Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_IPTV");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{1113a5fa-412e-488f-8d77-fb470be974f9}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>128.2124</x>
+        <y>258.21503</y>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Reconfigurar IPTV - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Reconfigure IPTV Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ReconfigureIPTVSolveIssueTask</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

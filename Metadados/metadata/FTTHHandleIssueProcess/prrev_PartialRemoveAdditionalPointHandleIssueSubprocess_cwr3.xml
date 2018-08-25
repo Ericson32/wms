@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.PartialRemoveAdditionalPointHandleIssueSubprocess_cwr3">
+  <activity name="removeAdditionalPointHandleIssueSubProcessStart" type="seqActivity">
+    <guid>{e8841b90-51ce-4fd5-b869-bb8535cd5da3}</guid>
+    <label>Remove Additional Point Handle Issue Sub Process Start</label>
+    <x>35.12285</x>
+    <y>30.0</y>
+    <childList>
+      <child name="createRemoveAdditionalPointIssue" type="scriptActivity">
+        <guid>{886e0ae3-6b21-4d97-8eb0-614305952649}</guid>
+        <label>Create Remove Additional Point Issue</label>
+        <x>39.3291</x>
+        <y>136.52188</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var order = process.processOrder;
+              var pendenciesObs = 'Baixa de ponto adicional.';
+              var pendencyConfig;
+
+              if(existsRemovePointsIssue(process.processOrder)){
+                  return;
+              }
+
+              if(order.ProductData){
+                  var userId = order.ProductData.updatedBy;
+                  pendencyConfig = FTTHHandleIssueProcess.getPendenciesByCode("7023");
+                  createIssues(order.id, pendencyConfig[0].cwDocId, pendenciesObs, userId);
+              }
+
+              function createIssues(orderId, pendencyId, pendencyObs, userId){
+                  if(process.processOrder.EquipmentData && process.processOrder.EquipmentData[0].AddPointsEquipmentData){
+                      for (var i = 0; i <process.processOrder.EquipmentData[0].AddPointsEquipmentData.length; i++){
+                          if (!process.processOrder.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData.instalado){
+                              var idAtivo = process.processOrder.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData.idAtivo;
+                              createIssueRemoveAdditionalPointData(orderId, pendencyId, pendencyObs, idAtivo, userId);
+                          }
+                      }
+                  }
+              }
+
+              function createIssueRemoveAdditionalPointData(orderId, pendencyId, pendencyObs, itemId, userId){
+                  var doc = new Document('FTTHOrder:IssueRemoveAdditionalPointData');
+                  doc.cwOrderId = orderId;
+                  doc.pendencyId = pendencyId;
+                  doc.pendencyObs = pendencyObs;
+                  doc.itemId = itemId;
+                  doc.userId = userId;
+                  doc.status = 'NEW';
+
+                  doc.save();
+              }
+
+              function existsRemovePointsIssue(order){
+                  var searchDoc = new Document('FTTHOrder:IssueRemoveAdditionalPointData');
+                  searchDoc.cwOrderId = order.id;
+                  var pendencies = Finder.runSearch('FTTHCommon.RemoveAdditionalPointsIssueFinder', searchDoc);
+                  return (pendencies != null && pendencies.length > 0);
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="openPartialRemoveAdditionalPointIssue" type="scriptActivity">
+        <guid>{f833be96-01c1-4d6c-b59c-69160a234ada}</guid>
+        <label>Open Partial Remove Additional Point Issue</label>
+        <x>39.3291</x>
+        <y>277.32657</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var order = this.process.processOrder;
+
+              var searchDoc = new Document('FTTHOrder:IssueRemoveAdditionalPointData');
+              searchDoc.cwOrderId = order.id;
+              searchDoc.status = 'NEW';
+              var pendencies = Finder.runSearch('FTTHCommon.RemoveAdditionalPointsIssueFinder', searchDoc);
+              if(pendencies != null && pendencies.length > 0){
+                  pendencies[0].status = 'WAIT';
+                  pendencies[0].save();
+              }
+
+              var newPendencyDoc = FTTHHandleIssueProcess.createPartialPointRemovalPendency(order);
+              Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', newPendencyDoc);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="closeClientCancelIssueTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+        <guid>{9f1b554d-2bc4-4f37-8573-7cb6f492bb2c}</guid>
+        <label>Close Cliente/Cancel Issue task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>432.83243</y>
+      </child>
+    </childList>
+  </activity>
+  <label>PartialRemoveAdditionalPointHandleIssueSubprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.PartialRemoveAdditionalPointHandleIssueSubprocess</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

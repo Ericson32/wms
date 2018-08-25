@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureFacilitySubprocess_cwr3">
+  <activity name="ConfigureFacilitySubprocessStart" type="seqActivity">
+    <guid>{2f8f7a56-9143-428b-ae91-fb530f559d77}</guid>
+    <label>Configure Facility Subprocess Start</label>
+    <x>269.48706</x>
+    <y>30.0</y>
+    <childList>
+      <child name="checkNeedConfigureInfra" type="switchActivity">
+        <guid>{ae804bf7-b9e2-4aa1-afe6-5e2a34774361}</guid>
+        <label>Check Need Configure Infra</label>
+        <x>276.5519</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="need" type="caseActivity">
+            <guid>{98a32200-2bb8-4520-90d7-18359e717134}</guid>
+            <label>Need</label>
+            <x>296.06128</x>
+            <y>1217.8538</y>
+            <childList>
+              <child name="ConfigureInfraSubprocess" type="subflowActivity">
+                <element>prrev_FTTHProcess.ConfigureInfraSubprocess_cwr2</element>
+                <guid>{2c6bfada-0519-47ac-a90a-61c128ae4561}</guid>
+                <label>Configure Infra Subprocess</label>
+                <x>325.39908</x>
+                <y>265.5656</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var atividade = "CONFIGURAR_INFRA";
+                  var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  return (result);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="notNeed" type="caseActivity">
+            <guid>{2161811f-09fc-4fec-b69f-8afcc1acd4dd}</guid>
+            <label>Not Need</label>
+            <x>222.70377</x>
+            <y>280.26678</y>
+          </child>
+        </childList>
+      </child>
+      <child name="ConfigureFacilities2" type="allActivity">
+        <guid>{f70d653f-8f16-4186-bb85-d7bd11a0f0e7}</guid>
+        <label>Configure Facilities</label>
+        <x>279.9502</x>
+        <y>391.66913</y>
+        <childList>
+          <child name="ConfigureTV" type="seqActivity">
+            <guid>{eba0b8b0-1969-4d06-806a-a0dfade768ba}</guid>
+            <label>Configure TV</label>
+            <x>472.8243</x>
+            <y>487.04895</y>
+            <childList>
+              <child name="CheckTV" type="switchActivity">
+                <guid>{ba4ef18f-ef4f-405c-8f7c-958842ce6ddf}</guid>
+                <label>Check TV</label>
+                <x>470.76318</x>
+                <y>579.04895</y>
+                <childList>
+                  <child name="TVExist" type="caseActivity">
+                    <guid>{95cbb939-01e4-4b8d-9b4e-cc1464aaa87e}</guid>
+                    <label>TV Exist</label>
+                    <x>532.77734</x>
+                    <y>542.296</y>
+                    <childList>
+                      <child name="ConfigureIPTV" type="seqActivity">
+                        <guid>{370cb492-9a85-4fa4-a6bb-ba15d2873906}</guid>
+                        <label>ConfigureIPTV</label>
+                        <x>515.9582</x>
+                        <y>685.4513</y>
+                        <childList>
+                          <child name="ConfigureIPTV" type="subflowActivity">
+                            <element>prrev_FTTHProcess.ConfigureIPTVSubprocess_cwr3</element>
+                            <guid>{7ef4aa82-a6f7-4b59-8acb-1e1b40330d55}</guid>
+                            <label>Configure IPTV</label>
+                            <x>517.4238</x>
+                            <y>787.15247</y>
+                          </child>
+                          <child name="ConfigureOTT" type="seqActivity">
+                            <guid>{f7518467-6a0d-41ef-88d7-dec895eaa0c6}</guid>
+                            <label>Configure OTT</label>
+                            <x>515.6957</x>
+                            <y>898.5548</y>
+                            <childList>
+                              <child name="CheckOTT" type="switchActivity">
+                                <guid>{37f14a40-1ce9-47d8-8f7c-4aa2d00d5faf}</guid>
+                                <label>Check OTT</label>
+                                <x>512.76855</x>
+                                <y>990.5548</y>
+                                <childList>
+                                  <child name="OTTNotExist" type="caseActivity">
+                                    <guid>{1c09b5f2-3371-4bcc-813d-610e6cacc524}</guid>
+                                    <label>OTT Not Exist</label>
+                                    <x>570.9468</x>
+                                    <y>1087.256</y>
+                                  </child>
+                                  <child name="OTTExist" type="caseActivity">
+                                    <guid>{f167fa09-fdf9-49e4-bd31-02b4c7aae2f3}</guid>
+                                    <label>OTT Exist</label>
+                                    <x>524.10645</x>
+                                    <y>1061.1525</y>
+                                    <childList>
+                                      <child name="ConfigureOTT" type="subflowActivity">
+                                        <element>prrev_FTTHProcess.ConfigureOTTSubprocess_cwr3</element>
+                                        <guid>{a97b06b2-d85e-40e5-935a-ada2dc7bb29a}</guid>
+                                        <label>Configure OTT</label>
+                                        <x>466.91553</x>
+                                        <y>1087.256</y>
+                                      </child>
+                                    </childList>
+                                    <methodList>
+                                      <method name="cwOnProcActCond" type="action">
+                                        <category>cond</category>
+                                        <system>true</system>
+                                        <script><![CDATA[
+                                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                                          var atividade = "CONFIGURAR_OTT";
+                                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                                          return (result);
+                                        ]]></script>
+                                      </method>
+                                    </methodList>
+                                  </child>
+                                </childList>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "CONFIGURAR_IPTV";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return (result);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="TVNotExist" type="caseActivity">
+                    <guid>{588f5a85-8a67-4e48-8ebe-497e8966dd8c}</guid>
+                    <label>TV Not Exist</label>
+                    <x>432.09766</x>
+                    <y>675.7501</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="ConfigureVoIP" type="seqActivity">
+            <guid>{53caa9ed-548a-44fd-a956-fdfeef688729}</guid>
+            <label>Configure VoIP</label>
+            <x>274.0152</x>
+            <y>487.04895</y>
+            <childList>
+              <child name="CheckVoIP" type="switchActivity">
+                <guid>{1201c412-5a40-4add-9b56-c91b279524a6}</guid>
+                <label>Check VoIP</label>
+                <x>273.39062</x>
+                <y>579.04895</y>
+                <childList>
+                  <child name="VoIPNotExist" type="caseActivity">
+                    <guid>{282ab808-6124-4160-945a-d22192ac348f}</guid>
+                    <label>VoIP Not Exist</label>
+                    <x>332.07422</x>
+                    <y>675.7501</y>
+                  </child>
+                  <child name="VoIPExist" type="caseActivity">
+                    <guid>{4660cd60-3e5e-4b3c-9c47-9e67afc18ab5}</guid>
+                    <label>VoIP Exist</label>
+                    <x>175.45694</x>
+                    <y>546.2443</y>
+                    <childList>
+                      <child name="ConfigureVoIP" type="subflowActivity">
+                        <element>prrev_FTTHProcess.ConfigureVoIPSubprocess_cwr3</element>
+                        <guid>{6e277f5c-7a71-4981-8aac-2a53a56796a9}</guid>
+                        <label>Configure VoIP</label>
+                        <x>228.04297</x>
+                        <y>675.7501</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "CONFIGURAR_VOIP";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return (result);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="ConfigureHSI" type="seqActivity">
+            <guid>{53f9a9af-9bca-46a7-b84e-f8105c7708f2}</guid>
+            <label>Configure HSI</label>
+            <x>79.37871</x>
+            <y>487.04895</y>
+            <childList>
+              <child name="CheckHSI" type="switchActivity">
+                <guid>{68aa62b8-a123-4c39-a2dd-7f04652ef13d}</guid>
+                <label>Check HSI</label>
+                <x>76.850586</x>
+                <y>579.04895</y>
+                <childList>
+                  <child name="HSINotExists" type="caseActivity">
+                    <guid>{9c430e77-d3a0-4f0d-bd8f-81b54bac140e}</guid>
+                    <label>HSI Not Exists</label>
+                    <x>134.03125</x>
+                    <y>675.7501</y>
+                  </child>
+                  <child name="HSIExists" type="caseActivity">
+                    <guid>{b5244cf9-c8f6-4cb5-9c75-cb8e97deb9f2}</guid>
+                    <label>HSI Exists</label>
+                    <x>25.852345</x>
+                    <y>546.24426</y>
+                    <childList>
+                      <child name="ConfigureHSI" type="subflowActivity">
+                        <element>prrev_FTTHProcess.ConfigureHSISubprocess_cwr3</element>
+                        <guid>{f71d941e-6717-4e5a-bae3-506f8671a777}</guid>
+                        <label>Configure HSI</label>
+                        <x>30.0</x>
+                        <y>675.7501</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "CONFIGURAR_HSI";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return (result);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela realiza&#231;&#227;o das atividades autom&#225;ticas: Configurar
+      HSI, Configurar IPTV, Configurar OTT e Configurar VoIP. As atividades s&#243;
+      dever&#227;o ser realizadas caso o cliente tenha solicitado o servi&#231;o
+      associado a cada uma. Para o caso da atividade Configurar OTT, a mesma
+      s&#243; poder&#225; ser realizada caso a Configura&#231;&#227;o do IPTV tenha sido
+      realizada com sucesso anteriormente.
+    </p>
+  ]]></description>
+  <label>Configure Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureFacilitySubprocess</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

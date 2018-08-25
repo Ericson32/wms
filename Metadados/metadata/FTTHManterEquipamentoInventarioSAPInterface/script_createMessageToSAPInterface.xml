@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHManterEquipamentoInventarioSAPInterface.createMessageToSAPInterface">
+  
+  <label>createMessageToSAPInterface</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="equipmentType" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="ord" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="isConsulta" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="request" type="rifp">
+      <type>dstruct_FTTHManterEquipamentoInventarioSAP.ManterEquipamentoInventariadoRequest</type>
+    </parameter>
+    <parameter name="cwDocId" type="rifp">
+      <type>dtype_cwf.cwDocId</type>
+    </parameter>
+    <parameter name="cwOrderId" type="rifp"/>
+    <parameter name="parametro" type="rifp"/>
+    <parameter name="isOriginal" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="equipTransaction" type="rifp">
+      <type>doc_FTTHOrder.EquipmentTransactionsHistory</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var doc;
+
+    var grupoRequest = new DataStructure("FTTHManterEquipamentoInventarioSAP:GrupoRequestType");
+    var ator = new DataStructure("FTTHManterEquipamentoInventarioSAP:AtorType");
+    ator.nomeSolicitante = "";
+    ator.sistema = "OMR";
+    ator.senha = "";
+    request.Ator = ator;
+    request.GrupoRequest = grupoRequest;
+
+    //13/04/2018 - Buscando no historico os valores dos equipamentos transacionados
+    var equip = null;
+    if(!isConsulta){
+        var searchDoc             = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentTransactionsHistory");
+        searchDoc.cwOrderId       = cwOrderId;
+        searchDoc.tipoEquipamento = equipmentType;
+        searchDoc.equipmentId     = cwDocId;
+        searchDoc.statusStock     = "processando";
+
+        var equips = Finder.runSearch("FTTHOrder:EquipmentTransactionsFinder", searchDoc);
+
+        if(equips && equips.length > 0){
+            equip = equips[0];
+        } else{
+            searchDoc.updateStockAction = "remover";
+            searchDoc.statusStock = "pendente";
+            equips = Finder.runSearch("FTTHOrder:EquipmentTransactionsFinder", searchDoc);
+
+            if(equips && equips.length > 0){
+                equip = equips[0];
+            } else {
+                searchDoc.updateStockAction = "adicionar";
+                searchDoc.statusStock = "pendente";
+                equips = Finder.runSearch("FTTHOrder:EquipmentTransactionsFinder", searchDoc);
+
+                if(equips && equips.length > 0){
+                    equip = equips[0];
+                } else{
+                    Global.logError("Não foi possível encontrar equipamentos para a execução do updateStock para o orderID: " + cwOrderId);
+                    //return;
+                }
+            }
+        }
+
+        if(equip){
+            equip.statusStock = "processando";
+            equip.save();
+        }
+
+    }
+    //end 13/04/2018
+
+    //Será utilizado após a migração das tabelas VALIDATION_CPE e BATIME
+    //10/04/2018 - Montagem da mensagem para o updateStock
+    if(equipTransaction){
+        request.GrupoRequest.SERIAL = equipTransaction.numeroSerieEquipamento;
+        request.GrupoRequest.MATNR = equipTransaction.codEquipamento;
+        request.GrupoRequest.COD_OPER = (equipTransaction.updateStockAction == "adicionar") ? '2' : ((equipTransaction.foiDevolvido) ? '3' : '10');
+        request.GrupoRequest.COD_PSR = ord.ManualActivityData[ord.ManualActivityData.length -1].ManualActivityData.codigoPSR;
+
+        var searchDoc = new Document("FTTHReportApplication:PSR");
+        searchDoc.codigoPSR = request.GrupoRequest.COD_PSR;
+        var result = Finder.runSearch("FTTHReportApplication:PSRFinder", searchDoc);
+
+        request.GrupoRequest.UF = result[0].uf;
+
+        return request.GrupoRequest.COD_OPER;
+    }
+    //end 10/04/2018
+    var isONT = (equipmentType == "ONT") ? true : false;
+
+    var isSTB = false;
+    var equipmentToRemove = new Document('FTTHOrder:EquipmentDataBATime');
+    equipmentToRemove.statusAcao = 'A Remover';
+
+    if((ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA"))){
+        equipmentToRemove.status = 'wait';
+    }
+    else{
+        equipmentToRemove.status = 'end';
+    }
+    equipmentToRemove.cwOrderId = ord.OrderHeader.cwOrderId;
+    var equipmentBATimeFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentBATimeFinder', equipmentToRemove);
+
+    var baTime = false;
+
+    if(equipmentBATimeFinder && equipmentBATimeFinder.length > 0){
+       isSTB = true;
+       baTime = true;
+    }
+
+    if((equipmentType && equipmentType == "STB") || isSTB){
+        doc = FTTHManterEquipamentoInventarioSAPInterface.defineEquipmentToProcess(ord, cwDocId);
+        
+        //FTTHOrder:EquipmentDataBATime
+        //verificar o tipo de retorno para evitar exceção
+
+        if(doc.metadataType == "FTTHOrder:EquipmentDataBATime"){
+            if(!parametro){
+                parametro = {
+                    numeroSerieSetTopBox: doc.numeroSerieSetTopBox,
+                    codEquipamento: doc.codEquipamento,
+                    codOperacao: doc.codOperacao,
+                    nomeCPE: doc.nomeCPE
+                };
+            }
+        }
+
+        if(isOriginal){
+
+            if(!parametro){
+                parametro = {
+                    numeroSerieSetTopBox: doc.numeroSerieSetTopBox_Original,
+                    codEquipamento: doc.codEquipamento_Original,
+                    codOperacao: doc.codOperacao_Original,
+                    nomeCPE: doc.nomeCPE_Original
+                };
+            }
+
+            request.GrupoRequest.SERIAL = parametro.numeroSerieSetTopBox;
+            request.GrupoRequest.MATNR = parametro.codEquipamento;
+
+        } else{
+
+            if(!parametro){
+                parametro = {
+                    numeroSerieSetTopBox: doc.numeroSerieSetTopBox,
+                    codEquipamento: doc.codEquipamento,
+                    codOperacao: doc.codOperacao,
+                    nomeCPE: doc.nomeCPE
+                };
+            }
+
+            request.GrupoRequest.SERIAL = parametro.numeroSerieSetTopBox;
+            request.GrupoRequest.MATNR = parametro.codEquipamento;
+
+        }
+
+    } else{// equipmentType = ONT || equipmentType == HGW
+        doc = FTTHManterEquipamentoInventarioSAPInterface.defineBaseEquipmentToProcess(ord.OrderHeader.cwOrderId , cwDocId);
+        
+        //FTTHOrder:EquipmentDataBATime
+        //verificar o tipo de retorno para evitar exceção
+
+        if(doc.metadataType == "FTTHOrder:EquipmentDataBATime"){
+            if(!parametro){
+                parametro = {
+                    codOperacao: doc.codOperacao,
+                    codEquipamento: doc.codEquipamento,
+                    nomeCPE: doc.nomeCPE,
+                    numeroSerieONT: doc.numeroSerieONT
+                };
+            }
+        }
+
+        if(isONT){
+
+            if(isOriginal){
+
+               if(!parametro){
+                    parametro = {
+                        numeroSerieONT: doc.numeroSerieONT_Original,
+                        codEquipamento: doc.codEquipamentoONT_Original,
+                        codOperacao: doc.codOperacaoONT_Original,
+                        nomeCPE: doc.nomeCPE_ONT_Original
+                    };
+                }
+
+                request.GrupoRequest.SERIAL = parametro.numeroSerieONT;
+                request.GrupoRequest.MATNR = parametro.codEquipamento;
+
+            } else{
+
+                if(!parametro){
+                    parametro = {
+                        codOperacao: doc.codOperacao,
+                        codEquipamento: doc.codEquipamento,
+                        nomeCPE: doc.nomeCPE,
+                        numeroSerieONT: doc.numeroSerieONT
+                    };
+                }
+
+                request.GrupoRequest.SERIAL = parametro.numeroSerieONT;
+                request.GrupoRequest.MATNR = parametro.codEquipamento;
+
+            }
+
+        } else{
+
+            if(isOriginal){
+
+               if(!parametro){
+                    parametro = {
+                        numeroSerieHomeGateway: doc.numeroSerieHGW_Original,
+                        codEquipamentoHGW: doc.codEquipamentoHGW_Original,
+                        codOperacaoHGW: doc.codOperacaoHGW_Original,
+                        nomeCPEHGW: doc.nomeCPE_HGW_Original
+                    };
+                }
+
+                request.GrupoRequest.SERIAL = parametro.numeroSerieHomeGateway;
+                request.GrupoRequest.MATNR = parametro.codEquipamentoHGW;
+
+
+            } else {
+               if(!parametro){
+                    parametro = {
+                        codOperacaoHGW: doc.codOperacaoHGW,
+                        codEquipamentoHGW: doc.codEquipamentoHGW,
+                        nomeCPEHGW: doc.nomeCPEHGW,
+                        numeroSerieHomeGateway: doc.numeroSerieHomeGateway
+                    };
+                }
+
+                request.GrupoRequest.SERIAL = parametro.numeroSerieHomeGateway;
+                request.GrupoRequest.MATNR = parametro.codEquipamentoHGW;
+
+            }
+        }
+    }
+
+    //após descobrir qual o equipamento deve ser atualizado setar o valor para em processamento para identificar que esse é o ducmente sendo tratado no momento
+    doc.statusAcao = 'em processamento';
+
+
+
+    doc.save();
+
+    request.GrupoRequest.COD_OPER = FTTHManterEquipamentoInventarioSAPInterface.getOperationToSAP(isConsulta, equipmentType, doc, isOriginal, baTime);
+    request.GrupoRequest.COD_PSR = ord.ManualActivityData[ord.ManualActivityData.length -1].ManualActivityData.codigoPSR;
+
+    var searchDoc = new Document("FTTHReportApplication:PSR");
+    searchDoc.codigoPSR = request.GrupoRequest.COD_PSR;
+    var result = Finder.runSearch("FTTHReportApplication:PSRFinder", searchDoc);
+
+    request.GrupoRequest.UF = result[0].uf;
+
+    var codigoOp = FTTHManterEquipamentoInventarioSAPInterface.getOperationToSAP(false, equipmentType, doc, isOriginal, baTime);
+    //13/04/2018 - Atualizando a mensagem para o updateStock
+    if(!isConsulta && equip){
+        request.GrupoRequest.SERIAL = equip.numeroSerieEquipamento;
+        request.GrupoRequest.MATNR = equip.codEquipamento;
+        request.GrupoRequest.COD_OPER = (equip.updateStockAction == "adicionar") ? '2' : ((equip.foiDevolvido) ? '3' : '10');
+
+        codigoOp = request.GrupoRequest.COD_OPER;
+    }
+    //end 13/04/2018
+
+    return codigoOp;
+  ]]></script>
+</script>

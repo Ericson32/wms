@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.createMessageToUnblockService">
+  <label>Create Message To Suspend Service</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Ordem a ser utilizada na montagem da mensagem.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Atividade para qual dever&amp;#225; ser criada a mensagem.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.String64</type>
+    </parameter>
+    <parameter name="correlationID" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Id do correla&amp;#231;&amp;#227;o.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.String64</type>
+    </parameter>
+    <parameter name="request" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHActivationInterface.request</type>
+    </parameter>
+    <parameter name="operation" type="rifp">
+      <type>dtype_FTTHCommon.operacao</type>
+    </parameter>
+  </parameterList>
+  <valueType>dstruct_FTTHActivationInterface.request</valueType>
+  <script><![CDATA[
+    var is0300 = 'false';
+    var is0500 = 'false';
+    var is0900 = 'false';
+    var isVc1 = 'false';
+    var isLD = 'false';
+    var isLDI = 'false';
+    var isChamadaCobrar = 'false';
+    var isChamada = 'false';
+    var isOrig = 'false';
+    var catalogsId = ""; //remover
+
+    if(ordem.OriginalData[0].BlocksData){
+        for(var i = 0; i < ordem.OriginalData[0].length; i++){
+            if(ordem.OriginalData[0].BlocksData[i]){
+                catalogsId = catalogsId.concat(ordem.OriginalData[0].BlocksData[i].BlockData.nomeBloqueio);
+                catalogsId = catalogsId.concat(",");
+            }
+        }
+    }else{
+        for(var i = 0; i < ordem.BlocksData.length; i++){
+          catalogsId = catalogsId.concat(ordem.BlocksData[i].BlockData.nomeBloqueio);
+          catalogsId = catalogsId.concat(",");
+        }
+    }
+
+    catalogsId = catalogsId.substring(0, catalogsId.length - 1);
+
+    var searchAttributes = new Document('FTTHActivationInterface:AttributeSuspendActivation');
+    searchAttributes.idCatalogo = catalogsId;
+    var attributes = Finder.runSearch('FTTHActivationInterface.AttributeSuspendFinder', searchAttributes);
+
+    for (var k = 0; k < attributes.length; k++){
+        if (attributes[k].is0300)
+            is0300 = 'true';
+        if (attributes[k].is0500)
+            is0500 = 'true';
+        if (attributes[k].is0900)
+            is0900 = 'true';
+        if (attributes[k].isVc1)
+            isVc1 = 'true';
+        if (attributes[k].isLD)
+            isLD = 'true';
+        if (attributes[k].isLDI)
+            isLDI = 'true';
+        if (attributes[k].isChamadaCobrar)
+            isChamadaCobrar = 'true';
+        if (attributes[k].isChamada)
+            isChamada = 'true';
+        if (attributes[k].isOrig)
+            isOrig = 'true';
+    }
+
+    request.operation = operation.operacao;
+
+    request.is0300 = is0300;
+    request.is0500 = is0500;
+    request.is0900 = is0900;
+    request.isVc1 = isVc1;
+    request.isLD = isLD;
+    request.isLDI = isLDI;
+    request.isChamadaCobrar = isChamadaCobrar;
+    request.isChamada = isChamada;
+    request.isOrig = isOrig;
+
+    //Se vier null é necessário setar false, pois se continuar como nulo ele não envia na mensagem.
+    request.isPRE = FTTHCommon.parseBooleanToString(ordem.ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO"));
+    request.isPREOld = (ordem.OriginalData) ? FTTHCommon.parseBooleanToString(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO")) : null;
+
+    //configurando os servicos digitais
+    if(ordem.OriginalData){
+        request.isCaixaPostalOld = ordem.OriginalData[0].ProductData.isCaixaPostal == 1 ? 'true' : 'false';
+        request.isBinaOld = ordem.OriginalData[0].ProductData.isBina == 1 ? 'true' : 'false';
+        request.isChamadaEsperaOld = ordem.OriginalData[0].ProductData.isChamadaEspera == 1 ? 'true' : 'false';
+        request.isConferenciaOld = ordem.OriginalData[0].ProductData.isConferencia == 1 ? 'true' : 'false';
+        request.isSigameOld = ordem.OriginalData[0].ProductData.isSigame == 1 ? 'true' : 'false';
+    }else{
+        request.isCaixaPostal = ordem.ProductData.isCaixaPostal == 1 ? 'true' : 'false';
+        request.isBina = ordem.ProductData.isBina == 1 ? 'true' : 'false';
+        request.isChamadaEspera = ordem.ProductData.isChamadaEspera == 1 ? 'true' : 'false';
+        request.isConferencia = ordem.ProductData.isConferencia == 1 ? 'true' : 'false';
+        request.isSigame = ordem.ProductData.isSigame == 1 ? 'true' : 'false';
+    }
+
+
+    return request;
+  ]]></script>
+</script>

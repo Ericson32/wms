@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureIPTVAPCHandleErrorTask_cwr4">
+  <activity name="startConfigureIPTVAPCHandleError" type="seqActivity">
+    <guid>{8533d49a-5f91-479d-b635-6931f0189a45}</guid>
+    <label>Start Configure IPTV APC Handle Error</label>
+    <x>79.61338</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureIPTVAPCSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVAPCHandleError</element>
+        <guid>{b4633317-6ef0-4675-bb5c-d6f07112310e}</guid>
+        <label>Configure IPTV APC Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>86.02783</x>
+        <y>130.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{bb3d295b-eae2-4286-8598-e87a0c81f279}</guid>
+        <label>Wait Manual Activity</label>
+        <x>30.0</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ConfigureIPTVAPCHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVAPCHandleErrorIssue</element>
+            <guid>{bbe6e677-61fa-4c95-9a4c-70c0c3a9fd09}</guid>
+            <label>Configure IPTV APC Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>155.14648</x>
+            <y>411.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureIPTVAPCHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVAPCHandleErrorResend</element>
+            <guid>{09ae4190-542c-48cf-9ef4-6cd9d9bcbffc}</guid>
+            <label>Configure IPTV APC Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>34.350098</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_APC");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{de52da4f-713d-435b-afaa-94c6ca1f0367}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>121.37305</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227; de IPTV autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Configure IPTV APC Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureIPTVAPCHandleErrorTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

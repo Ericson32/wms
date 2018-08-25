@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.getMissingEnvironmentVariable">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Valida as vari&#225;veis de ambiente cadastradas e retorna uma lista com as
+      faltantes.
+    </p>
+  ]]></description>
+  <label>Get Missing Environment Variable</label>
+  <metaVersion>4</metaVersion>
+  <script><![CDATA[
+    /*
+    * AUTHORS: accd@br.ibm.com
+    *          marcossouza@br.ibm.com
+    *
+    * DESCRIPTION: Verifica se as variáveis de ambiente estão cadastradas no config e retorna uma lista com as faltantes.
+    *
+    * TODO: Inserir todas as variáveis de ambiente no array ou finder de uma tabela.
+    */
+
+    var variaveisAmbiente = Finder.runSearch("FTTHCommon:configVariableFinder");
+
+    /*
+    var variaveisAmbiente = [
+    'ACTIVITY_OPEN_BA_ERROR'
+    ,'CLICK_SYSTEM'
+    ,'CWONPROCACTBEFORE'
+    ,'INSERIR_PACOTE_ADICIONAL'
+    ,'IS_OI_TOTAL_ON'
+    ,'POS_PAGO'
+    ,'PRE_PAGO'
+    ,'REMOVER_PACOTE_ADICIONAL'
+    ,'SAP_SYSTEM'
+    ,'SYNC_REQ_RESP'
+    ,'VALIDAR_EQUIPAMENTO'
+    ];
+    */
+
+    var variaveisFaltantes = [];
+
+    for(var i=0;i<variaveisAmbiente.length;i++){
+        if(!Global.getConfigVariable(variaveisAmbiente[i].nome)){
+            variaveisFaltantes.push(variaveisAmbiente[i].nome);
+        }
+    }
+
+    return variaveisFaltantes;
+  ]]></script>
+</script>

@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.SuspendIPTVIESFAutomaticTask_cwr8">
+  <activity name="SuspendIPTVIESFAutomaticTaskStart" type="seqActivity">
+    <guid>{06a34fd7-dc8d-498b-8dd4-447ce5d6eb77}</guid>
+    <label>Suspend IPTV iESF Automatic Task Start</label>
+    <x>118.11085</x>
+    <y>950.7545</y>
+    <childList>
+      <child name="SuspendIPTVIESFSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{2700833f-5adb-436c-aa29-02faaccb1a3d}</guid>
+        <label>Suspend IPTV iESF Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>242.51382</x>
+        <y>1078.8281</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{70b0161c-8fa0-4251-8666-cafcf10be8aa}</guid>
+            <label>Check Send Operation Result</label>
+            <x>253.146</x>
+            <y>30.0</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{04f033bc-918e-473f-8a25-289b28a2f32c}</guid>
+                <label>Success</label>
+                <x>270.0461</x>
+                <y>412.54962</y>
+                <childList>
+                  <child name="WaitingAutomaticActivity" type="choiceActivity">
+                    <guid>{33ac5363-e6d6-4553-b919-1bf326c3aef8}</guid>
+                    <label>Waiting Automatic Activity</label>
+                    <x>81.58545</x>
+                    <y>185.80469</y>
+                    <childList>
+                      <child name="TimeoutControl" type="timeoutActivity">
+                        <guid>{73d8f1b3-e4cf-4747-8262-bbe99cfa3363}</guid>
+                        <label>Timeout Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>50.671875</x>
+                        <y>319.2588</y>
+                        <childList>
+                          <child name="TimeOutControl" type="scriptActivity">
+                            <guid>{62ecb57f-71ab-4830-a2ca-280297364e0a}</guid>
+                            <label>TimeOutControl</label>
+                            <x>30.0</x>
+                            <y>460.06348</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure HSI IESF Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activityId = '%BLOQUEAR_IPTV_IESF';
+                                  var activity = FTTHCommon.getIdActivity(this.process.processOrder.id, activityId);
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+                                  FTTHCommon.setStatusActivity(this.process.processOrder.id, activity, status);
+
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                       Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                       activity,
+                                                       status,
+                                                       errorType.errorCode,
+                                                       errorType.errorDescription,
+                                                       this.process.id,
+                                                       Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                             Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                             activity);
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="SuspendIPTVIESFReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{0ea144ce-d63f-4234-8d8e-c1ed61529be0}</guid>
+                        <label>Suspend IPTV iESF Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>162.6914</x>
+                        <y>438.01172</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Bloquear IPTV IESF Automatic Task", "Bloquear IPTV IESF Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              var activity = Global.getConfigVariable("BLOQUEAR_IPTV_IESF");
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, activity, status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                   activity,
+                                                   status,
+                                                   this.activityData.code,
+                                                   this.activityData.description,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                         Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                         activity);
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var result = FTTHCommon.getStatusActivity(orderId, Global.getConfigVariable("BLOQUEAR_IPTV_IESF"));
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"))
+                      return true;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{58cd9b8e-8897-4330-b4c3-0d376944debe}</guid>
+                <label>Error</label>
+                <x>306.36456</x>
+                <y>326.60938</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+              var LOG_ACTIVITY = "Bloquear IPTV iESF";
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+                              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Suspend IPTV IESF Automatic Task", "Suspend IPTV IESF Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var sistema = Global.getConfigVariable("ACTIVATION_SYSTEM");
+              var activity = Global.getConfigVariable("BLOQUEAR_IPTV_IESF");
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, sistema);
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, activity, status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   sistema,
+                                   activity,
+                                   status,
+                                   this.activityData.code,
+                                   this.activityData.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         sistema,
+                                                         activity);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{7db52ec7-0e98-40c6-bc40-6607b56bc9fa}</guid>
+        <label>exceptionHandler</label>
+        <x>91.82524</x>
+        <y>1100.8799</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("BLOQUEAR_IPTV_IESF"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{5c02953d-db83-4f19-acff-044cbd062970}</guid>
+        <label>Check Resend</label>
+        <x>173.23305</x>
+        <y>593.8164</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>152.67892</x>
+            <y>685.8164</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHActivationInterface.SuspendIPTVIESFAutomaticTask_cwr8/seqActivity_SuspendIPTVIESFAutomaticTaskStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "%BLOQUEAR_IPTV_IESF", "ACTIVATION_SYSTEM");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>117.83859</x>
+                    <y>811.9199</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>233.2009</x>
+                <y>819.2705</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("BLOQUEAR_IPTV_IESF"), Global.getConfigVariable("ACTIVATION_SYSTEM")));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="SuspendIPTVIESFAutomaticTaskComplete" type="completeActivity">
+        <guid>{6d2e8974-9317-4b5b-9d58-f91f4d69ae56}</guid>
+        <label>Suspend IPTV iESF Automatic Task Complete</label>
+        <x>221.1882</x>
+        <y>925.32227</y>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{25388b56-2a4e-4bca-b4d5-331b5b870d3e}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>213.5187</x>
+        <y>1219.6328</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{4f3ecfda-6120-4492-8c6f-67145c34b84b}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>144.36458</x>
+        <y>311.9082</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, Global.getConfigVariable("BLOQUEAR_IPTV_IESF"), status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var result = FTTHCommon.getStatusActivity(orderId, Global.getConfigVariable("BLOQUEAR_IPTV_IESF"));
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Bloquear
+      IPTV. Inicialmente o fluxo envia para o sistema de Rede uma solicita&#231;&#227;o
+      de desbloqueio caso n&#227;o obtenha resposta em um intervalo de tempo pr&#233;
+      determinado, ser&#227;o feitas mais algumas retentativas. A quantidade de
+      retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Suspend IPTV iESF Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.SuspendIPTVIESFAutomaticTask</process>
+  <revision>8</revision>
+  <type>User</type>
+</process__revision>

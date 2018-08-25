@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHUserInterface.InventoryHandleError">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Esse participant representa a pessoa respons&#225;vel por realizar as
+      atividades de tratamento de erro manual para as opera&#231;&#245;es do Invent&#225;rio.
+    </p>
+  ]]></description>
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M1DT0H0M0S</length>
+  </duration>
+  <guid>{240b6a94-c336-415a-900d-e0cbc2683748}</guid>
+  <interface>iface_FTTHUserInterface.InventoryHandleErrorInterface</interface>
+  <label>Inventory Handle Error</label>
+  <metaVersion>3</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_AssignFacilityHandleErrorResend</operation>
+      <tasksList>
+        <tasks>AssignFacilityHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_AssignFacilityHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>AssignFacilityHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESIGNAR_FACILIDADE"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem, idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("DESIGNAR_FACILIDADE"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultFacilityHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConsultFacilityHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultFacilityHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConsultFacilityHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("CONSULTAR_FACILIDADE_FISICA_NOVA", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_NOVA"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_UpdateCablingHandleErrorResend</operation>
+      <tasksList>
+        <tasks>UpdateCablingHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_UpdateCablingHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>UpdateCablingHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            //var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("DESIGNAR_FACILIDADE"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            var doc = FTTHCommon.ParticipantIssueConfirmation("ATUALIZAR_CABEAMENTO", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_LiberateFacilityHandleErrorResend</operation>
+      <tasksList>
+        <tasks>LiberateFacilityHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_LiberateFacilityHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>LiberateFacilityHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR2
+            var idItem =  worklistOrder.ProductData.idPromocao;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("LIBERAR_FACILIDADE"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("LIBERAR_FACILIDADE"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultOriginalFacilityHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConsultOriginalFacilityHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultOriginalFacilityHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConsultOriginalFacilityHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("CONSULTAR_FACILIDADE_FISICA_ORIGINAL", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_UpdateCPEHandleErrorResend</operation>
+      <tasksList>
+        <tasks>UpdateCPEHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_UpdateCPEHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>UpdateCPEHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"));
+            return result;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConfirmActionHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConfirmActionHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConfirmActionHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConfirmActionHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pend�ncia", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONFIRMAR_ACAO"));
+            //return result;
+
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackActionHandleErrorResend</operation>
+      <tasksList>
+        <tasks>RollbackActionHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackActionHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>RollbackActionHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pend�ncia", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultEquipmentInventoryHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ConsultEquipmentInventoryHandleError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultEquipmentInventoryHandleErrorIssue</operation>
+      <tasksList>
+        <tasks>ConsultEquipmentInventoryHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO"));
+            if (permissionObject.processOrder.OrderHeader.tipoOS == "TIPO_ORDEM_REPARO") return false
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("CONSULTAR_EQUIPAMENTO_INVENTARIADO", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackChangeCPEResend</operation>
+      <tasksList>
+        <tasks>RollbackChangeCPEError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackChangeCPESucess</operation>
+      <tasksList>
+        <tasks>RollbackChangeCPEError</tasks>
+      </tasksList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>errorActivity</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

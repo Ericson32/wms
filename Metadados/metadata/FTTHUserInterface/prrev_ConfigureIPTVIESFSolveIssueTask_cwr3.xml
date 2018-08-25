@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureIPTVIESFSolveIssueTask_cwr3">
+  <activity name="startConfigureIPTVIESFSolveIssue" type="seqActivity">
+    <guid>{db20428f-d739-48ce-b3e9-7346c5093c55}</guid>
+    <label>Start Configure IPTV iESF Solve Issue</label>
+    <x>36.75547</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureIPTVIESFSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureIPTVIESFSolveIssue</element>
+        <guid>{80cc05f4-c75e-42e1-9278-9a45b7015e7c}</guid>
+        <label>Configure IPTV iESF Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>130.6414</y>
+      </child>
+      <child name="ConfigureIPTVIESFSolveIssueSeccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureIPTVIESFSolveIssueSuccess</element>
+        <guid>{5ee35bcb-8de8-418d-a742-210963cc25dd}</guid>
+        <label>Configure IPTV iESF Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>37.4834</x>
+        <y>382.84845</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_IESF");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{1378b1e6-6c88-4666-a704-695bf3bc0d12}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_IESF");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar IPTV - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Configure IPTV iESF Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureIPTVIESFSolveIssueTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ConfigureOTTIESFHandleIssueSubprocess_cwr7">
+  <activity name="ConfigureOTTIESFHandleIssueStart" type="seqActivity">
+    <guid>{8487bcd2-2bdf-4aa3-9f21-d1d0a475b379}</guid>
+    <label>Configure OTT IESF Handle Issue Start</label>
+    <x>102.29531</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{abdb3ac0-73d8-4334-a389-c8df57e3c19e}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>95.8875</x>
+        <y>130.64142</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{02075134-719e-44c3-9913-0c0dfb588b38}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>98.68652</x>
+            <y>225.40234</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{7cd41b78-cbc2-43e6-b7a3-c364d5865a6d}</guid>
+        <label>Check Issue Type</label>
+        <x>100.69238</x>
+        <y>351.50586</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{47108b22-7e73-41f1-8f73-260a70bd144c}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="SolveTechnicalIssue" type="seqActivity">
+                <guid>{524c8cbc-8e63-4a7f-9800-55abca5e0b83}</guid>
+                <label>Solve Technical Issue</label>
+                <x>161.17403</x>
+                <y>462.9082</y>
+                <childList>
+                  <child name="ConfigureOTTIESFSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureOTTIESFSolveIssueTask_cwr3</element>
+                    <guid>{714969dc-9322-4ce9-a18f-4abb7d022175}</guid>
+                    <label>Configure OTT IESF Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>557.6691</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{17a7788e-d66a-40ab-9dc5-e1e967dd2ff9}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>164.37207</x>
+                    <y>698.4738</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{926be743-7038-4721-8ec0-d0824c13c42f}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{d2cf4647-1ca7-4e79-8187-0645fcee9680}</guid>
+                <label>Client Issue</label>
+                <x>47.020508</x>
+                <y>464.28867</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{f6898759-4709-4214-84e7-2325e484740b}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.0</x>
+                    <y>566.0197</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar OTT&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      OTT. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de OTT autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar OTT - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure OTT IESF Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ConfigureOTTIESFHandleIssueSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

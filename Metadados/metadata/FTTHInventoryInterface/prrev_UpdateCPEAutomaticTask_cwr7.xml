@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHInventoryInterface.UpdateCPEAutomaticTask_cwr7">
+  <activity name="UpdateCPEAutomaticTaskStart" type="seqActivity">
+    <guid>{14663790-4c77-498b-b051-88acab181cff}</guid>
+    <label>Update CPE Automatic Task Start</label>
+    <x>84.95156</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateCPESendOperation" type="opActivity">
+        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_UpdateEquipmentSendOperation</element>
+        <guid>{235732b3-4afb-4cbe-9faf-379d58cc0dbd}</guid>
+        <label>Update CPE Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>195.39258</x>
+        <y>145.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHInventoryInterface.CreateInventoryMessage(this.process.processOrder, this.process.id,"ATUALIZAR_EQUIPAMENTO_CLIENTE" ,this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update CPE Automatic Task", "Update CPE Send Operation", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update CPE Automatic Task", "Update CPE Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{ab2f4c3a-6de0-47c1-82f0-71049b2c40cd}</guid>
+        <label>exceptionHandler</label>
+        <x>49.999996</x>
+        <y>160.34258</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend2" type="seqActivity">
+        <guid>{d9caad10-abff-4e9c-ace1-726f6533b22c}</guid>
+        <label>Check Resend</label>
+        <x>246.88765</x>
+        <y>311.14728</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>176.7222</x>
+            <y>427.54962</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHInventoryInterface.UpdateCPEAutomaticTask_cwr7/seqActivity_UpdateCPEAutomaticTaskStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "ATUALIZAR_EQUIPAMENTO_CLIENTE", "INVENTORY_SYSTEM");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>86.36957</x>
+                    <y>553.65314</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>197.06879</x>
+                <y>561.0037</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, "ATUALIZAR_EQUIPAMENTO_CLIENTE", "INVENTORY_SYSTEM"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="UpdateCPEAutomaticTaskComplete" type="completeActivity">
+            <guid>{94d94fa6-1fe5-4580-9faa-e7419b6e5ce7}</guid>
+            <label>Update CPE Automatic Task Complete</label>
+            <x>186.38324</x>
+            <y>665.0555</y>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{0e3afec0-40b9-4963-bfb6-6ac3336c3f48}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>86.37125</x>
+        <y>286.74493</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Atualizar
+      CPE. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de atualiza&#231;&#227;o dos equipamentos caso n&#227;o obtenha resposta em
+      um intervalo de tempo pr&#233; determinado, ser&#227;o feitas mais algumas
+      retentativas. A quantidade de retentativas e o tempo de espera ser&#227;o
+      configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Update CPE Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryInterface.UpdateCPEAutomaticTask</process>
+  <revision>7</revision>
+  <type>User</type>
+</process__revision>

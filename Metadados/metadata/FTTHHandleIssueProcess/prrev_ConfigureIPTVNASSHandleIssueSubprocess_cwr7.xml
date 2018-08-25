@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ConfigureIPTVNASSHandleIssueSubprocess_cwr7">
+  <activity name="ConfigureIPTVNASSHandleIssueStart" type="seqActivity">
+    <guid>{9c73dc3b-a9c3-4b82-a0ba-35789182b3d1}</guid>
+    <label>Configure IPTV NASS Handle Issue Start</label>
+    <x>101.3868</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{55638adf-48ee-4c2d-a946-3f0c1c20d6a9}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>96.05008</x>
+        <y>130.64142</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{63ed8ddd-5889-41ca-aac5-4beb4de8a621}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>98.84911</x>
+            <y>225.40234</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{307bc315-85a9-4277-af72-85708ae5c83e}</guid>
+        <label>Check Issue Type</label>
+        <x>100.854965</x>
+        <y>351.5059</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{2a0da676-1478-47c8-8ffe-eac071e9ac87}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="SolveTechnicalIssue" type="seqActivity">
+                <guid>{33d36e68-7109-428d-9455-da3c6fbee03e}</guid>
+                <label>Solve Technical Issue</label>
+                <x>161.49922</x>
+                <y>462.90823</y>
+                <childList>
+                  <child name="ConfigureIPTVNASSSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureIPTVNASSSolveIssueTask_cwr3</element>
+                    <guid>{a82faa7e-a2cb-4cf0-b9bd-03c12c7acfe6}</guid>
+                    <label>Configure IPTV NASS Solve Issue Task</label>
+                    <x>160.04103</x>
+                    <y>557.6691</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{187ed816-faff-472e-b87c-43a1570f2b3a}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>164.69728</x>
+                    <y>698.4738</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{35a45d56-eb2c-4434-9145-cc9c071fe460}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{049ca9ec-26f1-4cbb-826b-200983fe1d83}</guid>
+                <label>Client Issue</label>
+                <x>47.020515</x>
+                <y>464.28867</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{6b12c87f-1676-488b-a3a5-a638caf66760}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.000008</x>
+                    <y>566.0197</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar IPTV&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      IPTV. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de IPTV autom&#225;tica para o sistema de Rede,
+      ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure IPTV NASS Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ConfigureIPTVNASSHandleIssueSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

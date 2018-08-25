@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.DesconfigureIPTVHDMSubprocess">
+  <activity name="DesconfigureIPTVHDMStart" type="seqActivity">
+    <guid>{7ebb4d6a-f6a1-440c-99f8-7e02b7e0d176}</guid>
+    <label>Desconfigure IPTV HDM Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="DesconfigureIPTVHDMAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DesconfigureIPTVHDMAutomaticTask</element>
+        <guid>{cd46a6ac-6370-4c1a-ba3f-8d5c396ca55e}</guid>
+        <label>Desconfigure IPTV HDM Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{53737cfb-3f51-4d44-95a6-c227281268a7}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{9a9d6c2f-1037-4919-92b6-d76e65c1a918}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_IPTV_HDM");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{51e74146-b285-4708-a599-aa7903d51f8f}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{5e42bca9-f86a-4a72-b580-53f1d1d14ca1}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="DesconfigureIPTVHDMHandleErrorTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.DesconfigureIPTVHDMHandleErrorTask</element>
+                    <guid>{f261a939-3186-4a9e-b739-bdf7418f5cba}</guid>
+                    <label>Desconfigure IPTV HDM Handle Error Task</label>
+                    <x>160.46594</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{61c1f25e-4da5-461b-b08d-24e1b252ebbf}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{91100a2b-3374-478f-875a-5f3ce859f38a}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{6e4be50f-8cd5-43ef-9507-10860d9f6a8f}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="DesconfigureIPTVHDMSolveIssueTask" type="subflowActivity">
+                                <element>proc_FTTHHandleIssueProcess.DesconfigureIPTVHDMHandleIssueSubprocess</element>
+                                <guid>{cbfa22d1-d3de-40e4-9764-c1a2222bbe85}</guid>
+                                <label>Desconfigure IPTV HDM Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>proc_FTTHProcess.DesconfigureIPTVHDMSubprocess/seqActivity_DesconfigureIPTVHDMStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{32a896b0-296c-4bd8-b610-bc15f3b8eb65}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESCONFIGURAR_IPTV_HDM");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{9b441a42-6bbb-401a-ac35-ceb8688eabef}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>proc_FTTHProcess.DesconfigureIPTVHDMSubprocess/seqActivity_DesconfigureIPTVHDMStart</element>
+                            <guid>{aee94ebc-cf55-47a8-94ad-b60e751c3c26}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade &quot;Desconfigurar IPTV&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de configurar IPTV. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de facilidades para o sistema de Rede. Ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <guid>{427819c7-f3a2-4ccf-accf-28300128d67b}</guid>
+  <label>Desconfigure IPTV HDM Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process>

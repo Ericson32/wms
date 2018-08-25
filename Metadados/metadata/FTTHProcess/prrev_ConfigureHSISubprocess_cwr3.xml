@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureHSISubprocess_cwr3">
+  <activity name="ConfigureVoIPStart" type="seqActivity">
+    <guid>{9a73dcdf-cab2-4ca9-a364-ce67dc69db5b}</guid>
+    <label>Configure HSI Start</label>
+    <x>30.537891</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureHSIAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureHSIAutomaticTask</element>
+        <guid>{8a6dc17a-1daa-4b6a-878b-a091d0dd6c49}</guid>
+        <label>Configure HSI Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{91e8925a-6594-4553-9845-4e31394a2b8e}</guid>
+        <label>Check Task Result</label>
+        <x>65.762695</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{1b3768c7-6bb3-47a2-a3ca-fa7d3f24e781}</guid>
+            <label>Success</label>
+            <x>33.844482</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_HSI");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{16b6a65d-c53f-44d2-8b44-7241f33689c9}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{b9d222ce-342f-4086-9d3d-5d2a87678bfb}</guid>
+                <label>Handle Error Start</label>
+                <x>118.51479</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="ConfigureHSIHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureHSIHandleErrorTask_cwr3</element>
+                    <guid>{fab159a0-c62a-46b2-b8d9-4b581c6cf950}</guid>
+                    <label>Configure HSI Handle Error Task</label>
+                    <x>155.15125</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{b947c968-e172-4fd0-a953-8718bdd7547b}</guid>
+                    <label>Check Error Handling</label>
+                    <x>119.80208</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{7eb6cbf3-b659-45cb-96ef-396c30832ad6}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{45099544-42c3-4a80-96b8-0306811bb777}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.09726</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureHSISolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHUserInterface.ConfigureHSISolveIssueTask_cwr2</element>
+                                <guid>{2ea6b9ec-921c-45bf-b12e-659c3f30a959}</guid>
+                                <label>Configure HSI Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConfigureHSISubprocess_cwr3/seqActivity_ConfigureVoIPStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{1f55f79c-c9ac-420d-9e42-69bc4f2aea7b}</guid>
+                                <label>Repeat</label>
+                                <x>151.77637</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_HSI");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{c1e5f1f4-12b7-4e89-8d92-fd5036bdbb9e}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConfigureHSISubprocess_cwr3/seqActivity_ConfigureVoIPStart</element>
+                            <guid>{49287aaa-5542-4449-ad4e-d9f8760181b4}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar HSI&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      HSI. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar HSI - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure HSI Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureHSISubprocess</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

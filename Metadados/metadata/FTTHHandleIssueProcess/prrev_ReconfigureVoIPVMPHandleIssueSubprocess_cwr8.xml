@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ReconfigureVoIPVMPHandleIssueSubprocess_cwr8">
+  <activity name="ReconfigureVoIPVMPHandleIssueStart" type="seqActivity">
+    <guid>{a5d05928-d534-4f54-831f-3bad84a1909e}</guid>
+    <label>Reconfigure VoIP VMP Handle Issue Start</label>
+    <x>94.95469</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{7f365888-94ed-45b8-9383-16b213e48d43}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>96.555466</x>
+        <y>130.64142</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{3deb0d1e-c194-4783-803a-3012956ddcfc}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>99.35449</x>
+            <y>225.40234</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{6e56e3f1-1499-47c6-bf73-83f438a24a27}</guid>
+        <label>Check Issue Type</label>
+        <x>101.36035</x>
+        <y>351.50586</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{0cbb864b-e148-4ede-b30f-90866ee0003b}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{9d67ca96-c217-44b2-a257-a296f34e2be2}</guid>
+                <label>Technical Issue</label>
+                <x>163.04434</x>
+                <y>462.9082</y>
+                <childList>
+                  <child name="ReconfigureVoIPVMPSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ReconfigureVoIPVMPSolveIssueTask_cwr1</element>
+                    <guid>{dba3551d-7696-4d78-8029-2eb81375563b}</guid>
+                    <label>Reconfigure VoIP Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>554.9082</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{70eaf934-508c-43fb-85ab-fe24668bc7b1}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>165.70801</x>
+                    <y>681.0117</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{d832b2fb-65cd-484e-a633-32c5960436fa}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{137980d5-0bdf-4294-9caf-4fddb66dd336}</guid>
+                <label>Client Issue</label>
+                <x>47.020508</x>
+                <y>462.9082</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{fdfc6164-cafe-450f-8a5d-f372edbf40b7}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.0</x>
+                    <y>555.9082</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Reconfigurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de
+      Reconfigurar VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a
+      resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de reconfigura&#231;&#227;o de VoIP autom&#225;tica para o sistema
+      de Rede, ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o
+      subprocesso de Reconfigurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Reconfigure VoIP VMP Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ReconfigureVoIPVMPHandleIssueSubprocess</process>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process__revision>

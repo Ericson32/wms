@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ReconfigureIPTVIESFSubprocess_cwr6">
+  <activity name="ReconfigureIPTVIESFStart" type="seqActivity">
+    <guid>{421e33e7-1fb4-42e5-91f9-b6464253de72}</guid>
+    <label>Reconfigure IPTV IESF Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ReconfigureIPTVIESFAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ReconfigureIPTVIESFAutomaticTask</element>
+        <guid>{55c64267-426e-4a3e-b38a-f9a334da56ff}</guid>
+        <label>Reconfigure IPTV IESF Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{6ee8259a-cf19-4e55-8d02-a6cd89f82907}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{6159c31e-9925-4a87-bfcc-7fc6f30c20e7}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_IPTV_IESF");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{71d8fefa-26ec-4eb6-93c6-05d114583ab6}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{9fcf5432-f521-490c-8854-df1fe981d847}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="ReconfigureIPTVIESFHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ReconfigureIPTVIESFHandleErrorTask_cwr1</element>
+                    <guid>{f64593b9-5c3c-4bb0-ac10-c8bea0d53986}</guid>
+                    <label>Reconfigure IPTV IESF Handle Error Task</label>
+                    <x>158.46594</x>
+                    <y>727.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{ab7a2b6f-f8f5-4ee4-8a3a-c81e8d072d07}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{6d2c5101-6577-4de4-8278-9e25f482ef36}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{5cb06cef-4aae-4593-ae01-54e9b67d58c6}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ReconfigureIPTVIESFSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ReconfigureIPTVIESFHandleIssueSubprocess_cwr9</element>
+                                <guid>{9f9d2041-7941-4ba3-818e-4b725252a0dd}</guid>
+                                <label>Reconfigure IPTV IESF Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ReconfigureIPTVIESFSubprocess_cwr6/seqActivity_ReconfigureIPTVIESFStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{efc1c0d2-9c6d-43b3-8493-a67f274349c0}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("RECONFIGURAR_IPTV_IESF");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{828729c6-c465-45ea-9c2a-ea0de5a49ee0}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ReconfigureIPTVIESFSubprocess_cwr6/seqActivity_ReconfigureIPTVIESFStart</element>
+                            <guid>{1e38e3a1-901f-4746-b1f8-90e213cf703c}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade &quot;Desconfigurar IPTV&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de configurar IPTV. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de facilidades para o sistema de Rede. Ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Reconfigure IPTV IESF Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ReconfigureIPTVIESFSubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

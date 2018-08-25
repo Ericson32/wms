@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ValidateCPESubprocess_cwr7">
+  <activity name="ValidateCPEStart" type="seqActivity">
+    <guid>{3756d5ca-87a7-4a04-8b70-bf2614c2488a}</guid>
+    <label>Validate CPE Start</label>
+    <x>58.981934</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ValidateCPEAutomaticTaskScript" type="scriptActivity">
+        <guid>{e2583867-6f06-49c0-bef4-86518b84c5db}</guid>
+        <label>Validate CPE Automatic Task Script</label>
+        <x>64.98779</x>
+        <y>122.0</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.setStatusActivity(this.process.processOrder.id,  Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), "WAIT");
+              Process.startSubProcess("FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask",  this.process.id, this.process.processDocument);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="waitValidate" type="joinActivity">
+        <element>proc_FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask</element>
+        <guid>{213a6f99-a28a-437a-9a4f-6a61959f7f8a}</guid>
+        <label>Wait Validate</label>
+        <x>73.31885</x>
+        <y>262.8047</y>
+      </child>
+      <child name="isAutomatic" type="switchActivity">
+        <guid>{4d6fd397-9716-49fd-90e8-b7021db0ad9e}</guid>
+        <label>Is Automatic ?</label>
+        <x>63.31201</x>
+        <y>374.20703</y>
+        <childList>
+          <child name="yes" type="caseActivity">
+            <guid>{128c7a95-e348-4ed2-ae68-97df3f449b2a}</guid>
+            <label>Yes</label>
+            <x>114.0</x>
+            <y>485.60938</y>
+            <childList>
+              <child name="NotifyClickValidationStatus" type="opActivity">
+                <element>iface_FTTHClickGestaoInventario.GestaoInventarioPortType/oper_NotificarValidacaoEquipamentoFTTH</element>
+                <guid>{5d55b5fb-2c1b-4a9f-b4e7-1d9e505d07ac}</guid>
+                <label>Notify Click Validation Status</label>
+                <participant>part_FTTHClickInterface.ClickSenderParticipant</participant>
+                <x>114.0</x>
+                <y>485.60938</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      /*
+                          Marcos Souza - marcossouza@br.ibm.com - PRJ 11255 - 20/06/2017
+                          script responsável pelo envio da mensagem para o CLICK da notificação de validação de equipamento
+                       */
+
+                      var atividade = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");//this.process.processDocument.operacao;
+                      var sistema = Global.getConfigVariable("SAP_SYSTEM");
+                      var originSystem = Global.getConfigVariable("SAP");
+
+                      var msg = FTTHClickInterface.createClickNotificationMessage(this.process.processDocument, sistema, atividade, this.activityData, true, originSystem);
+
+                      var messageDoc = new Document("cwf_pm:messageLog");
+                      messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                      messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                      messageDoc.userData3 = this.process.processOrder.order.id;
+                      UserProfile.setMsgLogDoc(messageDoc);
+
+
+
+                      return msg;
+                    ]]></script>
+                  </method>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      /*
+                      this.activityData.MessageHeader.Response.Return[0].Code
+                      this.activityData.MessageHeader.Response.Return[0].Description
+
+                      //this.activityData.MessageHeader.Response.Return[0].NativeReturn.AppId
+                      this.activityData.MessageHeader.Response.Return[0].NativeReturn.Code
+                      this.activityData.MessageHeader.Response.Return[0].NativeReturn.Description
+                      //this.activityData.MessageHeader.Response.Return[0].NativeReturn.Detail
+                      */
+
+                      var ValidateEquipmentDoc = this.process.processDocument;
+                      var tipoEquipamento = ValidateEquipmentDoc.tipoEquipamentoNovo?ValidateEquipmentDoc.tipoEquipamentoNovo:ValidateEquipmentDoc.tipoEquipamentoOriginal;
+                      var idAtivo =  ValidateEquipmentDoc.acaoNovo? ValidateEquipmentDoc.acaoNovo:ValidateEquipmentDoc.idAtivoOriginal;
+
+                      FTTHClickInterface.atualizarFlagIsProcessandoEquip(this.process.processOrder.id, false, tipoEquipamento, idAtivo);
+
+                      FTTHCommon.log(this.process.processOrder.id, this.process.id, "Validate Equipment Automatic Task", "Validate Equipment Send Operation", Global.getConfigVariable("CWONPROCACTBEFORE") , this.activityData.toXML());
+                      //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+                      var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.MessageHeader.Response.Return[0].Code,  Global.getConfigVariable("SAP_SYSTEM"));
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), status);
+
+                      FTTHCommon.saveEvent(this.process.processOrder.id,
+                                              Global.getConfigVariable("SAP_SYSTEM"),
+                                              Global.getConfigVariable("VALIDAR_EQUIPAMENTO"),
+                                              status,
+                                              this.activityData.MessageHeader.Response.Return[0].Code,
+                                              this.activityData.MessageHeader.Response.Return[0].Description,
+                                              this.process.id,
+                                              Global.getConfigVariable("SYNC_REQ_RESP"));
+                      //FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,  Global.getConfigVariable("SAP_SYSTEM"), Global.getConfigVariable("VALIDAR_EQUIPAMENTO"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="no" type="caseActivity">
+            <guid>{8e82f06e-2047-4370-bf02-0f32aa4a1ea9}</guid>
+            <label>No</label>
+            <x>30.0</x>
+            <y>500.31055</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  //MS - adicinando validação se o processo foi startado pelo CLICK
+                  //ou pelo técnico na atividade de campo - 11/01/2018
+                  var validateDoc = this.process.processDocument;
+
+                  return validateDoc.userId;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ClickSenderParticipant" type="participantActivity">
+        <guid>{d6c849c9-7102-42c7-9e14-ed1bde079dea}</guid>
+        <label>Click Sender Participant</label>
+        <participant>part_FTTHClickInterface.ClickSenderParticipant</participant>
+        <x>87.00293</x>
+        <y>611.7129</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Validate CPE Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ValidateCPESubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

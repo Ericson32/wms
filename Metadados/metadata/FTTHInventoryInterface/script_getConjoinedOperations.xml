@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script filenameHash="ac8f3efb902218ce0b4d1765af233432" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.getConjoinedOperations">
+  <label>getConjoinedOperations</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <valueType>nmeta_com.conceptwave.system.Object</valueType>
+  <script><![CDATA[
+    //this scripts runs all the operations of the given order and checks if there is any conjoined order
+    // if there isn't it will return null
+    // is there is it will return an array with the conjoined operation and any single operation left
+    var fnd = new Finder("FTTHInventoryInterface.ConjoinedOperationsFinder");
+    fnd.searchDocument.cwOrderId = orderId;
+    var dol = fnd.search();
+    var array = new Array();
+    var flag;
+
+    //add the conjoined operations
+    for(var i=0; i<dol.size; i++){
+        flag=true;
+        for(var j=0; j<array.length; j++){
+            if(dol[i].joined==array[j]){
+                flag = false;
+                break;
+            }
+        }
+        if(flag)
+            array.push(dol[i].joined);
+    }
+
+
+    var requestFnd = new Finder("FTTHCommon.RequestFinder");
+    requestFnd.searchDocument.cwOrderId = orderId;
+    var allRequests = requestFnd.search();
+
+
+    //check if all operations are present
+    // if they are not then add it to the result array
+    for(var i=0; i<allRequests.size; i++){
+        flag = true;
+        for(var j=0; j<dol.size; j++){
+            if(allRequests[i].requestId == dol[j].operation){
+                flag = false;
+                break;
+            }
+        }
+        if(flag){
+            for(var j=0; j<array.length; j++){
+                if(array[j]==allRequests[i].requestId){
+                    flag = false;
+                    break;
+                }
+            }
+        }
+        if(flag)
+            array.push(allRequests[i].requestId);
+    }
+
+    if(array.length==0)
+        return null;
+
+    return array;
+  ]]></script>
+</script>

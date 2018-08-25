@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script filenameHash="b5ffba2ec5c09dc3f72c595b9988f85c" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.ProcessNotification">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Processa as notificacoes recebidas do inventario
+    </p>
+  ]]></description>
+  <label>Process Notification</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="notificacao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      XML de Notificacao originada pelo Inventario/barramento&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHInventoryInterface.response</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     funcao para tratamento das notificacoes originadas pelo NetWin
+
+     parametros:
+     notificacao          (this.activity)             tipo FTTHInventoryInterface.response
+
+     ----------------------------------------------------------
+    */
+
+    //Parametros de LOG
+    var LOG_INTERFACE = "INVENTORY";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_INVENTORY');
+    var LOG_ACTIVITY = "TRATAMENTO_NOTIFICACAO";
+    var LOG_SCRIPT = "ProcessNotification";
+    var LOG_OPERATION = "Listener";
+
+    var retorno = new DataStructure('FTTHInventoryInterface:acknowledge');
+
+    if (notificacao.attributeList.attribute.length > 0) {
+        var processId = notificacao.correlationId;
+        var processo = Process.getProcessInfo(processId);
+        if(processo){
+            var orderId = processo.processOrderId;
+            var LOG_MSG = "processo = [" + processo + "] orderId [" + orderId + "]";
+            FTTHCommon.log( orderId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null, LOG_INTERFACE, LOG_NIVEL, "DEBUG");
+
+            var ordem = Order.getOrderById(orderId.toString() ,false);
+
+            if(!ordem){
+                var LOG_MSG = "Ordem nao encontrada com id [" + orderId + "] - XML >>>" + notificacao.toXML() + "<<<";
+                FTTHCommon.log( orderId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, LOG_INTERFACE, LOG_NIVEL, "ERROR");
+            }
+        }
+
+        // tratamento para designação finalizada com sucesso.
+        for(var i = 0 ; i < notificacao.attributeList.attribute.length ; i++){
+            var nome = notificacao.attributeList.attribute[i].name;
+            var valor = notificacao.attributeList.attribute[i].value;
+            var acao = notificacao.attributeList.attribute[i].action;
+            var tipo = notificacao.attributeList.attribute[i].type;
+
+            var LOG_MSG = "item [" + i + "] name [" + nome + "] value [" + valor + "] action [" + acao + "] type [" + tipo + "]";
+            FTTHCommon.log( orderId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                            LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+            if ((nome == 'requestState') && (valor == 'open.not_running.suspended') && (acao == 'ATRIBUICAO_CONCLUIDA') && (i < notificacao.attributeList.attribute.length -1)){ //notificacao final sucesso
+                continue;
+            }else if ((nome == 'requestState') && (valor == 'open.not_running.suspended') && (acao == 'ATRIBUICAO_CONCLUIDA') && (i == notificacao.attributeList.attribute.length -1)){ //ultimo atributo da lista
+                var LOG_MSG = "Notificacao FINAL de sucesso";
+                FTTHCommon.log( orderId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                            LOG_INTERFACE, LOG_NIVEL, "INFO" );
+                retorno.code='0';
+                retorno.description='notificacao FINAL de sucesso';
+                retorno.key='0';
+                Process.sendMessageToProcess(notificacao.correlationId, null, "FTTHInventoryInterface:InventoryListenerInterface/ReceiveOperation", retorno);
+            }else
+                break;
+        }
+
+        // tratamento para confirmação finalizado com sucesso.
+        for(var i = 0 ; i < notificacao.attributeList.attribute.length ; i++){
+            var nome = notificacao.attributeList.attribute[i].name;
+            var valor = notificacao.attributeList.attribute[i].value;
+            var acao = notificacao.attributeList.attribute[i].action;
+            var tipo = notificacao.attributeList.attribute[i].type;
+
+            var LOG_MSG = "item [" + i + "] name [" + nome + "] value [" + valor + "] action [" + acao + "] type [" + tipo + "]";
+            FTTHCommon.log( orderId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                            LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+            if ((nome == 'requestState') && (valor == 'closed.completed') && (acao == 'FINAL') && (i < notificacao.attributeList.attribute.length -1)){ //notificacao final sucesso
+                continue;
+            }else if ((nome == 'requestState') && (valor == 'closed.completed') && (acao == 'FINAL') && (i == notificacao.attributeList.attribute.length -1)){ //ultimo atributo da lista
+                var LOG_MSG = "Notificacao FINAL de sucesso";
+                FTTHCommon.log( orderId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                            LOG_INTERFACE, LOG_NIVEL, "INFO" );
+                retorno.code='0';
+                retorno.description='notificacao FINAL de sucesso';
+                retorno.key='0';
+                Process.sendMessageToProcess(notificacao.correlationId, null, "FTTHInventoryInterface:InventoryListenerInterface/ReceiveOperation", retorno);
+            }else
+                break;
+        }
+
+        // tratamento para abort de designação.
+        for(var i = 0 ; i < notificacao.attributeList.attribute.length ; i++){
+            var nome = notificacao.attributeList.attribute[i].name;
+            var valor = notificacao.attributeList.attribute[i].value;
+            var acao = notificacao.attributeList.attribute[i].action;
+            var tipo = notificacao.attributeList.attribute[i].type;
+
+            var LOG_MSG = "item [" + i + "] name [" + nome + "] value [" + valor + "] action [" + acao + "] type [" + tipo + "]";
+            FTTHCommon.log( orderId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                            LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+            if ((nome == 'requestState') && (valor == 'closed.aborted') && (acao == 'FINAL') && (i < notificacao.attributeList.attribute.length -1)){ //notificacao final sucesso
+                continue;
+            }else if ((nome == 'requestState') && (valor == 'closed.aborted') && (acao == 'FINAL') && (i == notificacao.attributeList.attribute.length -1)){ //ultimo atributo da lista
+                FTTHCommon.log( orderId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+                            LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+                //tomada de decisão para saber se aquele abort foi esperado ou se foi um abort por falha do Netwin.
+                var searchEvent = new Document('FTTHCommon:Event');
+                searchEvent.correlationId = notificacao.correlationId;
+                var events = Finder.runSearch('FTTHCommon:EventFinder', searchEvent);
+
+                if(events.size == 0){
+                    retorno.code='-10';
+                    retorno.description='Não existe evento registrado com o correlationId [' + notificacao.correlationId + ']';
+                    retorno.key='0';
+                }else{
+                    if(events[0].atividade == Global.getConfigVariable("CANCELAR_DESIGNACAO")){
+                        retorno.code='0';
+                        retorno.description='Designação cancelada no inventario com sucesso.';
+                        retorno.key='0';
+                    }else{
+                        retorno.code='-10';
+                        retorno.description='Designação abortada no inventario.';
+                        retorno.key='0';
+                    }
+                }
+                Process.sendMessageToProcess(notificacao.correlationId, null, "FTTHInventoryInterface:InventoryListenerInterface/ReceiveOperation", retorno);
+            }else
+                break;
+        }
+
+    } else {
+        var LOG_MSG = "Notificacao recebida sem lista de atributos. XML-->>>" + notificacao.toXML() + "<<<--";
+        FTTHCommon.log(notificacao.messageId, notificacao.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -2000,
+                        LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        Global.logInfo(LOG_MSG);
+        retorno.code='-3000';
+        retorno.description='Mensagem recebida com lista de atributos vazia :: processId :: [' + processId + ']';
+        retorno.key='0';
+        return retorno;
+    }
+  ]]></script>
+</script>

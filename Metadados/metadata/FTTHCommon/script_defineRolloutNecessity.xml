@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.defineRolloutNecessity">
+  <label>define Rollout Necessity</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    //Script criado para verificar se a Ordem deve passar pelo Click ou não
+    //Pega o id da Ordem
+    var order =  Order.getOrderById(orderId);
+    //Pega o cabecalho da Ordem
+    var orderHeader = order.OrderHeader;
+
+    /*CR ROLLOUT*/
+    var tipoOS = order.OrderHeader.tipoOS;
+
+    //30/05/2018 - Não rolloutar OSs sem código atividade
+    if(!order.OrderHeader.codAtividade || order.OrderHeader.codAtividade == ""){
+        return false;
+    }
+    //end 30/05/2018
+
+    //Se a flagBSIM for N então ele precisa verificar se o bairro,uf e localidade estão contemplados para ser feito o Rollout
+    if(orderHeader.flagBSIM == "S") {
+        return true;
+    }else if(orderHeader.flagBSIM == "N" || !(orderHeader.flagBSIM)) {
+        //var clientAdress = order.AddressData;
+        var clientAdress;
+        if (order.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+            clientAdress = order.OriginalData[0].AddressData;
+        } else {
+            clientAdress = order.AddressData;
+        }
+
+        var searchDoc;
+        var statusActivity;
+        searchDoc = new Document("FTTHOrder:RolloutData");
+        searchDoc.uf = clientAdress.estadoLogradouro;
+
+        if (tipoOS == "TIPO_ORDEM_REPARO")
+            searchDoc.localidade = clientAdress.siglaLocalidade;
+        else
+            searchDoc.localidade = clientAdress.siglaLoc;
+
+        searchDoc.bairro = clientAdress.bairro;
+        searchDoc.ativo = 1;
+        statusActivity = Finder.runSearch ("FTTHReportApplication:rolloutClickFinder", searchDoc);
+        if(statusActivity.length > 0){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    return false;
+  ]]></script>
+</script>

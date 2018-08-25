@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateCloseIssueMessage">
+  <label>Create Close Issue Message</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="docNotificacao" type="rifp">
+      <type>doc_FTTHOrderManagementInterface.IssueNotification</type>
+    </parameter>
+    <parameter name="response" type="rifp">
+      <type>dstruct_FTTHOrderManagementInterface.response</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Close Issue Message');
+    Global.logInfo('Msg:' + docNotificacao.descricaoPendencia);
+    var msg = response;
+    msg.idMensagem = docNotificacao.numeroPedido;
+    msg.correlationId = docNotificacao.numeroOS;
+    msg.status = '1';
+    msg.descricao = 'Fechamento de Pendência Técnica'; //descricao textual do status
+    msg.timestampExecucao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    // Operacoes ...
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = response.numeroOS;
+    ops.indCancelamento = 0;
+
+    var parameters = Finder.runSearch('FTTHOrderManagementInterface:OrderParametersFinder', ops);
+
+    for (var i = 0; i < parameters.size; i++) {
+        var param = parameters[i];
+        msg.operacoes.operacao[i] = param.operacao;
+    }
+
+
+    return msg;
+  ]]></script>
+</script>

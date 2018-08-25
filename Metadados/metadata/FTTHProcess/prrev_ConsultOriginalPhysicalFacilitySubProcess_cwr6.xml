@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConsultOriginalPhysicalFacilitySubProcess_cwr6">
+  <activity name="ConsultOriginalPhysicalFacilityStart" type="seqActivity">
+    <guid>{90330fc5-0efd-4138-8769-c488a38465e6}</guid>
+    <label>Consult Original Physical Facility Start</label>
+    <x>56.1849</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultOriginalPhysicalFacilitySendOperation" type="opActivity">
+        <element>iface_FTTHInventoryInterface.InventoryOriginalDataSenderInterface/oper_ConsultPhysicalFacilitySendOperation</element>
+        <guid>{f212d603-2eba-4097-b08e-ea125291b20f}</guid>
+        <label>Consult Original Physical Facility Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryOriginalDataSenderParticipant</participant>
+        <x>124.31706</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHInventoryInterface.CreateInventoryMessageConsult(this.process.processOrder, this.process.id,"CONSULTAR_FACILIDADE_FISICA_ORIGINAL",this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Consult Original Facility Automatic Task", "Consult Original Physical Facility Send Operation - mensagem a enviar:", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Consult Original Facility Automatic Task", "Consult Original Physical Facility Send Operation - mensagem recebida", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+              FTTHInventoryInterface.ProcessQueryResult(this.process.processOrder, this.process.id, this.activityData, 'CONSULTAR_FACILIDADE_FISICA_ORIGINAL');
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{b7732261-99f7-4ad9-9e26-b9e9adb14d29}</guid>
+        <label>Check Resend</label>
+        <x>210.5164</x>
+        <y>347.60138</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>133.9873</x>
+            <y>471.3543</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHProcess.ConsultOriginalPhysicalFacilitySubProcess_cwr6/seqActivity_ConsultOriginalPhysicalFacilityStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "CONSULTAR_FACILIDADE_FISICA_ORIGINAL", "INVENTORY_SYSTEM");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>45.225594</x>
+                    <y>597.4578</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>155.9248</x>
+                <y>604.8084</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, "CONSULTAR_FACILIDADE_FISICA_ORIGINAL", "INVENTORY_SYSTEM"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryOriginalDataSenderParticipant" type="participantActivity">
+        <guid>{ab9eb304-7b61-4dcf-9b51-ceda8be8f6ec}</guid>
+        <label>Inventory Original Data Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOriginalDataSenderParticipant</participant>
+        <x>50.0</x>
+        <y>315.84845</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+          process.processDocument.atividade = activityId;
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var ord = process.processOrder;
+          var orderId = ord.OrderHeader.cwOrderId;
+          var atividade;
+
+          var activityIdFisica = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+          var statusFisica = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+          FTTHCommon.setStatusActivity(orderId, activityIdFisica, statusFisica);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Consult Original Physical Facility Sub Process</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConsultOriginalPhysicalFacilitySubProcess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

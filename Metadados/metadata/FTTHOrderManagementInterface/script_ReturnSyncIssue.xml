@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.ReturnSyncIssue">
+  <label>Return Sync Issue</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="issueData" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Mesmo datatype utilizado no script ReturnAsyncError&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>doc_FTTHOrder.IssueData</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Script ReturnSyncIssue');
+
+    var IssueNotificationDoc = new Document("FTTHOrderManagementInterface:IssueNotification");
+
+    var order = Order.getOrderById(issueData.cwOrderId);
+    if(!order) {
+        Global.logInfo("Ordem nao encontrada com id " + issueData.cwOrderId);
+        throw "Não existe OS com o id " + issueData.cwOrderId;
+        return;
+    }
+
+    //lista de atributos
+    IssueNotificationDoc.numeroPedido = order.OrderHeader.numeroPedido;
+    IssueNotificationDoc.numeroOS = order.OrderHeader.numeroOS;
+
+    // pendencia
+    IssueNotificationDoc.atividadePendencia = issueData.nomeAtividade;
+    IssueNotificationDoc.codigoPendencia = issueData.codigoPendencia;
+    IssueNotificationDoc.descricaoPendencia = issueData.codigoPendencia.refData.descPendencia;
+    IssueNotificationDoc.tipoPendencia = issueData.codigoPendencia.refData.tipoPendencia;
+    IssueNotificationDoc.dataAbertura = issueData.dataAbertura;
+    IssueNotificationDoc.dataFechamento = issueData.dataFechamento;
+    IssueNotificationDoc.idItem = issueData.idItem;
+
+    IssueNotificationDoc.processIdSignal = issueData.processIdSignal;
+
+    if (issueData.associatedItens === 'YES') {
+
+        var listaItens;
+        var pendenciasDeInstalacaoDePontosAdicionais = ['7025','7026','7027','7028'];
+
+        //Se for uma pendencia de baixa de ponto adicional a o calculo de idsAtivos para retornar é diferente
+        var pendencyCofig = Document.readDoc("FTTHCommon.Issues",issueData.codigoPendencia);
+        var codigoPendencia = String(pendencyCofig.codPendencia);
+        if (pendencyCofig.codPendencia == 7023){
+            listaItens = FTTHOrderManagementInterface.getAddiytionalPointRemovalItens(order);
+        }else if(pendenciasDeInstalacaoDePontosAdicionais.indexOf(codigoPendencia) > -1){
+            listaItens = FTTHOrderManagementInterface.getAdditionalPointAdditionItens(issueData.cwOrderId);
+        }else  listaItens = FTTHOrderManagementInterface.getAllAssociatedItens(issueData.cwOrderId);
+
+        IssueNotificationDoc.listaIdItens = listaItens.join(",");
+    }
+
+    if (issueData.flagIssueStatus == 0) {
+        IssueNotificationDoc.statusPendencia = "Aberto";
+    } else {
+        IssueNotificationDoc.statusPendencia = "Fechado";
+    }
+    IssueNotificationDoc.cwOrderId = issueData.cwOrderId;
+
+    return IssueNotificationDoc;
+  ]]></script>
+</script>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.InstallRemoveClientEquipmentSolveIssueTask_cwr7">
+  <activity name="InstallRemoveEquipmentSolveIssueTaskStart" type="seqActivity">
+    <guid>{473cd011-b6d7-4ea8-97c1-1fc1c8d677b0}</guid>
+    <label>Install Remove Equipment Solve IssueTask Start</label>
+    <x>36.21172</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InstallRemoveEquipmentSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface/oper_InstallRemoveEquipmentSolveIssueTask</element>
+        <guid>{268ba27b-52b1-47ab-94ed-4eb1098d416d}</guid>
+        <label>Install Remove Equipment Solve IssueTask</label>
+        <participant>part_FTTHUserInterface.InstallRemoveEquipmentSolveIssueParticipant</participant>
+        <x>39.81543</x>
+        <y>130.6414</y>
+      </child>
+      <child name="InstallRemoveEquipmentSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface/oper_InstallRemoveEquipmentSolveIssueSuccess</element>
+        <guid>{abcb766f-a43d-43b1-a0ea-176820053493}</guid>
+        <label>Install Remove Equipment Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.InstallRemoveEquipmentSolveIssueParticipant</participant>
+        <x>37.4834</x>
+        <y>441.65314</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var activityId;
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO"))
+                  activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+              else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA"))
+                  activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+              else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO"))
+                  activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InstallRemoveEquipmentSolveIssueParticipant" type="participantActivity">
+        <guid>{03949978-ebe6-45d8-8067-4e3d5ea5f149}</guid>
+        <label>Install Remove Equipment Solve Issue Participant</label>
+        <participant>part_FTTHUserInterface.InstallRemoveEquipmentSolveIssueParticipant</participant>
+        <x>54.0</x>
+        <y>286.14728</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo gerenciamento da atividade manual
+      &quot;Instalar/Remover Equipamento - Pend&#234;ncia&quot;. Por algum motivo (t&#233;cnico ou
+      cliente) o equipamento n&#227;o p&#244;de ser instalado e por esse motivo a
+      pend&#234;ncia que foi aberta deve ser tratada e fechada para que o fluxo
+      continue.
+    </p>
+    <p style="margin-top: 0">
+      A atividade manual pode ser finalizada apenas com Sucesso.
+    </p>
+  ]]></description>
+  <label>Install and Remove Equipment Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.InstallRemoveClientEquipmentSolveIssueTask</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

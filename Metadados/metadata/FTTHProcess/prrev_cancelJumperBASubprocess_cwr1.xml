@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.cancelJumperBASubprocess_cwr1">
+  <activity name="start" type="seqActivity">
+    <guid>{9734104c-1830-457d-aabd-7a78e3b9e9c9}</guid>
+    <label>Start Cancel Jumper BA Subprocess</label>
+    <x>47.100975</x>
+    <y>30.0</y>
+    <childList>
+      <child name="cancelJumperBAAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHClickInterface.CancelJumperBAAutomaticTask</element>
+        <guid>{f5b8faf8-0a36-44e6-9234-6970766843b1}</guid>
+        <label>Cancel Jumper BA Automatic Task</label>
+        <syc>true</syc>
+        <x>91.166016</x>
+        <y>130.6414</y>
+      </child>
+      <child name="sucess" type="switchActivity">
+        <guid>{26afce89-6510-4bc7-95ee-8e5b8851fcbb}</guid>
+        <label>Success?</label>
+        <x>94.83887</x>
+        <y>269.4461</y>
+        <childList>
+          <child name="yes" type="caseActivity">
+            <guid>{d1bb32ed-0102-4d3c-8d8f-5cbd8b301983}</guid>
+            <label>Yes</label>
+            <x>149.85156</x>
+            <y>366.14728</y>
+          </child>
+          <child name="no" type="caseActivity">
+            <guid>{b7c303c5-80a0-4c59-896c-b0906e1e849c}</guid>
+            <label>No</label>
+            <x>54.83008</x>
+            <y>369.4461</y>
+            <childList>
+              <child name="handleError" type="seqActivity">
+                <guid>{529c7ff9-6015-4775-a840-a3a4318bc5b1}</guid>
+                <label>Handle Jumper BA Error</label>
+                <x>51.301567</x>
+                <y>367.1174</y>
+                <childList>
+                  <child name="cancelJumperBAHandleError" type="subflowActivity">
+                    <element>prrev_FTTHClickInterface.CancelJumperBAHandleError_cwr1</element>
+                    <guid>{7b52320d-e0b4-4d07-b4be-859574ef5ded}</guid>
+                    <label>Cancel Jumper BA Handle Error</label>
+                    <x>50.17383</x>
+                    <y>462.84845</y>
+                  </child>
+                  <child name="repeat" type="repeatActivity">
+                    <element>prrev_FTTHProcess.cancelJumperBASubprocess_cwr1/seqActivity_start</element>
+                    <guid>{d3a84b15-96b3-4065-b6da-930227003b08}</guid>
+                    <label>repeat</label>
+                    <x>30.0</x>
+                    <y>603.65314</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var atividade = Global.getConfigVariable("REALIZAR_JUMPER");
+
+                  var status = FTTHCommon.getStatusActivity(orderId, atividade);
+
+
+                  if(status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      return true;
+                  }
+
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>cancel Jumper BA Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.cancelJumperBASubprocess</process>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.RestoreIPTVAPCHandleErrorTask">
+  <activity name="RestoreIPTVAPCHandleErrorTaskStart" type="seqActivity">
+    <guid>{4c7f7f86-7b24-46ba-b207-6765d0c5b242}</guid>
+    <label>Restore IPTV APC Handle Error Task Start</label>
+    <x>80.25323</x>
+    <y>31.0</y>
+    <childList>
+      <child name="RestoreIPTVAPCHandleError" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVAPCHandleError</element>
+        <guid>{34fa649f-3e6b-4537-92f4-fe54f75d4741}</guid>
+        <label>Restore IPTV APC Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>94.19678</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{c4878758-2aef-440f-a1b9-014477ef005c}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="RestoreIPTVAPCHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVAPCHandleErrorIssue</element>
+                <guid>{cf68329a-f1f8-4d70-9baa-70f33b09c682}</guid>
+                <label>Restore IPTV APC Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>161.9349</x>
+                <y>413.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_APC");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="RestoreIPTVAPCHandleErrorRecend" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_RestoreIPTVAPCHandleErrorResend</element>
+                <guid>{411b0c2a-7708-4edd-ba9f-04d418194a5b}</guid>
+                <label>Restore IPTV APC Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>35.18799</x>
+                <y>416.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_APC");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{b9d1c197-88e0-4a2f-a678-f9f572e853a8}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>102.0</x>
+        <y>270.0</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso o bloqueio de IPTV autom&#225;tica n&#227;o tenha sido realizada com
+      sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{8d03197d-6912-4a74-86bf-dcfc5f8bab4c}</guid>
+  <label>Restore IPTV APC Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process>

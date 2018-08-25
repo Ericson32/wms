@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.refreshGrid">
+  <label>Refresh Grid</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="model" type="rifp"/>
+    <parameter name="equipmentType" type="rifp"/>
+    <parameter name="grid" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        AUTHOR:         Marcos Souza - marcossouza@br.ibm.com
+        DATE:           26/01/2018
+        DESCRIPTION:    Script Responsável pelo refresh da grid do formulário.
+    */
+
+    var messages = new Document("FTTHOrder:changeCPEGrid");
+    messages.tipoEquipamento = equipmentType;
+    messages.cwOrderId = model.cwOrderId;
+    messages.idAtivo = model.idAtivo;
+
+    //04/05/2018 - Correção finder para buscar as transações dos equipamentos adicionados em tempo de BA que não posssuem idAtivo
+    if(equipmentType == "STB" && (!model.idAtivo || model.idAtivo == "")){
+        messages.equipmentId = model.cwDocId;
+    }
+    var result = Finder.runSearch("FTTHOrder:changeCPEGridFinder", messages);
+
+    if(result && result.length < 1){
+        result = null;
+    }
+
+    grid.result = result;
+    grid.updateList;
+  ]]></script>
+</script>

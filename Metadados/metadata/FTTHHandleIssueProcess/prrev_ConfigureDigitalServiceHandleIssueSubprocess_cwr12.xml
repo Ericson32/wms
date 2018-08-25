@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ConfigureDigitalServiceHandleIssueSubprocess_cwr12">
+  <activity name="ConfigureDigitalServiceHandleIssueStart" type="seqActivity">
+    <guid>{6bb4e603-c00f-4353-b332-90f959dc44b0}</guid>
+    <label>Suspend VoIP VMP Service Handle Issue Start</label>
+    <x>94.551575</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{79fd30f5-02f4-4a99-bc83-7973d0d5c572}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>95.88751</x>
+        <y>124.76093</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{9a28f869-b4b6-4593-9369-03c27d930ce6}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>98.68653</x>
+            <y>219.52185</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{7c311693-5263-4661-ab2e-cbb11630aedf}</guid>
+        <label>Check Issue Type</label>
+        <x>100.69239</x>
+        <y>345.62537</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{ea569332-1c39-468b-bbb4-60e3fa221ab1}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{ce8897a5-604f-4de3-90c2-5de190695e86}</guid>
+                <label>Technical Issue</label>
+                <x>161.70839</x>
+                <y>457.0277</y>
+                <childList>
+                  <child name="SuspendVoIPSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureDigitalServiceSolveIssueTask_cwr4</element>
+                    <guid>{e2553ad8-fa0a-40fc-ac6f-d66e7e976bf6}</guid>
+                    <label>Configure Digital Service Solve Issue Task</label>
+                    <x>160.04103</x>
+                    <y>549.0277</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{f1eb0198-aebc-493c-af3a-e7aed3a64d3c}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>164.37209</x>
+                    <y>689.8324</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{f93600b5-ac27-4ac8-ae32-1754e2a35727}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{0f10445b-dbb9-4692-94da-d3499b266f90}</guid>
+                <label>Client Issue</label>
+                <x>47.020515</x>
+                <y>457.0277</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{a91d7d95-98d9-4287-accd-72eeba7e3998}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>29.999985</x>
+                    <y>557.3783</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <label>Configure Digital Service Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ConfigureDigitalServiceHandleIssueSubprocess</process>
+  <revision>12</revision>
+  <type>Sub-flow</type>
+</process__revision>

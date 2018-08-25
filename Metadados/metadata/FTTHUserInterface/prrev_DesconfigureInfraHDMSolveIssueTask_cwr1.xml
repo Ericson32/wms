@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DesconfigureInfraHDMSolveIssueTask_cwr1">
+  <activity name="startDesconfigureInfraHDMSolveIssue" type="seqActivity">
+    <guid>{0ac7fc88-035d-46fd-966c-daba5cfd742c}</guid>
+    <label>Start Desconfigure Infra HDM Solve Issue</label>
+    <x>32.747658</x>
+    <y>31.0</y>
+    <childList>
+      <child name="DesconfigureInfraHDMSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureInfraHDMSolveIssue</element>
+        <guid>{65a60747-7f29-4e49-8768-320e1a62affe}</guid>
+        <label>Desconfigure Infra HDM Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>124.76094</y>
+      </child>
+      <child name="DesconfigureInfraHDMSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureInfraHDMSolveIssueSuccess</element>
+        <guid>{4ec6f8bc-4a27-4363-8615-8d0463891759}</guid>
+        <label>Desconfigure Infra HDM Solve Issue - Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>362.26678</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA_HDM");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{8185ed8a-c0e4-4a51-b29d-4ebddfc4db03}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>250.86444</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_INFRA_HDM");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar Infra - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Desconfigure Infra HDM Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DesconfigureInfraHDMSolveIssueTask</process>
+  <type>Sub-flow</type>
+</process__revision>

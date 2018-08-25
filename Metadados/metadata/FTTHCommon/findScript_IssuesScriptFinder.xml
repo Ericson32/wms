@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findScript name="FTTHCommon.IssuesScriptFinder">
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <label>Issues Script Finder</label>
+  <metaVersion>3</metaVersion>
+  <output>doc_FTTHCommon.Issues</output>
+  <type>script</type>
+  <vDetailForm>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</vDetailForm>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        var searchDoc = new Document ("FTTHCommon.ActivitySearch");
+        var count;
+        var i;
+        var codPendenciasResult;
+        var enumDoc;
+        Global.logInfo(UserProfile.getUserTask());
+        /*
+        searchDoc.atividade = UserProfile.getUserTask();
+        codPendenciasResult  = Finder.runSearch ("FTTHCommon.IssuesFinder", searchDoc);
+
+        for (i = 0; i < codPendenciasResult.length; i++){
+            objectList.addLast(codPendenciasResult[i]);
+        }
+
+        return objectList;
+        */
+
+        //Caso o UserTask() seja Solve Issue a busca será feita pela chave atividadePendencia
+        /*if(UserProfile.getUserTask().search("SolveIssue") != -1)
+        {
+            searchDoc.atividadePendencia = UserProfile.getUserTask();
+        }
+        else{
+            searchDoc.atividade = UserProfile.getUserTask();
+        }*/
+
+        FTTHCommon.createBreakpoint();
+        searchDoc.orderId = this.parent.cwOrderId;
+        codPendenciasResult  = Finder.runSearch ("FTTHCommon.IssueDropdownFinder", searchDoc);
+
+        for (i = 0; i < codPendenciasResult.length; i++){
+            objectList.addLast(codPendenciasResult[i]);
+        }
+
+        return codPendenciasResult;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>Issues</label>
+        <valueType>doc_FTTHCommon.Issues</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHCommon.Issues/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="IssuesScriptFinderResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findScript_FTTHCommon.IssuesScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="cwDocId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.IssuesScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Issues/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="atividade" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.IssuesScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Issues/leaf_atividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codPendencia" type="elslct">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.IssuesScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Issues/leaf_codPendencia</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="descPendencia" type="elslct">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.IssuesScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Issues/leaf_descPendencia</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoPendencia" type="elslct">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.IssuesScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.Issues/leaf_tipoPendencia</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_FTTHCommon.IssuesScriptFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+  <viewList>
+    <view name="IssuesScriptFinderView" type="findVView">
+      <outputOverlay>findScript_FTTHCommon.IssuesScriptFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+    </view>
+  </viewList>
+</findScript>

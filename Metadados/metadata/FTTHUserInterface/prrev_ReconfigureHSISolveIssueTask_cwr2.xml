@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ReconfigureHSISolveIssueTask_cwr2">
+  <activity name="startReconfigureHSISolveIssue" type="seqActivity">
+    <guid>{41c1a519-5181-4f7c-967e-3282a1c21cd9}</guid>
+    <label>Start Reconfigure HSI Solve Issue</label>
+    <x>87.35274</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureHSISolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureHSISolveIssue</element>
+        <guid>{ab804755-94d5-4ecf-b052-d9dbc5ec9766}</guid>
+        <label>Reconfigure HSI Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>88.35254</x>
+        <y>124.76094</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{dd79c57c-bf07-47cd-a0ef-9864fb485961}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>36.183105</x>
+        <y>250.86444</y>
+        <childList>
+          <child name="ReconfigureHSISolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureHSISolveIssueChangeIssue</element>
+            <guid>{8a8b6eaa-414c-41bc-aad0-024705bd8420}</guid>
+            <label>Reconfigure HSI Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>159.64404</x>
+            <y>391.96796</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_HSI");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReconfigureHSISolveIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureHSISolveIssueSuccess</element>
+            <guid>{d88e7779-4c74-4066-9ceb-f6780887f3ca}</guid>
+            <label>Reconfigure HSI Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>399.31854</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_HSI");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{97d029ed-7329-459a-9595-b1264c1aabbc}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>128.2124</x>
+        <y>258.21503</y>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Reconfigurar HSI - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Reconfigure HSI Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ReconfigureHSISolveIssueTask</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

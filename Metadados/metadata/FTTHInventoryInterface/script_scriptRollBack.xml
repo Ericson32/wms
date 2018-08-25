@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHInventoryInterface.scriptRollBack">
+  <label>scriptRollBack</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="process" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Processo do CW&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var validateEquipmentDoc = process.processDocument;
+    var isSTB = false;
+    var isONT = null; //Se isONT false então o equipamento é HGW ::: Se não é STB então verifica se é ONT  ::: Se não é ONT é HGW;
+    var cworderId = process.id;
+    var orderId = process.processOrder.order.id;
+    var isOriginal = (validateEquipmentDoc.numeroSerieEquipamentoOriginal) ? true : false;
+
+    //Verificar se o tipo de equipamento é STB, ONT ou HGW
+    if(isOriginal){
+        isSTB = validateEquipmentDoc.tipoEquipamentoOriginal == "STB" ? true : false;
+        isONT = !isSTB && validateEquipmentDoc.tipoEquipamentoOriginal == "ONT"?true:false;
+
+    }else{
+        isSTB = (validateEquipmentDoc.tipoEquipamentoNovo == "STB") ? true:false;
+        isONT = !isSTB && validateEquipmentDoc.tipoEquipamentoNovo == "ONT"?true:false;
+    }
+
+
+    //verificar o tipo de equipamento para salvar a validação;
+    var equip = recuperarEquipamento(validateEquipmentDoc, isOriginal, isSTB, isONT, orderId);
+    equip.statusAcao = "alterado";
+    equip.save();
+
+
+    return;
+
+    /****INICIO DAS FUNCTIONS *****/
+    function recuperarEquipamento(documentoT, isOriginal, isSTB, isONT, orderId){
+        var equipamento;
+        var searchDoc;
+
+        if(isOriginal){
+            if(isSTB){
+                searchDoc = new Document("FTTHOrder:EquipmentData");
+                searchDoc.cwOrderId = orderId;
+                searchDoc.idAtivo = documentoT.idAtivoOriginal;
+
+                equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc)[0]
+                equipamento.isNETWIN = false;
+
+            } else{
+                searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                searchDoc.cwOrderId = orderId;
+                equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc)[0];
+
+                if(isONT){
+                    equipamento.isNETWIN = !equipamento.isNETWIN;
+                }else{
+                    equipamento.isNETWINHGW = !equipamento.isNETWINHGW;
+                }
+
+            }
+
+        }else{
+
+            if(isSTB){
+                searchDoc = new Document("FTTHOrder:EquipmentData");
+                searchDoc.cwOrderId = orderId;
+                searchDoc.idAtivo = documentoT.idAtivoNovo;
+
+                equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc)[0];
+                equipamento.isNETWIN = !equipamento.isNETWIN;
+
+            } else{
+                searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                searchDoc.cwOrderId = orderId;
+
+                equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc)[0];
+                if(isONT){
+                    equipamento.isNETWIN = !equipamento.isNETWIN;
+
+                }else{
+                    equipamento.isNETWINHGW = !equipamento.isNETWINHGW;
+                }
+            }
+        }
+        return equipamento;
+    }
+  ]]></script>
+</script>

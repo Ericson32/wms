@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.UpdateFacilitySubprocess">
+  <activity name="UpdateFacilityStart" type="seqActivity">
+    <guid>{45e5bcbc-317a-47a4-8372-c3e10196b05f}</guid>
+    <label>Update Facility Start</label>
+    <x>89.288086</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateCPE" type="seqActivity">
+        <guid>{d6c43ff3-54c8-4932-8e46-ff11c3f4bdc6}</guid>
+        <label>Update CPE</label>
+        <x>94.35293</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="CheckNeedToUpdateCPE" type="switchActivity">
+            <guid>{55db22c5-c4e3-4e79-bab7-d7bf8dba5d2b}</guid>
+            <label>Check Need To Update CPE</label>
+            <x>94.021484</x>
+            <y>216.76093</y>
+            <childList>
+              <child name="NotNeed" type="caseActivity">
+                <guid>{64cbd1bd-33e4-45e9-a9f4-125da7a3afbd}</guid>
+                <label>Not Need</label>
+                <x>146.20264</x>
+                <y>372.26678</y>
+              </child>
+              <child name="Need" type="caseActivity">
+                <guid>{2610a672-9fbc-4339-a15d-9c16c8fb79a0}</guid>
+                <label>Need</label>
+                <x>91.62305</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="UpdateCPESubprocess" type="subflowActivity">
+                    <element>proc_FTTHProcess.UpdateCPESubprocess</element>
+                    <guid>{da3fc0d5-b555-43a4-b544-ce4b5cfb1435}</guid>
+                    <label>Update CPE Subprocess</label>
+                    <x>30.833496</x>
+                    <y>357.5656</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var atividade = "%ATUALIZAR_EQUIPAMENTO_CLIENTE%";
+                      var result = FTTHCommon.defineActivityNecessity (orderId, atividade);
+                      return (result);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="UpdateCabling" type="seqActivity">
+        <guid>{eff54d09-73d9-472b-9e3e-965d3ed7a91d}</guid>
+        <label>Update Cabling</label>
+        <x>87.94512</x>
+        <y>483.66913</y>
+        <childList>
+          <child name="CheckNeedToUpdateCabling" type="switchActivity">
+            <guid>{8cf610c6-e006-4003-8acb-b196417e4390}</guid>
+            <label>Check Need To Update Cabling</label>
+            <x>94.021484</x>
+            <y>575.6691</y>
+            <childList>
+              <child name="NotNeed" type="caseActivity">
+                <guid>{62df2c76-5b50-4781-8ef4-7e50e202d2cd}</guid>
+                <label>Not [Need</label>
+                <x>145.36914</x>
+                <y>731.175</y>
+              </child>
+              <child name="Need" type="caseActivity">
+                <guid>{8b1ee7ca-3277-4a4e-945a-651f8afd4cc5}</guid>
+                <label>Need</label>
+                <x>93.18799</x>
+                <y>675.6691</y>
+                <childList>
+                  <child name="UpdateCablingSubprocess" type="subflowActivity">
+                    <element>proc_FTTHProcess.UpdateCablingSubprocess</element>
+                    <guid>{b106508c-369d-4d09-9674-3d6aa7d6b123}</guid>
+                    <label>Update Cabling Subprocess</label>
+                    <x>30.0</x>
+                    <y>716.4738</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var atividade = "%ATUALIZAR_CABEAMENTO_INTERNO%";
+                      var result = FTTHCommon.defineActivityNecessity (orderId, atividade);
+                      return (result);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{97648d8d-8e0d-44ba-868a-37805cd5b997}</guid>
+  <label>Update Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>12</revision>
+  <type>Sub-flow</type>
+</process>

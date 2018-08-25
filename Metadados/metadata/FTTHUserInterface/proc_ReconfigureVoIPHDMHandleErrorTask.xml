@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ReconfigureVoIPHDMHandleErrorTask">
+  <activity name="startReconfigureVoIPHDMHandleError" type="seqActivity">
+    <guid>{976e7cd5-e007-47f6-b406-edb8dbb5d85c}</guid>
+    <label>Start Reconfigure VoIP HDM Handle Error</label>
+    <x>86.754295</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureVoIPHDMSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHDMHandleError</element>
+        <guid>{28d84de1-8672-4492-8b71-1b34147b1918}</guid>
+        <label>Reconfigure VoIP HDM Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>88.35254</x>
+        <y>124.76094</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{d6d32b33-32a2-4b9f-a20d-08f129e9679e}</guid>
+        <label>Wait Manual Activity</label>
+        <x>36.675293</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="ReconfigureVoIPHDMHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHDMHandleErrorIssue</element>
+            <guid>{dc33512e-4531-42a1-a776-be84ca8467c1}</guid>
+            <label>Reconfigure VoIP HDM Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>159.47998</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_HDM");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReconfigureVoIPHDMHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHDMHandleErrorResend</element>
+            <guid>{4457671a-831c-4612-8b36-f900ec95d0f2}</guid>
+            <label>Reconfigure VoIP HDM Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>26.0</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_HDM");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{f2841d33-47ea-4964-a57e-3279ca1d6f23}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>128.04834</x>
+        <y>265.5656</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_HDM");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a reconfigura&#231;&#227;o de VoIP autom&#225;tica n&#227;o tenha sido
+      realizada com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser
+      finalizada com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{46aa0d5b-db85-46dd-b5ba-b3910f1e085b}</guid>
+  <label>Reconfigure VoIP HDM Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

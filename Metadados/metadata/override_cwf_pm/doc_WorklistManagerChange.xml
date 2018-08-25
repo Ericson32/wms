@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document filenameHash="b30b0adaddb042ea017a938cba6dfb03" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="override_cwf_pm.WorklistManagerChange">
+  <extends>doc_cwf_pm.WorklistManagerChange</extends>
+  <guid>{ef72dd5a-2e82-45f1-a04e-f1c0857a66c9}</guid>
+  <label>Worklist Manager Change</label>
+  <metaVersion>3</metaVersion>
+  <methodList>
+    <method name="Add" type="permMethod">
+      <script>return true;</script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.DocumentUserInterface</extends>
+    <label>Worklist Manager Change</label>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_override_cwf_pm.WorklistManagerChange</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Generated" type="vform">
+            <label>Generated</label>
+            <root name="WorklistManagerChangeGrid" type="elgrd">
+              <colWidths>160,160,160,160</colWidths>
+              <fillSpace>true</fillSpace>
+              <numOfCols>4</numOfCols>
+              <width>590px</width>
+              <elementList>
+                <element name="WorklistManagerChangeHeader" type="elhdr">
+                  <label>Worklist Manager Change</label>
+                </element>
+                <element name="PRIORITY" type="elslct">
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>doc_override_cwf_pm.WorklistManagerChange/ui_UserInterface/uivar_model</variablePath>
+                      <variablePath>doc_cwf_pm.WorklistManagerChange/leaf_PRIORITY</variablePath>
+                    </variablePathList>
+                  </variable>
+                </element>
+                <element name="DUE_DATE" type="eldate">
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>doc_override_cwf_pm.WorklistManagerChange/ui_UserInterface/uivar_model</variablePath>
+                      <variablePath>doc_cwf_pm.WorklistManagerChange/leaf_DUE_DATE</variablePath>
+                    </variablePathList>
+                  </variable>
+                </element>
+                <element name="USER_ID" type="elslct">
+                  <label>User ID</label>
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>doc_override_cwf_pm.WorklistManagerChange/ui_UserInterface/uivar_model</variablePath>
+                      <variablePath>doc_cwf_pm.WorklistManagerChange/leaf_USER_ID</variablePath>
+                    </variablePathList>
+                  </variable>
+                </element>
+              </elementList>
+            </root>
+          </overlay>
+          <overlay name="Default" type="vform">
+            <label>Default</label>
+            <root name="ModifyTaskGrid" type="elgrd">
+              <colWidths>150</colWidths>
+              <fillSpace>true</fillSpace>
+              <elementList>
+                <element name="ModifyTask_Header" type="elhdr">
+                  <label>Modify Task</label>
+                </element>
+                <element name="DUE_DATE" type="eldate">
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>doc_override_cwf_pm.WorklistManagerChange/ui_UserInterface/uivar_model</variablePath>
+                      <variablePath>doc_cwf_pm.WorklistManagerChange/leaf_DUE_DATE</variablePath>
+                    </variablePathList>
+                  </variable>
+                </element>
+                <element name="PRIORITY" type="elslct">
+                  <variable type="varPath">
+                    <variablePathList>
+                      <variablePath>doc_override_cwf_pm.WorklistManagerChange/ui_UserInterface/uivar_model</variablePath>
+                      <variablePath>doc_cwf_pm.WorklistManagerChange/leaf_PRIORITY</variablePath>
+                    </variablePathList>
+                  </variable>
+                </element>
+                <element name="ApplyChanges" type="elbtn">
+                  <clickMethod type="varPath">
+                    <variablePathList>
+                      <variablePath>doc_override_cwf_pm.WorklistManagerChange/ui_UserInterface/usrActionMethod_ApplyWLItemChanges</variablePath>
+                    </variablePathList>
+                  </clickMethod>
+                  <label>Apply Changes</label>
+                  <width>130px</width>
+                </element>
+              </elementList>
+            </root>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/vform_Menu</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/vform_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="hl1" type="eldel"/>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="ApplyWLItemChanges" type="usrActionMethod">
+        <script><![CDATA[
+          if (!this.model.PRIORITY && !this.model.DUE_DATE && !this.model.USER_ID)
+                Global.closeDialog(this.parent);
+
+          var finder = Global.getWorkListFinder();      // from user worklist
+          if(finder==null)                             // from worklist manager
+                finder = this.parent.owner.model;
+          if(finder!=null){
+              FTTHBackoffice.addAuditEntry( Global.getUserId(), 'WORKLIST', 'CHANGE', 'UserId: ' + this.model.USER_ID + ' priority: ' + this.model.PRIORITY + ' dueDate:' + this.model.DUE_DATE, 'WORKLIST');
+              finder.changeWLItem(this.parent.owner.result.selected, this.model.USER_ID, this.model.PRIORITY, this.model.DUE_DATE);
+          }
+          if(this.parent.owner!=null)
+                this.parent.owner.searchAction();
+          Global.closeDialog(this.parent);
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

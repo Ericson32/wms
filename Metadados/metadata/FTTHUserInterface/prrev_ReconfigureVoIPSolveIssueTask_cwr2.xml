@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ReconfigureVoIPSolveIssueTask_cwr2">
+  <activity name="startReconfigureVoIPSolveIssue" type="seqActivity">
+    <guid>{2865433e-3241-43ae-8ab0-33f7c1da0b4c}</guid>
+    <label>Start Reconfigure VoIP Solve Issue</label>
+    <x>87.35274</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureVoIPSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPSolveIssue</element>
+        <guid>{ee980421-a851-417f-8217-6ad171756eea}</guid>
+        <label>Reconfigure VoIP Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>88.35254</x>
+        <y>124.760925</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{e7ef2084-f163-4082-85d0-f97186d92322}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>36.183105</x>
+        <y>250.86444</y>
+        <childList>
+          <child name="ReconfigureVoIPSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPSolveIssueChangeIssue</element>
+            <guid>{a44fd6d5-8dd0-4403-ba4b-ef89e7366820}</guid>
+            <label>Reconfigure VoIP Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>159.64404</x>
+            <y>391.96796</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReconfigureVoIPSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPSolveIssueSuccess</element>
+            <guid>{ddb459dc-609d-47fc-852a-9510db9936b3}</guid>
+            <label>Reconfigure VoIP Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>399.31854</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{b9aea32e-b211-4c2d-abcc-df5f882f4a16}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>128.2124</x>
+        <y>258.21503</y>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Reconfigurar VoIP - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Reconfigure VoIP Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ReconfigureVoIPSolveIssueTask</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

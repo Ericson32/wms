@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHOrderManagementInterface.orderMaxRevision">
+  <dbSchema>ORDER</dbSchema>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHOrderManagementInterface.OrderHeaderSearch</input>
+  <label>Retorna a ordem com maior revisão - Utilizado para Reparo</label>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHOrder.OrderHeader</output>
+  <type>SQL</type>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        select {+*+}
+        from TBI_ORDEM_SERVICO
+        where {[1] num_pedido = ?}
+        and revisao = (select max(TO_NUMBER(revisao)) from TBI_ORDEM_SERVICO where {[1] num_pedido = ?})
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <valueType>doc_FTTHOrder.OrderHeader</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHOrderManagementInterface.OrderHeaderSearch/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHOrder.OrderHeader/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="orderMaxRevisionResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="numeroOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_numeroOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numeroRFSPON" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_numeroRFSPON</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numeroPedido" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_numeroPedido</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numeroOSInventario" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_numeroOSInventario</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numeroItemOSInventario" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_numeroItemOSInventario</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoOS" type="elslct">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_tipoOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="listaSolicitacoes" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_listaSolicitacoes</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="acao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_acao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="listaAtividades" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_listaAtividades</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataAbertura" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_dataAbertura</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataPromessa" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_dataPromessa</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataFechamento" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_dataFechamento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataAtivacao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_dataAtivacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="estadoOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_estadoOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="estadoTramitacao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_estadoTramitacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="permiteCancelamento" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_permiteCancelamento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="countIPTV" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_countIPTV</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="cwDocId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="cwOrderId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_cwOrderId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="cwParentId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_cwParentId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="lastUpdatedDate" type="eldate">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_lastUpdatedDate</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="updatedBy" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_updatedBy</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataAgendamento" type="eldate">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_dataAgendamento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="idProcesso" type="elfld">
+                        <dataLength>9</dataLength>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_idProcesso</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="versao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_versao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataCancelamento" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_dataCancelamento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoPromocaoOriginal" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_tipoPromocaoOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoPromocao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_tipoPromocao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoPromocaoAcao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_tipoPromocaoAcao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="ufInfo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_ufInfo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="descProblema" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_descProblema</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="horaPromessa" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_horaPromessa</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="flagBSIM" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_flagBSIM</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="aprazado" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_aprazado</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codAtividade" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_codAtividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codPendencia" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_codPendencia</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="origemPedido" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_origemPedido</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="revisao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_revisao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="flagJumperIssue" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_flagJumperIssue</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="flagEquipmentIssue" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_flagEquipmentIssue</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="sistema" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_sistema</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoInfo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_tipoInfo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="bundleId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_bundleId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="idUnitTransaction" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_idUnitTransaction</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="flagProcessandoTroca" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_flagProcessandoTroca</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="flagHistoryFlow" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHOrder.OrderHeader/leaf_flagHistoryFlow</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+  <viewList>
+    <view name="orderMaxRevisionView" type="findVView">
+      <outputOverlay>findSql_FTTHOrderManagementInterface.orderMaxRevision/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+    </view>
+  </viewList>
+</findSql>

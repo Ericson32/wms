@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHUserInterface.InstallJumperManualTaskParticipant">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Esse participant representa a pessoa respons&#225;vel por realizar as
+      atividades manuais de Instalar Jumper.
+    </p>
+  ]]></description>
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M365DT0H0M0S</length>
+  </duration>
+  <guid>{801023ec-4041-4c8f-9767-bd75280a7db7}</guid>
+  <interface>iface_FTTHUserInterface.InstallJumperManualTaskInterface</interface>
+  <label>Install Jumper Manual Task Participant</label>
+  <metaVersion>3</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InstallJumperManualTaskInterface/oper_InstallJumperSuccess</operation>
+      <tasksList>
+        <tasks>InstallJumperHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var msg = FTTHCommon.mandatoryFieldsManualActivities("Instalar Jumper", worklistOrder, worklistItem.workItemDocument.Operation);
+            if(msg != null){
+                var doc = new Document ("FTTHCommon.MandatoryMessage");
+                doc.fields = msg;
+                return doc;
+            }
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+            var matriculaUsuario = Global.trim(userDoc.profileId);
+            var nomeUsuario = Global.trim(userDoc.userName);
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+            ord.save();
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InstallJumperManualTaskInterface/oper_InstallJumperIssue</operation>
+      <tasksList>
+        <tasks>InstallJumperHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation(Global.getConfigVariable("REALIZAR_JUMPER"), worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+
+            var matriculaUsuario;// = Global.trim(userDoc.profileId);
+            var nomeUsuario;// = Global.trim(userDoc.userName);
+            if(userDoc){
+                matriculaUsuario = Global.trim(userDoc.profileId);
+                nomeUsuario = Global.trim(userDoc.userName);
+            }
+
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+
+            ord.save();
+
+
+
+            try{
+                if(confirmObject && confirmObject == "ROLLOUTAR_OS"){
+
+                    Global.logInfo('OS pega pelo GP, pendenciando com pendencia 7032');
+                    Global.logError('OS pega pelo GP, pendenciando com pendencia 7032');
+
+                    var isCloseBA  = false;
+                    var newIssueDoc = FTTHHandleIssueProcess.createNewIssue(ord, "7032", "PENDÊNCIA DE ROLLOUT", "Pendencia de Rollout", worklistItem.workItemDocument.Operation, isCloseBA);
+                    //Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', newIssueDoc);
+                }
+            } catch(e){
+                Global.logInfo('OS pega pelo GP, pendenciando com pendencia 7032 - ERRO - ' + ord.OrderHeader.cwOrderId);
+                Global.logError('OS pega pelo GP, pendenciando com pendencia 7032 - ERRO - ' + ord.OrderHeader.cwOrderId);
+            }
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>manualActivity</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

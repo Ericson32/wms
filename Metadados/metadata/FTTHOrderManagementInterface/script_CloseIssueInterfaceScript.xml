@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CloseIssueInterfaceScript">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel por:
+    </p>
+    <p style="margin-top: 0">
+      - Montar o XML de fechamento de Pend&#234;ncia que deve ser enviado ao OM;
+    </p>
+    <p style="margin-top: 0">
+      - Enviar o XML pra o processo de fechamento de Pend&#234;ncia;
+    </p>
+  ]]></description>
+  <label>Close Issue Interface Script</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf_pm.PROCESS_ID</type>
+    </parameter>
+    <parameter name="msg" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.notificacao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var LOG_INTERFACE = "OM";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_OM');
+    var LOG_ACTIVITY = "Close Issue Automatic Task";
+    var LOG_SCRIPT = "Close Issue Interface Script";
+    var LOG_OPERATION = "Close Issue Operation";
+
+    //20121019 EPC inicio
+    //var dataAtivacao = ordem.OrderHeader.dataAtivacao;
+    //if(dataAtivacao == null) {
+    //    FTTHCommon.log(ordem.id, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, 'O campo dataAtivacao em OrderHeader eh nulo.', null, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+    //    dataAtivacao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss'); // TODO remover isso!
+        //return msg;
+    //}
+    //20121019 EPC fim
+
+    msg.idMensagem = ordem.OrderHeader.numeroPedido;
+    msg.correlationId = ordem.OrderHeader.numeroOS;
+    msg.status = '0';
+    msg.descricao = 'Close Issue Operation';
+    msg.timestampExecucao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    //msg.listaAtributos.atributo[0].nome = 'dataAtivacao';
+    //msg.listaAtributos.atributo[0].valor = Calendar.formatDate(dataAtivacao, 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    //20121019 EPC inicio
+    //msg.listaAtributos.atributo[1].nome = 'numeroOS';
+    //msg.listaAtributos.atributo[1].valor = ordem.OrderHeader.numeroOS;
+    //20121019 EPC fim
+
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = ordem.OrderHeader.cwOrderId;
+    ops.indCancelamento = 0;
+
+    var parameters = Finder.runSearch('FTTHOrderManagementInterface:OrderParametersFinder', ops);
+
+    for (var i = 0; i < parameters.size; i++) {
+        var param = parameters[i];
+        msg.operacoes.operacao[i] = param.operacao;
+    }
+
+    //msg.pendencia.atividade = ...;
+    //msg.pendencia.codigo = ...;
+    //msg.pendencia.descricao = ...;
+    //msg.pendencia.tipo = ...;
+    //msg.pendencia.dataAbertura = ...;
+    //msg.pendencia.dataFechamento = ...;
+    //msg.pendencia.status = ...;
+
+    return msg;
+  ]]></script>
+</script>

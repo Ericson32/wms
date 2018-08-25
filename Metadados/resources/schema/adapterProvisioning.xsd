@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema targetNamespace="http://oi.com.br/adapterProvisioning"
+		xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:adapterProvisioning="http://oi.com.br/adapterProvisioning"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"	
+xmlns:cwf_system="http://www.conceptwave.com/com/conceptwave/system"
+	xmlns:cwf="http://www.conceptwave.com/system"
+	xmlns:somOrder="http://oi.com.br/som/order">
+
+
+	<import namespace="http://www.conceptwave.com/com/conceptwave/system" schemaLocation="cwf_system.xsd"/>
+	<import namespace="http://www.conceptwave.com/system" schemaLocation="cwf.xsd"/>
+	<import namespace="http://oi.com.br/som/order" schemaLocation="somOrder.xsd"/>
+
+	<annotation>
+		<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Namespace referente ao adaptador do Provisioning.    &lt;/p&gt;</documentation>
+		<appinfo>
+			<label>Provisioning Adapter</label>
+		</appinfo>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<simpleType name="endereco_id">
+		<annotation>
+			<documentation>endereco_id</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="item_operacao">
+		<annotation>
+			<documentation>item_operacao</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="productType">
+		<annotation>
+			<documentation>&amp;lt;p style=&#34;margin-top: 0&#34;&amp;gt;      Data type que contém o tipo do produto.    &amp;lt;/p&amp;gt;</documentation>
+			<appinfo>
+				<label>productType</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="32"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="provOperation">
+		<annotation>
+			<documentation>&amp;lt;p style=&#34;margin-top: 0&#34;&amp;gt;      Data type que contém uma operação de provisionamento.    &amp;lt;/p&amp;gt;</documentation>
+			<appinfo>
+				<label>provOperation</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="64"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="acesso_acao">
+		<annotation>
+			<documentation>acesso_acao</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="atributo_acao">
+		<annotation>
+			<documentation>atributo_acao</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<enumeration value="adicionar">
+				<annotation>
+					<documentation>adicionar</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="remover">
+				<annotation>
+					<documentation>remover</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="modificar">
+				<annotation>
+					<documentation>modificar</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="-">
+				<annotation>
+					<documentation>-</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="TRANSFER">
+				<annotation>
+					<documentation>TRANSFER</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="siebelField">
+		<annotation>
+			<documentation>Data type que cont&amp;#233;m o nome do campo do Siebel referente ao idCatalogo.</documentation>
+			<appinfo>
+				<label>siebelField</label>
+			</appinfo>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="50"/>
+		</restriction>
+	</simpleType>
+
+	<!-- Structures -->
+
+	<element name="requisicao">
+		<complexType >
+		<annotation>
+			<documentation>requisicao</documentation>
+		</annotation>
+			<sequence>
+				<element name="idMensagem" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idOperacaoOM" minOccurs="0" maxOccurs="1" type="somOrder:operationType"/>
+				<element name="correlationID" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idPedido" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="acesso" minOccurs="1" maxOccurs="1" type="adapterProvisioning:acesso"/>
+				<element name="plano" minOccurs="1" maxOccurs="2" type="adapterProvisioning:planoType"/>
+				<element name="bloqueios" minOccurs="1" maxOccurs="1" type="adapterProvisioning:bloqueios"/>
+				<element name="timestamp" minOccurs="1" maxOccurs="1" type="xsd:dateTime"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="listaDeOperacoesType">
+		<annotation>
+			<documentation>listaDeOperacoesType</documentation>
+		</annotation>
+			<sequence>
+				<element name="operacao" minOccurs="1" maxOccurs="unbounded" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="bloqueio">
+		<annotation>
+			<documentation>bloqueio</documentation>
+		</annotation>
+			<sequence>
+				<element name="idCatalogo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="atributo">
+		<annotation>
+			<documentation>atributo</documentation>
+		</annotation>
+			<sequence>
+				<element name="nome" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="valor" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="acao" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="listaDeAtributosType">
+		<annotation>
+			<documentation>listaDeAtributosType</documentation>
+		</annotation>
+			<sequence>
+				<element name="atributo" minOccurs="0" maxOccurs="unbounded" type="adapterProvisioning:atributo"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="bloqueios">
+		<annotation>
+			<documentation>bloqueios</documentation>
+		</annotation>
+			<sequence>
+				<element name="bloqueio" minOccurs="0" maxOccurs="unbounded" type="adapterProvisioning:bloqueio"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="acesso">
+		<annotation>
+			<documentation>acesso</documentation>
+		</annotation>
+			<sequence>
+				<element name="idCatalogo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idEndereco" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="acao" minOccurs="1" maxOccurs="1" type="adapterProvisioning:acesso_acao"/>
+				<element name="listaDeAtributos" minOccurs="1" maxOccurs="1" type="adapterProvisioning:listaDeAtributosType"/>
+				<element name="operacoes" minOccurs="0" maxOccurs="1" type="adapterProvisioning:listaDeOperacoesType"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="planoType">
+		<annotation>
+			<documentation>planoType</documentation>
+		</annotation>
+			<sequence>
+				<element name="idCatalog" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="nome" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="acao" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="listaDeAtributos" minOccurs="0" maxOccurs="1" type="adapterProvisioning:listaDeAtributosType"/>
+			</sequence>
+		</complexType>
+
+	<!-- Documents -->
+
+	<complexType name="provisioningOperation">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;      Document contendo as operações de provisionamento.    &lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Provisioning Operation</label>
+			</appinfo>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="cwDocId" type="cwf:cwDocId"/>
+						<element name="productType" type="adapterProvisioning:productType"/>
+						<element name="somOperation" type="somOrder:operationType"/>
+						<element name="provOperation" type="adapterProvisioning:provOperation"/>
+						<element name="active" type="xsd:boolean"/>
+						<element name="cwCreatedBy" type="cwf:cwCreatedBy"/>
+						<element name="optional" type="xsd:boolean"/>
+						<element name="siebelField" type="adapterProvisioning:siebelField"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+</schema>

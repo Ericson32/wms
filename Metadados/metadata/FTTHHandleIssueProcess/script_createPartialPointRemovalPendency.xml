@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHHandleIssueProcess.createPartialPointRemovalPendency">
+  <label>createPartialPointRemovalPendency</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var userId;
+    var matriculaUsuario,nomeUsuario,userDoc,newPendencyDoc, pendencyConfig;
+    var searchDoc;
+
+    if (order.EquipmentData){
+        for (var i = 0; i < order.EquipmentData.length; i++){
+            if (order.EquipmentData[i].AddPointsEquipmentData){
+                for (var j = 0; j < order.EquipmentData[i].AddPointsEquipmentData.length; j++){
+                    var addPointsEquipmentData = order.EquipmentData[i].AddPointsEquipmentData[j];
+                    if (addPointsEquipmentData.EquipmentPointData && !addPointsEquipmentData.EquipmentPointData.instalado){
+                        userId = addPointsEquipmentData.EquipmentPointData.updatedBy;
+                    }
+                }
+            }
+        }
+    }
+
+    if (userId){
+        userDoc = UserProfile.getUserProfile(userId);
+        if(userDoc){
+            matriculaUsuario = Global.trim(userDoc.profileId);
+            nomeUsuario = Global.trim(userDoc.userName);
+        } else{
+            searchDoc = new Document("FTTHOrder:ManualActivityData");
+            searchDoc.cwOrderId = order.id;
+
+            var result = Finder.runSearch("FTTHOrder:ManualActivityDataFinder", searchDoc);
+            if(result && result.length > 0){
+                var fieldActivity = result[result.length -1];
+                matriculaUsuario = fieldActivity.matriculaTecnico;
+                nomeUsuario = fieldActivity.nomeTecnico;
+            }
+        }
+    }
+
+    pendencyConfig = FTTHHandleIssueProcess.getPendenciesByCode("7023");
+
+    newPendencyDoc = new Document ("FTTHCommon.OpenIssuePopUp");
+
+    newPendencyDoc.codPendencia = pendencyConfig[0].cwDocId;
+    newPendencyDoc.observacao = "Baixa de Ponto Adicional";
+    newPendencyDoc.dataAbertura = new Date();
+    newPendencyDoc.matriculaUsuario = matriculaUsuario;
+    newPendencyDoc.nomeUsuario = nomeUsuario;
+    newPendencyDoc.idItem = order.ProductData.idPromocao;
+    newPendencyDoc.cwOrderId = order.id;
+
+    newPendencyDoc.possuiIdAtivoAssociado = true;
+
+    //Substituir por um script generico de criaçao de pendencia
+    var orderIssueDataDoc = FTTHCommon.ParticipantIssueAction(newPendencyDoc);
+
+    return orderIssueDataDoc;
+  ]]></script>
+</script>

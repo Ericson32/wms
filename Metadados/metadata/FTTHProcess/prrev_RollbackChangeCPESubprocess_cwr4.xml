@@ -1,0 +1,637 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.RollbackChangeCPESubprocess_cwr4">
+  <activity name="Start" type="seqActivity">
+    <guid>{81f52d3d-a9ba-4edd-aef2-d7f2271baee5}</guid>
+    <label>Start Rollback Validate CPE</label>
+    <x>260.1219</x>
+    <y>30.0</y>
+    <childList>
+      <child name="All" type="allActivity">
+        <guid>{918eb29e-d451-4bb7-80bb-87f802a55cca}</guid>
+        <label>All</label>
+        <x>263.38266</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="RollbackUpdateSapRule" type="switchActivity">
+            <guid>{6c6116bb-5c43-4e36-a393-66d46df59ccf}</guid>
+            <label>Rollback Update Sap ?</label>
+            <x>543.99023</x>
+            <y>232.99875</y>
+            <childList>
+              <child name="yes" type="caseActivity">
+                <guid>{5d7b1cce-4fcc-46e2-bfe2-d05cbfc1bf0d}</guid>
+                <label>yes</label>
+                <x>238.0</x>
+                <y>297.0</y>
+                <childList>
+                  <child name="RollbackUpdateStockSeq" type="seqActivity">
+                    <guid>{930f4663-2127-4033-b9fa-48f5dc368a71}</guid>
+                    <label>Start Rollback Update Stock</label>
+                    <x>586.1218</x>
+                    <y>382.12418</y>
+                    <childList>
+                      <child name="RollbackUpdateStockOperation" type="opActivity">
+                        <element>iface_FTTHManterEquipamentoInventarioSAPInterface.ManterEquipamentoInventariadoOSB/oper_ManterEquipamentoInventariado</element>
+                        <guid>{ff7f1fb2-c367-4613-a107-53fe9409e894}</guid>
+                        <label>Rollback Update Stock Operation</label>
+                        <participant>part_FTTHManterEquipamentoInventarioSAPInterface.InventorySAPSenderParticipant</participant>
+                        <x>441.31705</x>
+                        <y>515.907</y>
+                        <methodList>
+                          <method name="cwOnProcActBefore" type="action">
+                            <category>before</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var LOG_ACTIVITY = "Rollback Update Stock Automatic Task";
+                              var LOG_SCRIPT = Global.getConfigVariable("CWONPROCACTBEFORE");
+                              var msg = new DataStructure("FTTHManterEquipamentoInventarioSAP:ManterEquipamentoInventariadoRequest");
+                              var documentoT = this.process.processDocument;
+                              var isSTB = (documentoT.tipoEquipamentoNovo == "STB") ;
+                              var equipamento = null;
+
+
+
+                              if(isSTB){
+                                  var searchDoc = new Document("FTTHOrder:EquipmentData");
+                                  searchDoc.clearData();
+                                  searchDoc.cwOrderId = documentoT.orderId;
+                                  searchDoc.idAtivo = documentoT.idAtivoNovo;
+                                  equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                              } else{
+                                  var searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                                  searchDoc.clearData();
+                                  searchDoc.cwOrderId = documentoT.orderId;
+                                  equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                              }
+
+                              if(equipamento) for (var k = 0; k < equipamento.length; k++) {
+                                  var fkEquipment = equipamento[k].cwDocId;
+                                  var searchDoc = new Document("FTTHOrder:CPEValidationStatus");
+                                  searchDoc.cwDocId = null;
+                                  searchDoc.cwOrderId = this.process.processOrder.OrderHeader.cwOrderId;
+                                  searchDoc.fkEquipment = fkEquipment;
+                                  searchDoc.statusStock = "processado";
+                                  var equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+                                  if (equipments){
+                                                         var doc = equipments.start;
+                                                         var equipmentType = doc ? doc.equipmentType : null;
+                                                         var validateCPE = false;
+                                                         var cwDocId = doc ? doc.fkEquipment : null;
+                                                         var isOriginal = doc ? doc.isOriginal : null;
+                                                         var codigoOp = FTTHManterEquipamentoInventarioSAPInterface.createMessageToSAPInterface(equipmentType, this.process.processOrder, validateCPE,  this.activityData, cwDocId, null, null, isOriginal);
+                                                         msg = this.activityData;
+                                                         msg.GrupoRequest.COD_OPER = msg.GrupoRequest.COD_OPER == '2' ? '3' : '2'
+                                                         msg.GrupoRequest.COD_PSR = documentoT.codPSR;
+                                                         var searchDoc = new Document("FTTHReportApplication:PSR");
+                                                         searchDoc.codigoPSR = msg.GrupoRequest.COD_PSR;
+                                                         var result = Finder.runSearch("FTTHReportApplication:PSRFinder", searchDoc);
+                                                         msg.GrupoRequest.UF = result[0].uf;
+                                                         if(isOriginal)
+                                                         {
+                                                             msg.GrupoRequest.MATNR = documentoT.codMaterialOriginal;
+                                                             msg.GrupoRequest.SERIAL = documentoT.numeroSerieEquipamentoOriginal;
+                                                         }
+                                                         else
+                                                         {
+                                                             msg.GrupoRequest.MATNR = documentoT.codMaterialNovo;
+                                                             msg.GrupoRequest.SERIAL = documentoT.numeroSerieEquipamentoNovo;
+                                                         }
+                                                         if(doc){
+                                                                  doc.statusStock = 'em processamento';
+                                                                  doc.save();
+                                                         }
+
+                                                           FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                                                           LOG_ACTIVITY, "Rollback Update Stock Send Operation", Global.getConfigVariable("CWONPROCACTBEFORE") , msg.toXML());
+
+                                                           var messageDoc = new Document("cwf_pm:messageLog");
+                                                           messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                                                           messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                                                           messageDoc.userData3 = this.process.processOrder.order.id;
+                                                           UserProfile.setMsgLogDoc(messageDoc);
+                                                           return msg;
+                                                 }
+                              }
+                            ]]></script>
+                          </method>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Rollback Update Stock Automatic Task", "Rollback Update Stock Send Operation", Global.getConfigVariable("CWONPROCACTBEFORE") , this.activityData.toXML());
+                              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+                              /*
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.ResponseControl.code,  Global.getConfigVariable("SAP_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("ATUALIZAR_ESTOQUE"), status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,  Global.getConfigVariable("SAP_SYSTEM"), Global.getConfigVariable("ATUALIZAR_ESTOQUE"), status, this.activityData.ResponseControl.code, this.activityData.ResponseControl.detail, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,  Global.getConfigVariable("SAP_SYSTEM"), Global.getConfigVariable("ATUALIZAR_ESTOQUE"));
+                              */
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("SAP_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, "ROLLBACK", status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), "ROLLBACK", status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("SAP_SYSTEM"), "ROLLBACK");
+
+                              var descRetorno = (this.activityData.ResponseControl.reason) ? this.activityData.ResponseControl.reason : this.activityData.ResponseControl.detail;
+
+                              //MS - atualizando o status da grid - 11/01/2018
+                              var statusCPE = this.activityData.ResponseControl.code == 0 ? "Sucesso" : "Erro";
+                              //adicionando na grid de troca cpe de reparo no SGFT
+                              var validateDoc = this.process.processDocument;
+                              if(validateDoc && validateDoc.userId){
+                                  FTTHOrder.insertIntoChangeCPEGrid(validateDoc.orderId,
+                                      validateDoc.tipoEquipamentoNovo,
+                                      validateDoc.idAtivoNovo,
+                                      validateDoc.numeroSerieEquipamentoNovo,
+                                      validateDoc.numeroSerieEquipamentoOriginal,
+                                      "Atualizar Estoque",
+                                      new Date(),
+                                      "Sucesso",
+                                      new Date(),
+                                      statusCPE,
+                                      this.activityData.ResponseControl.code,
+                                      descRetorno,//this.activityData.ResponseControl.detail,
+                                      validateDoc.userId);
+                              }
+                              //end adiÇão na grid
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var validateDoc = this.process.processDocument;
+                      var ord = this.process.processOrder;
+                      var searchDoc;
+                      var equipamento;
+                      var fkEquipment;
+
+
+
+                      if(validateDoc.tipoEquipamentoNovo == "STB"){
+                          searchDoc = new Document("FTTHOrder:EquipmentData");
+                          searchDoc.clearData();
+                          searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+                          searchDoc.idAtivo = validateDoc.idAtivoNovo;
+                          equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                      } else {
+                          searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                          searchDoc.clearData();
+                          searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+                          equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                      }
+
+                      if(equipamento && equipamento.length > 0){
+                          //sempre retornará apenas 1
+                          for( var i = 0; i < equipamento.length; i++){
+                              fkEquipment = equipamento[i].cwDocId;
+
+                              var searchDoc = new Document("FTTHOrder:CPEValidationStatus");
+                              searchDoc.cwDocId = null;
+                              searchDoc.cwOrderId = this.process.processOrder.OrderHeader.cwOrderId;
+                              searchDoc.fkEquipment = fkEquipment;
+
+                              //procurando somente os não processados (done = false)
+                              var equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+
+                              if(equipments && equipments.length > 0){
+                                  for(var j = 0; j < equipments.length; j++){
+                                      if(equipments[j].statusStock == "processado"){
+                                          return true;
+                                      }
+                                  }
+                              }
+                          }
+                      }
+
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="no" type="caseActivity">
+                <guid>{49decbb2-a81b-499c-aa4c-bc83f35f429a}</guid>
+                <label>no</label>
+                <x>506.0</x>
+                <y>381.15405</y>
+              </child>
+            </childList>
+          </child>
+          <child name="RollbackRemoveInventory" type="switchActivity">
+            <guid>{5c0aade2-5fc4-40a7-9275-158152b71287}</guid>
+            <label>Rollback Remove Inventory</label>
+            <x>196.32031</x>
+            <y>232.99873</y>
+            <childList>
+              <child name="yes" type="caseActivity">
+                <guid>{ddf4812e-87a8-4700-88f9-3afb4adbaa22}</guid>
+                <label>yes</label>
+                <x>313.38266</x>
+                <y>316.76093</y>
+                <childList>
+                  <child name="StartRollbackRemoveInventory" type="seqActivity">
+                    <guid>{e830b138-ab81-44a2-9f27-7cd8cf31934f}</guid>
+                    <label>Start Rollback Remove Inventory</label>
+                    <x>231.04922</x>
+                    <y>382.12418</y>
+                    <childList>
+                      <child name="RollbackRemoveInventory" type="opActivity">
+                        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_UpdateEquipmentSendOperation</element>
+                        <guid>{46cb4c14-f8fb-41d8-99a9-90d59343777f}</guid>
+                        <label>Rollback Remove Inventory</label>
+                        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+                        <x>234.48047</x>
+                        <y>523.25757</y>
+                        <methodList>
+                          <method name="cwOnProcActBefore" type="action">
+                            <category>before</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var validateDoc = this.process.processDocument;
+                              var ord = this.process.processOrder;
+                              var searchDoc;
+                              var equipamento;
+                              var fkEquipment;
+                              var aux;
+                              var LOG_ACTIVITY = "Rollback Remove Inventory Automatic Task";
+                              var LOG_SCRIPT = Global.getConfigVariable("CWONPROCACTBEFORE");
+                              var msg = null;
+
+
+                              if(validateDoc.tipoEquipamentoNovo == "STB"){
+                                  searchDoc = new Document("FTTHOrder:EquipmentData");
+                                  searchDoc.clearData();
+                                  searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+                                  searchDoc.idAtivo = validateDoc.idAtivoOriginal
+                                  equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                              } else {
+                                  searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                                  searchDoc.clearData();
+                                  searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+                                  equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                              }
+
+                              if(equipamento && equipamento.length > 0){
+                                  //sempre retornará apenas 1
+                                  for( var i = 0; i < equipamento.length; i++){
+                                      fkEquipment = equipamento[i].cwDocId;
+
+                                      var searchDoc = new Document("FTTHOrder:CPEValidationStatus");
+                                      searchDoc.cwDocId = null;
+                                      searchDoc.cwOrderId = this.process.processOrder.OrderHeader.cwOrderId;
+                                      searchDoc.fkEquipment = fkEquipment;
+
+                                      //procurando somente os não processados (done = false)
+                                      var equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+
+                                      if(equipments && equipments.length > 0){
+                                          for(var j = 0; j < equipments.length; j++){
+                                              if(equipments[j].statusStock != "-"){
+                                                  if (equipments[j].equipmentType == 'STB') {
+                                                      msg = FTTHInventoryInterface.CreateInventoryMessage(ord, process.id, "ATUALIZAR_EQUIPAMENTO_CLIENTE", document, null, "STB", validateDoc.numeroSerieEquipamentoOriginal ,  validateDoc.idAtivoOriginal, validateDoc.codMaterialOriginal, 'ACTIVAR');
+                                                      for (var i = 0; i < msg.attributeList.attribute.length; i++) {
+                                                          if (msg.attributeList.attribute[i].name.indexOf('codMaterial') > -1 ){
+                                                              msg.attributeList.attribute[i].value = validateDoc.numeroSerieEquipamentoOriginal;
+                                                              msg.attributeList.attribute[i].action = "ACTIVAR";
+                                                          }
+                                                      }
+                                                      aux = j;
+                                                  } else if (equipments[j].equipmentType == 'ONT') {
+                                                      msg = FTTHInventoryInterface.CreateInventoryMessage(ord, process.id, "ATUALIZAR_EQUIPAMENTO_CLIENTE", document, null, "ONT", validateDoc.numeroSerieEquipamentoOriginal , null, validateDoc.codMaterialOriginal, 'ACTIVAR');
+                                                      for (var i = 0; i < msg.attributeList.attribute.length; i++) {
+                                                          if (msg.attributeList.attribute[i].name.indexOf('numeroSerie') > -1 ){
+                                                              msg.attributeList.attribute[i].value = validateDoc.numeroSerieEquipamentoOriginal;
+                                                              msg.attributeList.attribute[i].action = "ACTIVAR";
+                                                          }
+                                                      }
+                                                      aux = j;
+                                                  } else {//HGW
+                                                      msg = FTTHInventoryInterface.CreateInventoryMessage(ord, process.id, "ATUALIZAR_EQUIPAMENTO_CLIENTE", document, null, "HGW", validateDoc.numeroSerieEquipamentoOriginal , null, validateDoc.codMaterialOriginal, 'ACTIVAR');
+                                                      for (var i = 0; i < msg.attributeList.attribute.length; i++) {
+                                                          if (msg.attributeList.attribute[i].name.indexOf('numeroSerie') > -1 ){
+                                                              msg.attributeList.attribute[i].value = validateDoc.numeroSerieEquipamentoOriginal;
+                                                              msg.attributeList.attribute[i].action = "ACTIVAR";
+                                                          }
+                                                          aux = j;
+                                                      }
+                                                  }
+                                              }
+                                          }
+
+                                          try{
+                                              equipments[aux].statusStock = "-";
+                                              equipments[aux].save();
+                                          } catch(e){
+                                              Global.logError("Erro ao atualizar a tbi_validation_cpe durante o rollback: - " + e);
+                                          }
+
+                                      }
+                                  }
+                              }
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, "Rollback Remove Inventory Automatic Task", Global.getConfigVariable("CWONPROCACTBEFORE"));
+                              var messageDoc = new Document("cwf_pm:messageLog");
+                              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                              messageDoc.userData3 = this.process.processOrder.order.id;
+                              UserProfile.setMsgLogDoc(messageDoc);
+                              return msg;
+                            ]]></script>
+                          </method>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update CPE Automatic Task", "Update CPE Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+                              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+                              var ord = this.process.processOrder;
+
+                              //MS - atualizando o status da grid - 11/01/2018
+                              var statusCPE = this.activityData.code == 0 ? "Sucesso" : "Erro";
+                              //var statusCPE = status == "Sucesso" ? status : "Erro";
+                              //adicionando na grid de troca cpe de reparo no SGFT
+                              var validateDoc = this.process.processDocument;
+                              if(validateDoc.userId){
+                                  FTTHOrder.insertIntoChangeCPEGrid(validateDoc.orderId,
+                                      validateDoc.tipoEquipamentoNovo,
+                                      validateDoc.idAtivoNovo,
+                                      validateDoc.numeroSerieEquipamentoNovo,
+                                      validateDoc.numeroSerieEquipamentoOriginal,
+                                      "Atualização de Inventário",
+                                      new Date(),
+                                      "Sucesso",
+                                      new Date(),
+                                      statusCPE,
+                                      this.activityData.code,
+                                      this.activityData.description,
+                                      validateDoc.userId);
+                              }
+                              //end adiÇão na grid
+
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, "ROLLBACK", status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), "ROLLBACK", status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+                              //FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), "ROLLBACK");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                      var searchDoc = new Document('FTTHCommon:ActivityClick');
+                      searchDoc.cwOrderId = orderId;
+                      searchDoc.activityClickId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+
+                      var result = Finder.runSearch("FTTHCommon.activityClickFinder", searchDoc);
+
+                      return (result && result.length > 0 && result[0].status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="no" type="caseActivity">
+                <guid>{0535ea8b-5641-457b-8aa9-0b83424e4174}</guid>
+                <label>no</label>
+                <x>160.0</x>
+                <y>381.15405</y>
+              </child>
+            </childList>
+          </child>
+          <child name="RollbackAddInventory" type="switchActivity">
+            <guid>{f1cbaa43-9dd0-46cf-bee6-bee10926d204}</guid>
+            <label>Rollback Add Inventory</label>
+            <x>45.3125</x>
+            <y>232.99875</y>
+            <childList>
+              <child name="yes" type="caseActivity">
+                <guid>{6461eacf-4c8d-4ba1-93c0-2865ff6848d2}</guid>
+                <label>yes</label>
+                <x>327.38266</x>
+                <y>324.76093</y>
+                <childList>
+                  <child name="StartRollbackAddInventory" type="seqActivity">
+                    <guid>{b14ac6ab-685a-4835-9fcd-c6003d6f8ff7}</guid>
+                    <label>Start Rollback Add Inventory</label>
+                    <x>16.24765</x>
+                    <y>537.92883</y>
+                    <childList>
+                      <child name="RollbackAddInventoryOperation" type="opActivity">
+                        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_UpdateEquipmentSendOperation</element>
+                        <guid>{d419ad5d-417a-4093-814a-1704cb580236}</guid>
+                        <label>Rollback Add Inventory Operation</label>
+                        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+                        <x>161.41602</x>
+                        <y>811.51636</y>
+                        <methodList>
+                          <method name="cwOnProcActBefore" type="action">
+                            <category>before</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var validateDoc = this.process.processDocument;
+                              var ord = this.process.processOrder;
+                              var searchDoc;
+                              var equipamento;
+                              var fkEquipment;
+                              var aux;
+                              var LOG_ACTIVITY = "Rollback Add Inventory Automatic Task";
+                              var LOG_SCRIPT = Global.getConfigVariable("CWONPROCACTBEFORE");
+                              var msg = null;
+
+
+                              if(validateDoc.tipoEquipamentoNovo == "STB"){
+                                  searchDoc = new Document("FTTHOrder:EquipmentData");
+                                  searchDoc.clearData();
+                                  searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+                                  searchDoc.idAtivo = validateDoc.idAtivoNovo;
+                                  equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                              } else {
+                                  searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                                  searchDoc.clearData();
+                                  searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+                                  equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                              }
+
+                              if(equipamento && equipamento.length > 0){
+                                  //sempre retornará apenas 1
+                                  for( var i = 0; i < equipamento.length; i++){
+                                      fkEquipment = equipamento[i].cwDocId;
+
+                                      var searchDoc = new Document("FTTHOrder:CPEValidationStatus");
+                                      searchDoc.cwDocId = null;
+                                      searchDoc.cwOrderId = this.process.processOrder.OrderHeader.cwOrderId;
+                                      searchDoc.fkEquipment = fkEquipment;
+
+                                      //procurando somente os não processados (done = false)
+                                      var equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+
+                                      if(equipments && equipments.length > 0){
+                                          for(var j = 0; j < equipments.length; j++){
+                                              if(equipments[j].statusStock != "-"){
+                                                  if (equipments[j].equipmentType == 'STB') {
+                                                      msg = FTTHInventoryInterface.CreateInventoryMessage(ord, process.id, "ATUALIZAR_EQUIPAMENTO_CLIENTE", document, null, "STB", validateDoc.numeroSerieEquipamentoNovo , validateDoc.idAtivoNovo,  validateDoc.codMaterialNovo, 'CESSAR');
+                                                      aux = j;
+                                                  } else if (equipments[j].equipmentType == 'ONT') {
+                                                      msg = FTTHInventoryInterface.CreateInventoryMessage(ord, process.id, "ATUALIZAR_EQUIPAMENTO_CLIENTE", document, null, "ONT", validateDoc.numeroSerieEquipamentoNovo , null,  validateDoc.codMaterialNovo, 'CESSAR');
+                                                      aux = j;
+                                                      for (var i = 0; i < msg.attributeList.attribute.length; i++) {
+                                                          if (msg.attributeList.attribute[i].name.indexOf('numeroSerie') > -1 ){
+                                                              msg.attributeList.attribute[i].value = validateDoc.numeroSerieEquipamentoNovo;
+                                                              msg.attributeList.attribute[i].action = "CESSAR";
+                                                          }
+                                                      }
+                                                  } else {//HGW
+                                                      msg = FTTHInventoryInterface.CreateInventoryMessage(ord, process.id, "ATUALIZAR_EQUIPAMENTO_CLIENTE", document, null, "HGW", validateDoc.numeroSerieEquipamentoNovo , null,  validateDoc.codMaterialNovo, 'CESSAR');
+                                                      aux = j;
+                                                      for (var i = 0; i < msg.attributeList.attribute.length; i++) {
+                                                          if (msg.attributeList.attribute[i].name.indexOf('numeroSerie') > -1 ){
+                                                              msg.attributeList.attribute[i].value = validateDoc.numeroSerieEquipamentoNovo;
+                                                              msg.attributeList.attribute[i].action = "CESSAR";
+                                                          }
+                                                      }
+                                                  }
+                                              }
+                                          }
+                                      }
+
+                                      try{
+                                          equipments[aux].statusStock = "-";
+                                          equipments[aux].save();
+                                      } catch(e){
+                                          Global.logError("Erro ao atualizar a tbi_validation_cpe durante o rollback: - " + e);
+                                      }
+                                  }
+                              }
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, "Rollback Remove Inventory Automatic Task", Global.getConfigVariable("CWONPROCACTBEFORE"));
+                              var messageDoc = new Document("cwf_pm:messageLog");
+                              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                              messageDoc.userData3 = this.process.processOrder.order.id;
+                              UserProfile.setMsgLogDoc(messageDoc);
+                              return msg;
+                            ]]></script>
+                          </method>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update CPE Automatic Task", "Update CPE Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+                              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+                              var ord = this.process.processOrder;
+
+                              //MS - atualizando o status da grid - 11/01/2018
+                              var statusCPE = this.activityData.code == 0 ? "Sucesso" : "Erro";
+                              //var statusCPE = status == "Sucesso" ? status : "Erro";
+                              //adicionando na grid de troca cpe de reparo no SGFT
+                              var validateDoc = this.process.processDocument;
+                              if(validateDoc.userId){
+                                  FTTHOrder.insertIntoChangeCPEGrid(validateDoc.orderId,
+                                      validateDoc.tipoEquipamentoNovo,
+                                      validateDoc.idAtivoNovo,
+                                      validateDoc.numeroSerieEquipamentoNovo,
+                                      validateDoc.numeroSerieEquipamentoOriginal,
+                                      "Atualização de Inventário",
+                                      new Date(),
+                                      "Sucesso",
+                                      new Date(),
+                                      statusCPE,
+                                      this.activityData.code,
+                                      this.activityData.description,
+                                      validateDoc.userId);
+                              }
+                              //end adiÇão na grid
+
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, "ROLLBACK", status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), "ROLLBACK", status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+                              //FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), "ROLLBACK");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                      var searchDoc = new Document('FTTHCommon:ActivityClick');
+                      searchDoc.cwOrderId = orderId;
+                      searchDoc.activityClickId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+
+                      var result = Finder.runSearch("FTTHCommon.activityClickFinder", searchDoc);
+
+                      return (result && result.length > 0 && result[0].status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="no" type="caseActivity">
+                <guid>{9d9e9977-14ee-4615-9852-960c1d0e7dd5}</guid>
+                <label>no</label>
+                <x>76.0</x>
+                <y>381.15405</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventorySAPSenderParticipant" type="participantActivity">
+        <guid>{3254bf13-62d7-451b-b6d4-a32a28e2f75e}</guid>
+        <label>Inventory SAP Sender Participant</label>
+        <participant>part_FTTHManterEquipamentoInventarioSAPInterface.InventorySAPSenderParticipant</participant>
+        <x>340.0</x>
+        <y>359.1023</y>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{e5fc5b79-a501-444e-af17-3869cf4cbd2a}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>202.16016</x>
+        <y>655.7117</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActAfter" type="action">
+        <category>script</category>
+        <system>true</system>
+        <script>this.process.processDocument.isRollback = true;</script>
+      </method>
+    </methodList>
+  </activity>
+  <label>Rollback Change CPE Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.RollbackChangeCPESubprocess</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

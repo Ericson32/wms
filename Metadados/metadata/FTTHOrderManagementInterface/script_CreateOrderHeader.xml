@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateOrderHeader">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Monta o documento OrderHeader de acordo com a requisi&#231;&#227;o enviada pelo OM
+    </p>
+  ]]></description>
+  
+  <label>Create Order Header</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Order Header');
+
+    var orderHeader = new Document('FTTHOrder:OrderHeader');
+    orderHeader.numeroOS = requisicao.correlationID;
+    orderHeader.numeroPedido = requisicao.idPedido;
+    orderHeader.dataAbertura = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+    orderHeader.permiteCancelamento = false;
+    orderHeader.versao = requisicao.versao;
+
+    orderHeader.tipoPromocaoOriginal = requisicao.tipoPromocaoOriginal
+    orderHeader.tipoPromocao = requisicao.tipoPromocao
+    orderHeader.tipoPromocaoAcao = getTipoPromocaoAcao(orderHeader.tipoPromocaoOriginal, orderHeader.tipoPromocao);
+
+    //MS - marcossouza@br.ibm.com - 29/07/2017 - PRJ14008
+    orderHeader.flagBSIM = requisicao.flagBSIM;
+    orderHeader.aprazado = requisicao.aprazado;
+    orderHeader.codAtividade = requisicao.codAtividade;
+    orderHeader.codPendencia = requisicao.codPendencia;
+    orderHeader.origemPedido = requisicao.origemPedido;
+    //end MS
+
+    //30/04/2018 - setando flag para execução do updateStock utilizando a tabela de historico
+    orderHeader.flagHistoryFlow = true;
+    //end 30/04/2018
+    for (var i = 0; i < requisicao.acessos.acesso.length; i++) {
+
+        var currentItem = requisicao.acessos.acesso[i];
+
+        for (var j = 0; j < currentItem.atributos.atributo.length; j++) {
+            var atributoAcesso = currentItem.atributos.atributo[j];
+
+            if(atributoAcesso.nome == 'dataIndicador') {
+                orderHeader.dataAgendamento = Calendar.parseDate(atributoAcesso.valor,'yyyy-MM-dd');
+            }
+
+            if(atributoAcesso.nome == 'dataPromessa') {
+                orderHeader.dataPromessa = Calendar.parseDate(atributoAcesso.valor, 'yyyy-MM-dd\'T\'HH:mm:ss');
+                //orderHeader.dataPromessa = Calendar.parseDate(atributoAcesso.valor, "yyyy-MM-dd");
+            }
+
+            /*PRJ21699 - Inclusão dos campos: Id_Transacao & Id Bundle Oi Total*/
+            if(atributoAcesso.nome == 'idUnitTransaction'){
+                orderHeader.idUnitTransaction = atributoAcesso.valor;
+            }
+            if(atributoAcesso.nome == 'bundleID'){
+                orderHeader.bundleId = atributoAcesso.valor;
+            }
+        }
+    }
+
+    return orderHeader;
+
+    function getTipoPromocaoAcao(tipoPromocaoOriginal,tipoPromocao){
+        if(tipoPromocaoOriginal){
+            if(tipoPromocaoOriginal == 'Oi Total' && tipoPromocao == 'Alone'){
+                return 'desmembramentoOiTotal';
+            }else if(tipoPromocaoOriginal == 'Alone' && tipoPromocao == 'Oi Total'){
+                return 'associacaoOiTotal';
+            }else{
+                return '-';
+            }
+        }
+    }
+  ]]></script>
+</script>

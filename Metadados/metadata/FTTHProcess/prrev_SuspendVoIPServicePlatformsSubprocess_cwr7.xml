@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.SuspendVoIPServicePlatformsSubprocess_cwr7">
+  <activity name="SuspendVOIPServiceStart" type="seqActivity">
+    <guid>{2c6eb5f9-c96b-4351-b51d-e7f6416cb1f5}</guid>
+    <label>Suspend VOIP Service Start</label>
+    <x>33.93145</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendVoIPIMSServiceSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendVoIPIMSServiceSubprocess_cwr12</element>
+        <guid>{e4653053-39ef-4055-a612-17060f54ccd6}</guid>
+        <label>Suspend VoIP IMS Service Subprocess</label>
+        <x>30.0</x>
+        <y>124.760925</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_IMS_SERVICO");
+              activityId = '%' + activityId;
+              var result = FTTHCommon.defineActivityNecessity(orderId, activityId);
+              return (result);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="SuspendVoIPVMPServicesSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendVoIPVMPServiceSubprocess_cwr12</element>
+        <guid>{58dc23f1-d7cc-4fa7-b589-5e47b648b714}</guid>
+        <label>Suspend VoIP VMP Services Subprocess</label>
+        <x>30.0</x>
+        <y>265.5656</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_VMP_SERVICO");
+              activityId = '%' + activityId;
+              var result = FTTHCommon.defineActivityNecessity(orderId, activityId);
+              return (result);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de bloqueio de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <label>Suspend VOIP Services Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.SuspendVoIPServicePlatformsSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

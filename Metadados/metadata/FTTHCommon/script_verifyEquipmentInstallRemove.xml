@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.verifyEquipmentInstallRemove">
+  <label>verifyEquipmentInstallRemove</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ord" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="originalData" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        AUTHOR:     MARCOS SOUZA - MARCOSSOUZA@BR.IBM.COM - PRJ19958 - julho/2017
+        DESCRIPTION:
+                    Script responsável por verificar se existe equipamento sendo
+                    adicionado (originalData = true) que esteja sendo instalado
+                    ou um equipamento que esteja sendo removido (orignalData = false)
+                    que esteja sendo removido, seja um equipamento do tipo "DVR".
+     */
+
+
+    //if(originalData){
+        try{
+            if(ord.OriginalData != null)
+                if(ord.OriginalData[0].EquipmentData[0])
+                    if(ord.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[0]){
+                        var item = ord.OriginalData[0].EquipmentData[0].AddPointsEquipmentData;
+                        var size = item.length;
+                        for (var i = 0; i < size; i++)
+                            if ((item[i].EquipmentPointData.acao == "remover")&&(item[i].EquipmentPointData.possuiDVRIntegrado))
+                                return true;
+                    }
+        } catch(e){
+            //erro
+            //Ordem nao possui equipamento ponta em dados originais
+        }
+    //} else{
+        try{
+            if(ord.EquipmentData != null)
+                if(ord.EquipmentData[0].AddPointsEquipmentData[0]){
+                    var item = ord.EquipmentData[0].AddPointsEquipmentData;
+                    var size = item.length;
+                    for (var i = 0; i < size; i++)
+                        if ((item[i].EquipmentPointData.acao == "adicionar")&&(item[i].EquipmentPointData.possuiDVRIntegrado))
+                            return true;
+                }
+        } catch(e){
+            //erro
+            //Ordem nao possui equipamento ponta em dados novos
+        }
+    //}
+
+    return false;
+  ]]></script>
+</script>

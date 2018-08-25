@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateNotifyErrorMessage">
+  <label>Create Notify Error Message</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="docNotificacao" type="rifp">
+      <type>doc_FTTHOrderManagementInterface.ErrorNotification</type>
+    </parameter>
+    <parameter name="response" type="rifp">
+      <type>dstruct_FTTHOrderManagementInterface.response</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Notify Error Message');
+    Global.logInfo('Msg:' + docNotificacao.descricaoErro);
+    var msg = response;
+    msg.idMensagem = docNotificacao.numeroPedido;
+    msg.correlationId = docNotificacao.numeroOS;
+    msg.status = '1';
+    msg.descricao = docNotificacao.descricaoErro;
+    msg.timestampExecucao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    return msg;
+  ]]></script>
+</script>

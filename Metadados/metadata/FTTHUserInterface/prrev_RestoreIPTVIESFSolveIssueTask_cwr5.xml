@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.RestoreIPTVIESFSolveIssueTask_cwr5">
+  <activity name="RestoreIPTVIESFSolveIssueTaskStart" type="seqActivity">
+    <guid>{917930dc-5333-4670-8745-9df7c848a267}</guid>
+    <label>Restore IPTV iESF Solve Issue Task Start</label>
+    <x>35.95156</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RestoreIPTVIESFSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreIPTVIESFSolveIssue</element>
+        <guid>{db07e9ad-138b-4d14-ba80-2d6048ff6cc3}</guid>
+        <label>Restore IPTV iESF Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>38.48828</x>
+        <y>130.6414</y>
+      </child>
+      <child name="RestoreIPTVIESFSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_RestoreIPTVIESFSolveIssueSuccess</element>
+        <guid>{726810ac-a936-4c3b-8f33-f64ee735109c}</guid>
+        <label>Restore IPTV iESF Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>38.48828</x>
+        <y>368.14728</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_IESF");
+              activityId = '%' + activityId;
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{610da3ea-80c7-4aad-b417-a60a6aaeca5b}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>256.74493</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESBLOQUEAR_IPTV_IESF");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual
+    </p>
+    <p style="margin-top: 0">
+      Bloquear IPTV - Erro tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio
+      WMS, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      sucesso.
+    </p>
+  ]]></description>
+  <label>Restore IPTV iESF Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.RestoreIPTVIESFSolveIssueTask</process>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConsultNewLogical1FacilitySubProcess_cwr6">
+  <activity name="ConsultNewLogical1FacilityStart" type="seqActivity">
+    <guid>{e35d8505-eee9-4b66-be60-bdf5f7526a11}</guid>
+    <label>Consult New Logical 1 Facility Start</label>
+    <x>61.692772</x>
+    <y>30.0</y>
+    <childList>
+      <child name="need" type="switchActivity">
+        <guid>{2dd0c30f-55e6-42e9-82b3-c4b9333c8c23}</guid>
+        <label>need</label>
+        <x>77.174805</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="yes" type="caseActivity">
+            <guid>{123e283e-79d1-4d74-8149-4cdc6fc4791d}</guid>
+            <label>yes</label>
+            <x>143.73721</x>
+            <y>347.0</y>
+            <childList>
+              <child name="ConsultNewLogical1FacilitySendOperation" type="opActivity">
+                <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_ConsultLogical1FacilitySendOperation</element>
+                <guid>{55ba2122-037b-48af-8cc8-fbecabe3f91c}</guid>
+                <label>Consult New Logical 1 Facility Send Operation</label>
+                <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+                <x>114.0</x>
+                <y>227.34259</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var msg = FTTHInventoryInterface.CreateInventoryMessageConsult(this.process.processOrder, this.process.id,Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA"), this.activityData);
+                      FTTHCommon.log(this.process.processOrder.id, this.process.id, "Consult New Facility Automatic Task", "Consult New Logical 1 Facility Send Operation - mensagem a enviar", "cwOnProcActBefore", msg.toXML());
+                      var messageDoc = new Document("cwf_pm:messageLog");
+                      messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                      messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                      messageDoc.userData3 = this.process.processOrder.order.id;
+                      UserProfile.setMsgLogDoc(messageDoc);
+                      return msg;
+                    ]]></script>
+                  </method>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      FTTHCommon.log(this.process.processOrder.id, this.process.id, "Consult New Facility Automatic Task", "Consult New Logical 1 Facility Send Operation - mensagem recebida", "cwOnProcActAfter", this.activityData.toXML());
+                      //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+                      FTTHInventoryInterface.ProcessQueryResult(this.process.processOrder, this.process.id, this.activityData, 'CONSULTAR_FACILIDADE_LOGICA_1_NOVA');
+
+                      var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA"), status);
+
+                      FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+                      FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId =this.process.processOrder.id;
+                  var atividade = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA");
+                  var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  return (resultLogica1Necessity);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="no" type="caseActivity">
+            <guid>{a4e88bfc-101c-4a3a-9255-5c8a863a09ef}</guid>
+            <label>no</label>
+            <x>30.0</x>
+            <y>264.09552</y>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{80b35d7d-a3e4-4d1f-ba46-94d2029400f8}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>83.34961</x>
+        <y>397.54962</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA");
+          var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, activityId);
+          process.processDocument.atividade = activityId;
+
+          if (resultLogica1Necessity){
+             var result = FTTHCommon.getStatusActivity(orderId, activityId);
+             if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                 return false;
+             return true;
+          } else {
+              FTTHInventoryInterface.copyConsultLogicalOriginal(this.process.processOrder);
+              return false;
+          }
+        ]]></script>
+      </method>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var ord = process.processOrder;
+          var orderId = ord.OrderHeader.cwOrderId;
+          var atividade;
+
+          var activityIdLogica1 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_NOVA");
+          var statusLogica1 = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+          FTTHCommon.setStatusActivity(orderId, activityIdLogica1, statusLogica1);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Consult New Logical 1 Facility Sub Process</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConsultNewLogical1FacilitySubProcess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

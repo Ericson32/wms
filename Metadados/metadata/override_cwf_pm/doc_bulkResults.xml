@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="override_cwf_pm.bulkResults">
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{f6439daa-5bde-451d-8df3-692371d0e507}</guid>
+  <label>Bulk Results</label>
+  <metaVersion>4</metaVersion>
+  <variableList>
+    <variable name="Results" type="leaf">
+      <propertyElement type="elfld">
+        <label>Results</label>
+      </propertyElement>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+    </variable>
+    <variable name="dialogSizeX" type="leaf">
+      <propertyElement type="elfld"/>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+    </variable>
+    <variable name="dialogSizeY" type="leaf">
+      <propertyElement type="elfld"/>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+    </variable>
+  </variableList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_override_cwf_pm.bulkResults</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="VerticalLayout" type="elvlt">
+                <elementList>
+                  <element name="bulkResultHeader" type="elhdr">
+                    <label>Bulk Processing Results</label>
+                    <showValidation>true</showValidation>
+                    <style>CwFOT</style>
+                  </element>
+                  <element name="basicGrid" type="elgrd">
+                    <colWidths>507px</colWidths>
+                    <width>507px</width>
+                    <elementList>
+                      <element name="Results" type="eltxtArea">
+                        <columnSpan>1</columnSpan>
+                        <height>150px</height>
+                        <removeLabelLine>true</removeLabelLine>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.bulkResults/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.bulkResults/leaf_Results</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>100%</width>
+                      </element>
+                      <element name="Close1" type="elbtn">
+                        <clickMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.bulkResults/ui_UserInterface/usrActionMethod_cwOnFormFieldBefore_basicClose1</variablePath>
+                          </variablePathList>
+                        </clickMethod>
+                        <columnSpan>1</columnSpan>
+                        <label>Close</label>
+                        <removeLabelLine>true</removeLabelLine>
+                        <width>*</width>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</base>
+            <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="cwOnFormFieldBefore_basicClose1" type="usrActionMethod">
+        <script><![CDATA[
+          function funcReturnsValCallDisplayScript(scriptReturnsValToCallDisplayScriptThis) {
+
+           return scriptReturnsValToCallDisplayScriptThis.cwOnFormFieldAfter_basicClose1();
+
+          }
+
+          var funcReturnsValCallDisplayScriptRes = funcReturnsValCallDisplayScript(this);
+          if(funcReturnsValCallDisplayScriptRes != null && funcReturnsValCallDisplayScriptRes instanceof Document &&
+              funcReturnsValCallDisplayScriptRes.hasMethod("displayScript"))
+            funcReturnsValCallDisplayScriptRes.displayScript();
+          return funcReturnsValCallDisplayScriptRes;
+        ]]></script>
+      </method>
+      <method name="cwOnFormFieldAfter_basicClose1" type="usrActionMethod">
+        <script>return Global.STOP_UI;</script>
+      </method>
+      <method name="runTrigger" type="usrActionMethod">
+        <script><![CDATA[
+          this.cw$super_runTrigger();
+          Global.runContentDisplayScript(this, "displayScript");
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

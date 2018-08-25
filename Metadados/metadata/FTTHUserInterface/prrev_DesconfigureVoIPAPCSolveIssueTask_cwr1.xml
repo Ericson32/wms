@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DesconfigureVoIPAPCSolveIssueTask_cwr1">
+  <activity name="startDesconfigureVoIPAPCSolveIssue" type="seqActivity">
+    <guid>{0ae62329-9ed1-46ee-8470-cde264679d5c}</guid>
+    <label>Start Desconfigure VoIP APC Solve Issue</label>
+    <x>32.747658</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureVoIPAPCSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureVoIPAPCSolveIssue</element>
+        <guid>{5f57194c-631e-44f7-8f2a-8864ba98750f}</guid>
+        <label>Desconfigure VoIP APC Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>130.6414</y>
+      </child>
+      <child name="DesconfigureVoIPAPCSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureVoIPAPCSolveIssueSuccess</element>
+        <guid>{6b879473-e770-4995-8c57-52436698926b}</guid>
+        <label>Desconfigure VoIP APC Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>382.84845</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_APC");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{8842d31b-7f94-49ba-8fc0-704b33de5efc}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Desconfigurar VoIP - Erro
+      tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade
+      manual ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Desconfigure VoIP APC Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DesconfigureVoIPAPCSolveIssueTask</process>
+  <type>Sub-flow</type>
+</process__revision>

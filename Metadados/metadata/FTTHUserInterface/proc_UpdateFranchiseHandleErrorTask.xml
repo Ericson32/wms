@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.UpdateFranchiseHandleErrorTask">
+  <activity name="startUpdateFranchiseHandleError" type="seqActivity">
+    <guid>{ae897679-4716-41f2-9112-855f5d82d977}</guid>
+    <label>Start Update Franchise Handle Error</label>
+    <x>78.079</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateFranchiseSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_UpdateFranchiseHandleError</element>
+        <guid>{480b2b32-f7d9-48ec-8571-916dc633c0b3}</guid>
+        <label>Update Franchise Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>86.02783</x>
+        <y>124.76094</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{9cdaca4a-e6da-4203-b992-02600889d666}</guid>
+        <label>Wait Manual Activity</label>
+        <x>30.0</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="UpdateFranchiseHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_UpdateFranchiseHandleErrorIssue</element>
+            <guid>{728ec599-5280-4c52-a5b0-adfdc0e93fcb}</guid>
+            <label>Update Franchise Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>157.0293</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = "ALTERAR_FRANQUIA_IN";
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="UpdateFranchiseHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_UpdateFranchiseHandleErrorResend</element>
+            <guid>{f9e646f1-aa75-4426-905c-f20e4fdc7848}</guid>
+            <label>Update Franchise Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>33.998535</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = "ALTERAR_FRANQUIA_IN";
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{e06e14aa-9d61-4929-b884-ee1fc8d00fd0}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>121.37305</x>
+        <y>265.5656</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = "ALTERAR_FRANQUIA_IN";
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227; de VoIP autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{67eada05-d151-46c2-b921-97f7c6077d21}</guid>
+  <label>Update Franchise Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process>

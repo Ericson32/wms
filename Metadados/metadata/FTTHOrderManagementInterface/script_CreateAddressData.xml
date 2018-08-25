@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateAddressData">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Monta o AddressData de acordo com a requisic&#227;o enviada pelo OM
+    </p>
+  ]]></description>
+  <label>Create Address Data</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+    <parameter name="isOriginal" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="flagOriginal" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Address Data');
+
+        var addressData = new Document('FTTHOrder:AddressData');
+        var acesso = requisicao.acessos.acesso[0];
+        var idEndereco;
+
+        /***** CR 133 ******************************
+        isOriginal == false  - New Data (N)
+        isOriginal == true   - Original Data (O)
+        ********************************************/
+        flagOriginal == true ? addressData.flagIsOriginal = 'O' : addressData.flagIsOriginal = 'N';
+
+        //Fase 2 - Para ordens de mudanca de endereco, tanto o endereço novo quanto o antigo devem ser mapeados.
+        if(isOriginal == true)
+            idEndereco = acesso.idEnderecoAntigo;
+        else
+            idEndereco = acesso.idEndereco;
+
+        for(var i = 0; i < requisicao.listaEnderecos.endereco.length; i++) {
+
+            var endereco = requisicao.listaEnderecos.endereco[i];
+
+            if(endereco.id == idEndereco) {
+                addressData.codigoLogradouro = endereco.idLogradouro;
+                addressData.tipoLogradouro = endereco.tipoLogradouro;
+                addressData.nomeLogradouro = endereco.nomeLogradouro;
+                addressData.numeroLogradouro = endereco.numero;
+                addressData.tipoComplemento1 = endereco.tipoComplemento1;
+                addressData.complemento1 = endereco.complemento1;
+                addressData.tipoComplemento2 = endereco.tipoComplemento2;
+                addressData.complemento2 = endereco.complemento2;
+                addressData.tipoComplemento3 = endereco.tipoComplemento3;
+                addressData.complemento3 = endereco.complemento3;
+                addressData.codigoLocalidade = endereco.codigoLocalidade;
+                addressData.siglaLocalidade = endereco.siglaLocalidade;
+                addressData.siglaLoc = endereco.siglaLocalidade;
+                addressData.localidade =  endereco.localidade;
+                addressData.bairro = endereco.bairro;
+                addressData.cidade = endereco.cidade;
+                addressData.estadoLogradouro = endereco.estado;
+                addressData.pontoReferencia = endereco.pontoDeReferencia;
+                addressData.CEP = endereco.cep;
+            }
+        }
+
+        return addressData;
+  ]]></script>
+</script>

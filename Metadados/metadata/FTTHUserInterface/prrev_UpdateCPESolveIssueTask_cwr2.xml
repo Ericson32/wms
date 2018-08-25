@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.UpdateCPESolveIssueTask_cwr2">
+  <activity name="UpdateCPESolveIssueTaskStart" type="seqActivity">
+    <guid>{ebbf77dd-da9a-4f1d-a64c-5ada4609b3fe}</guid>
+    <label>Update CPE Solve Issue Task Start</label>
+    <x>32.478127</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateCPESolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_UpdateCPESolveIssue</element>
+        <guid>{bdc93924-db53-4ab8-bb26-9ccc13293e8f}</guid>
+        <label>Update CPE Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>39.487305</x>
+        <y>124.76094</y>
+      </child>
+      <child name="UpdateCPESolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_UpdateCPEHandleSolveIssueSuccess</element>
+        <guid>{a497afd5-05ce-496c-80a5-6106379412b4}</guid>
+        <label>Update CPE Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>39.487305</x>
+        <y>362.26678</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InventorySolveIssue" type="participantActivity">
+        <guid>{f4871c65-74cb-4b62-a897-76e5f8b6a1d8}</guid>
+        <label>Inventory Solve Issue</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>54.0</x>
+        <y>250.86444</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Atualizar CPE - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Update CPE Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.UpdateCPESolveIssueTask</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

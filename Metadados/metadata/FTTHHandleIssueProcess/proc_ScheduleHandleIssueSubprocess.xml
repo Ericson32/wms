@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHHandleIssueProcess.ScheduleHandleIssueSubprocess">
+  <activity name="scheduleHandleIssueSubProcessStart" type="seqActivity">
+    <guid>{90d935e0-2609-42d9-b0ef-7296dacb262f}</guid>
+    <label>Schedule Handle Issue Sub Process Start</label>
+    <x>36.46035</x>
+    <y>30.0</y>
+    <childList>
+      <child name="openScheduleIssueScript" type="scriptActivity">
+        <guid>{93539bbe-b986-44cd-8115-fb18edc984ab}</guid>
+        <label>Open Schedule Issue Script</label>
+        <x>44.000977</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var isCloseBA = false;
+              var newIssueDoc = FTTHHandleIssueProcess.createNewIssue(this.process.processOrder,"7029", "CONSULTA_AGENDAMENTO", "Consulta de Agendamento", null, isCloseBA);
+              Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', newIssueDoc);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="closeClientCancelIssueTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+        <guid>{7251ea57-526e-42ef-abee-4c39135cb3d0}</guid>
+        <label>Close Cliente/Cancel Issue task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{44e2310b-6730-41b7-8374-6267c7480502}</guid>
+  <label>Schedule Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process>

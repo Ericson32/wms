@@ -1,0 +1,725 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHReportApplication.errorActivationReportFnd">
+  <dbSchema>ORDER</dbSchema>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHReportApplication.errorActivationReportSearch</input>
+  <label>errorActivationReportFnd</label>
+  <metaVersion>3</metaVersion>
+  <output>doc_FTTHReportApplication.errorActivationReportResult</output>
+  <type>SQL</type>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        select tos.num_ordem_servico,
+          tos.num_pedido,
+          tos.tp_ordem_servico,
+          tos.agreg_solicitacao,
+          tfac.id_acesso_gpon,
+          tcli.nome_cliente,
+          tfac.sigla_estacao,
+          tend.NOME_ESTADO,
+          tend.cod_logradouro,
+          tend.nome_bairro,
+          tend.nome_cidade,
+          ta.nome_atividade,
+          terr.ind_status,
+          tos.desc_estado_ordem_servico,
+          tos.dt_abertura,
+          tos.dt_fechamento,
+          terr.data_Abertura_Atividade,
+          terr.data_Fechamento_Atividade,
+          tfac.num_olt_rack,
+          tfac.num_olt_shelf,
+          tfac.num_olt_slot,
+          tfac.num_olt_port,
+          tfac.num_splitter_port,
+          tprod.pacoteProdutosNovo,
+          tprod.pacoteProdutosOriginal,
+          tprod.planoHSINovo,
+          tprod.planoHSIOriginal,
+          tprod.velocidadeContratadaNova,
+          tprod.velocidadeContratadaOriginal,
+          tprod.planoiPTVNovo,
+          tprod.planoiPTVOriginal,
+          tprod.planoOTTNovo,
+          tprod.planoOTTOriginal,
+          tprod.planoVoIPNovo,
+          tprod.planoVoIPOriginal,
+          terr.cod_mensagem,
+          terr.desc_mensagem
+        FROM tbi_ordem_servico tos,
+          tbi_endereco tend,
+          tbi_cliente tcli,
+          tbi_facilidade tfac,
+          (
+          -- DEVOLVER TODOS OS PRODUTOS QUE TENHAM DADOS ORIGINAIS E DADOS NOVOS
+          select max(
+            CASE
+              WHEN flagisoriginal = 'O'
+              THEN tp.nome_promocao
+              ELSE null
+            END) AS pacoteProdutosOriginal,
+            max(
+            CASE
+              WHEN flagisoriginal = 'N'
+              THEN tp.nome_promocao
+              ELSE null
+            END) AS pacoteProdutosNovo,
+            max(
+            CASE
+              WHEN flagisoriginal = 'O'
+              THEN tp.nome_plano_hsi
+              ELSE null
+            END) AS planoHSIOriginal,
+            max(
+            CASE
+              WHEN flagisoriginal = 'N'
+              THEN tp.nome_plano_hsi
+              ELSE null
+            END) AS planoHSINovo,
+            max(
+            CASE
+              WHEN flagisoriginal = 'O'
+              THEN tp.val_velocidade_contratada
+              ELSE null
+            END) AS velocidadeContratadaOriginal,
+            max(
+            CASE
+              WHEN flagisoriginal = 'N'
+              THEN tp.val_velocidade_contratada
+              ELSE null
+            END) AS velocidadeContratadaNova,
+            max(
+            CASE
+              WHEN flagisoriginal = 'O'
+              THEN tp.nome_plano_iptv
+              ELSE null
+            END) AS planoiPTVOriginal,
+            max(
+            CASE
+              WHEN flagisoriginal = 'N'
+              THEN tp.nome_plano_iptv
+              ELSE null
+            END) AS planoiPTVNovo,
+            max(
+            CASE
+              WHEN flagisoriginal = 'N'
+              THEN tp.nome_plano_ott
+              ELSE null
+            END) AS planoOTTOriginal,
+            max(
+            CASE
+              WHEN flagisoriginal = 'O'
+              THEN tp.nome_plano_ott
+              ELSE null
+            END) AS planoOTTNovo,
+            max(
+            CASE
+              WHEN flagisoriginal = 'N'
+              THEN tp.nome_plano_voip
+              ELSE null
+            END) AS planoVoIPOriginal,
+            max(
+            CASE
+              WHEN flagisoriginal = 'O'
+              THEN tp.nome_plano_voip
+              ELSE null
+            END)         AS planoVoIPNovo,
+            tp.cworderid AS cworderid
+          FROM tbi_produto tp
+          GROUP BY tp.cworderid
+          ) tprod,
+          (
+          -- DEVOLVER TODOS OS ERROS DO SISTEMA SIS EXCLUINDO OS ERROS GERADOS POR NÓS (-1000)
+          (select te.id_ordem_servico AS cwOrderId,
+            te.desc_atividade         AS desc_atividade,
+            te.ind_status             AS ind_status,
+            tbie.data_execucao        AS data_Abertura_Atividade,
+            te.data_execucao          AS data_Fechamento_Atividade ,
+            te.cod_mensagem           AS cod_mensagem,
+            te.desc_mensagem          AS desc_mensagem
+          FROM tbi_evento te,
+            tbi_evento tbie
+          where te.desc_sistema = 'ACTIVATION_SYSTEM'
+          and te.desc_sistema   = tbie.desc_sistema
+          and tbie.ind_status   = 'INITIAL'
+          and te.cod_mensagem  != '0'
+          and te.cod_mensagem  != '0.0'
+          and te.cod_mensagem  != '-1000'
+          and te.id_correlacao  = tbie.id_correlacao
+          )
+        UNION ALL
+          -- DEVOLVER TODOS OS ERROS DA ATIVIDADE ASSOCIAR ONT
+          (
+          select cworderid,
+            'ASSOCIAR_ONT_APC',
+            statusont,
+            sentdate,
+            receivedate,
+            null,
+            description
+          FROM oi_ont_activation_status
+          where statusont = 'INSUCESSO'
+          )) terr,
+          tbi_atividade ta
+          -- O ELO DE LIGAÇÃO ENTRE TABELAS É O CWORDERID E AS FLAGS DAS FACILIDADE E ENDEREÇOS TÊM DE SER IGUAIS
+          -- PARA NÃO ENTRADAS REPETIDAS
+        where terr.cworderid     = tcli.cworderid
+        and terr.cworderid       = tend.cworderid
+        and terr.cworderid       = tfac.cworderid
+        and terr.cworderid       = tprod.cworderid
+        and terr.cworderid       = tos.cwOrderId
+        and tfac.flagisoriginal  = tend.flagisoriginal
+        and ta.cod_atividade     = terr.desc_atividade
+        and (tfac.flagisoriginal = ta.flag_original
+        or tfac.flagisoriginal   = ta.flag_new)
+        {[0] and tos.num_ordem_servico = ?}
+        {[1] and tos.num_pedido = ?}
+        {[2] and tos.tp_ordem_servico = ?}
+        {[3] and tos.agreg_solicitacao = ?}
+        {[4] and tfac.id_acesso_gpon = ?}
+        {[5] and tcli.nome_cliente = ?}
+        {[6] and tfac.sigla_estacao = ?}
+        {[7] and tend.NOME_ESTADO = ?}
+        {[8] and terr.desc_atividade = ?}
+        {[9] and terr.ind_status = ?}
+        {[10] and tos.desc_estado_ordem_servico = ?}
+        {[11] and tos.dt_abertura >= ?}
+        {[12] and tos.dt_fechamento <= ?}
+        {[13] and terr.data_Abertura_Atividade >= ?}
+        {[14] and terr.data_Fechamento_Atividade <= ?}
+        {[15] and terr.cod_mensagem = ?}
+        {[16] and tfac.num_olt_rack = ?}
+        {[17] and tfac.num_olt_shelf = ?}
+        {[18] and tfac.num_olt_slot = ?}
+        {[19] and tfac.num_olt_port = ?}
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>Error Activation Report Search</label>
+        <valueType>doc_FTTHReportApplication.errorActivationReportResult</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHReportApplication.errorActivationReportResult/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <overflow>auto</overflow>
+                <width>100%</width>
+                <elementList>
+                  <element name="errorActivationReportFndResultTable" type="eltabl">
+                    <autoFit>Vertical</autoFit>
+                    <autoFitHeight>300px</autoFitHeight>
+                    <headerHeight>30</headerHeight>
+                    <height>100px</height>
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <width>400%</width>
+                    <wrapCell>true</wrapCell>
+                    <wrapHeaderLabel>true</wrapHeaderLabel>
+                    <elementList>
+                      <element name="numeroOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_numeroOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="idPedido" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_idPedido</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="tpOrdemServico" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_tpOrdemServico</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="agregSolicitacao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_agregSolicitacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>20%</width>
+                      </element>
+                      <element name="acessoGPON" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_acessoGPON</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="nome" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_nome</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>20%</width>
+                      </element>
+                      <element name="estacao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_estacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="estado" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_estado</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>15%</width>
+                      </element>
+                      <element name="codigoLogradouro" type="elslct">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_codigoLogradouro</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="bairro" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_bairro</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>15%</width>
+                      </element>
+                      <element name="cidade" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_cidade</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>15%</width>
+                      </element>
+                      <element name="atividade" type="elslct">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_atividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>15%</width>
+                      </element>
+                      <element name="statusAtividade" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_statusAtividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="estadoOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_estadoOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="dataAbertura" type="eldatetime">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_dataAbertura</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="dataFechamento" type="eldatetime">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_dataFechamento</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="dataAberturaAtividade" type="eldatetime">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_dataAberturaAtividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="dataFechamentoAtividade" type="eldatetime">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_dataFechamentoAtividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="OLTRACK" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_OLTRACK</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>5%</width>
+                      </element>
+                      <element name="OLTSHELF" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_OLTSHELF</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>5%</width>
+                      </element>
+                      <element name="OLTSLOT" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_OLTSLOT</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>5%</width>
+                      </element>
+                      <element name="OLTPORT" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_OLTPORT</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>5%</width>
+                      </element>
+                      <element name="splitterPort" type="elfld">
+                        <label>Porta da CDO</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_splitterPort</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="pacoteProdutosOriginal" type="elfld">
+                        <label>Nome Promocao Original</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_pacoteProdutosOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="pacoteProdutosNovo" type="elfld">
+                        <label>Nome Promocao Novo</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_pacoteProdutosNovo</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="planoHSIOriginal" type="elfld">
+                        <label>Plano HSI Original</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_planoHSIOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="planoHSINovo" type="elfld">
+                        <label>Plano HSI Novo</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_planoHSINovo</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="velocidadeContratadaOriginal" type="elfld">
+                        <label>Velocidade Contratada Original</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_velocidadeContratadaOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="velocidadeContratadaNova" type="elfld">
+                        <label>Velocidade Contratada Nova</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_velocidadeContratadaNova</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="planoIPTVOriginal" type="elfld">
+                        <label>Plano IPTV Original</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_planoIPTVOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="planoIPTVNovo" type="elfld">
+                        <label>Plano IPTV Novo</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_planoIPTVNovo</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="planoOTTOriginal" type="elfld">
+                        <label>Plano OTT Original</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_planoOTTOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="planoOTTNovo" type="elfld">
+                        <label>Plano OTT Novo</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_planoOTTNovo</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="planoVoIPOriginal" type="elfld">
+                        <label>Plano VoIP Original</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_planoVoIPOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="planoVoIPNovo" type="elfld">
+                        <label>Plano VoIP Novo</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_planoVoIPNovo</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="codigoMensagem" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_codigoMensagem</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>10%</width>
+                      </element>
+                      <element name="descricaoMensagem" type="elfld">
+                        <label>Descrição da Mensagem</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.errorActivationReportResult/leaf_descricaoMensagem</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>40%</width>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="resultFrame" type="elovf">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_resultForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <height>100%</height>
+                <width>100%</width>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <onEnter type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_searchAction</variablePath>
+                  </variablePathList>
+                </onEnter>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</base>
+            <extends>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="finderMenuLayout" type="elhlt">
+                <alignment>left,center</alignment>
+                <width>100%</width>
+                <elementList>
+                  <element name="cwfSearch" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_searchAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconSearch.gif</icon>
+                    <label>Search</label>
+                    <showDown>true</showDown>
+                    <showFocused>true</showFocused>
+                    <tooltip>Search</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_searchVisible</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="searchAction" type="action">
+        <parameterList>
+          <parameter name="doValidate" type="rifp">
+            <type>dtype_com.conceptwave.system.Boolean</type>
+          </parameter>
+        </parameterList>
+        <script><![CDATA[
+          var finder = this.model.metadata;
+
+          var searchDoc = this.search==null?(this.model.searchDocument==null?null:this.model.searchDocument):this.search.model;
+          this.model.cwOnInitSearch(searchDoc);
+          if(this.search!=null && this.searchForm!=null && (doValidate==true || doValidate==null)){
+                var searchValidation = this.search.validate(5);
+                if(searchValidation==null || searchValidation.size() == 0){
+                      this.result = finder.operations.select.invoke(searchDoc, this.invokeContext);
+                }else{
+                      Global.throwException("UU1107");
+                }
+          }else{
+                this.result = finder.operations.select.invoke(searchDoc, this.invokeContext);
+          }
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+  <viewList>
+    <view name="errorActivationReportFndView" type="findVView">
+      <inputOverlay>doc_FTTHReportApplication.errorActivationReportSearch/ui_UserInterface/frmui_Forms/vform_searchForm</inputOverlay>
+      <label>Relatório de Erros na Ativação</label>
+      <outputOverlay>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+      <showSearchForm>true</showSearchForm>
+    </view>
+  </viewList>
+</findSql>

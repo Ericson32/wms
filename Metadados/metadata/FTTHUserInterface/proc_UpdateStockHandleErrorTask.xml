@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.UpdateStockHandleErrorTask">
+  <activity name="UpdateStockHandleErrorTaskStart" type="seqActivity">
+    <guid>{c0108311-e7cb-4c61-833c-b0464d01acfb}</guid>
+    <label>Update Stock Handle Error Task Start</label>
+    <x>79.57588</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateStockHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventorySAPHandleErrorInterface/oper_UpdateStockHandleError</element>
+        <guid>{5eeb3299-c4e7-48d1-8ebe-ed738e78b1ae}</guid>
+        <label>Update Stock Handle Error</label>
+        <participant>part_FTTHUserInterface.InventorySAPHandleError</participant>
+        <x>95.17432</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{02ca9faf-36d4-409e-aa92-ef87608363b5}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>278.7967</y>
+            <childList>
+              <child name="UpdateStockHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.InventorySAPHandleErrorInterface/oper_UpdateStockHandleErrorIssue</element>
+                <guid>{d066d0c7-4b86-4261-9b70-5e501ffab98a}</guid>
+                <label>Update Stock Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.InventorySAPHandleError</participant>
+                <x>162.13086</x>
+                <y>427.2508</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="UpdateStockHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.InventorySAPHandleErrorInterface/oper_UpdateStockHandleErrorResend</element>
+                <guid>{4f69d0d6-3ddd-4c39-b37b-4d61acf8b2b2}</guid>
+                <label>Update Stock Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.InventorySAPHandleError</participant>
+                <x>47.82715</x>
+                <y>427.2508</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventorySAPHandleError" type="participantActivity">
+        <guid>{21c02d9b-6442-4ba2-b965-0689511f970a}</guid>
+        <label>Inventory SAP Handle Error</label>
+        <participant>part_FTTHUserInterface.InventorySAPHandleError</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a atualiza&#231;&#227;o de estoque autom&#225;tica n&#227;o tenha sido
+      realizada com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser
+      finalizada com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{8044044d-564f-4d70-890c-ed977a5022e1}</guid>
+  <label>Update Stock Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process>

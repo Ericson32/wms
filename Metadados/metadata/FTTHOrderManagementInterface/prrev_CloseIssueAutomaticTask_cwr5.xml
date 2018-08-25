@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHOrderManagementInterface.CloseIssueAutomaticTask_cwr5">
+  <activity name="CloseIssueStart" type="seqActivity">
+    <guid>{4ab51dea-3525-4a3a-b1d9-868bc19c2482}</guid>
+    <label>Close Issue Start</label>
+    <x>19.451561</x>
+    <y>47.051758</y>
+    <childList>
+      <child name="CloseIssueOperation" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMListenerInterface/oper_closeIssueOperation</element>
+        <guid>{e9790256-466a-44cb-9ec8-aeaac92f1ec5}</guid>
+        <label>Close Issue Operation</label>
+        <participant>part_FTTHOrderManagementInterface.OMListenerParticipant</participant>
+        <x>104.54329</x>
+        <y>122.0</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(null, this.process.id, "Close Issue", "Close Issue Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+              var docNotificacao = this.process.processDocument;
+              var msgLogDoc = UserProfile.getMsgLogDoc();
+              if(msgLogDoc != null) {
+                  msgLogDoc.userData1 = docNotificacao.numeroPedido;
+                  msgLogDoc.userData2 = docNotificacao.numeroOS;
+                  msgLogDoc.save();
+              }
+
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+              FTTHHandleIssueProcess.removeAdditionalPointSolveIssue(process.processOrder, process.id);
+
+              //Fechar as pendencias associadas à ordem
+              FTTHOrderManagementInterface.closeIssue(this.process.processOrder, null, null);
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("OM_SYSTEM"), Global.getConfigVariable("CLOSE_ISSUE"), status, null, null, this.process.id, Global.getConfigVariable("SYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("OM_SYSTEM"), Global.getConfigVariable("CLOSE_ISSUE"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CloseIssueComplete" type="completeActivity">
+        <guid>{20fbd0ec-2050-4386-92e5-6904a32645c1}</guid>
+        <label>Close Issue Complete</label>
+        <x>91.82129</x>
+        <y>282.20703</y>
+      </child>
+      <child name="OMListenerParticipant" type="participantActivity">
+        <guid>{bd1efea7-e992-461c-9bee-e016792ab223}</guid>
+        <label>OM Listener Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMListenerParticipant</participant>
+        <x>126.0</x>
+        <y>30.0</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var order = this.process.processOrder;
+          var ultimo =  order.IssueData.length;
+          var issueDoc = order.IssueData[ultimo-1].IssueData;
+
+          issueDoc.idProcesso = this.process.id;
+          issueDoc.save();
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Close Issue Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</process>
+  <revision>5</revision>
+  <type>User</type>
+</process__revision>

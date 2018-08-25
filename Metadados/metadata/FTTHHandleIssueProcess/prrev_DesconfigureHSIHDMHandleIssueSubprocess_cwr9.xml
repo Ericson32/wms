@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.DesconfigureHSIHDMHandleIssueSubprocess_cwr9">
+  <activity name="DesconfigureHSIHDMHandleIssueStart" type="seqActivity">
+    <guid>{49b5a0ed-fc97-4024-a07b-5c389fa5775f}</guid>
+    <label>Desconfigure HSI HDM Handle Issue Start</label>
+    <x>120.416016</x>
+    <y>612.0117</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{456725d8-fc7f-4e00-95ec-8bbcb3cb78a5}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>119.88164</x>
+        <y>712.6532</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{9f51aa0a-bf01-4155-83ab-459612f4a88c}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>240.69727</x>
+            <y>807.4141</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{868d6dd3-1866-41c6-b254-8c82852c4073}</guid>
+        <label>Check Issue Type</label>
+        <x>235.3698</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{93e571e9-6393-4500-87a6-69114ad81d54}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{d6c8e261-9d2c-441a-a4c6-20f376f9b8c6}</guid>
+                <label>Technical Issue</label>
+                <x>76.67568</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="DesconfigureHSIHDMSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DesconfigureHSIHDMSolveIssueTask_cwr6</element>
+                    <guid>{3b784171-a297-4a81-bc0c-7c366cfd79af}</guid>
+                    <label>Desconfigure HSI HDM Solve Issue Task</label>
+                    <x>70.67236</x>
+                    <y>248.40234</y>
+                  </child>
+                  <child name="AnyIssueOpen" type="switchActivity">
+                    <guid>{3c0874ba-e991-4ade-8f89-2268254307be}</guid>
+                    <label>Any Issue Open?</label>
+                    <x>79.67041</x>
+                    <y>389.20703</y>
+                    <childList>
+                      <child name="Yes" type="caseActivity">
+                        <guid>{8046510b-b4ef-4279-92f2-4e0bcbdec172}</guid>
+                        <label>Yes</label>
+                        <x>201.73535</x>
+                        <y>803.99567</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.DesconfigureHSIHDMHandleIssueSubprocess_cwr9/seqActivity_DesconfigureHSIHDMHandleIssueStart</element>
+                            <guid>{0d490e86-9dcf-4b0d-8ef8-382078531b90}</guid>
+                            <label>Repeat To Start</label>
+                            <x>30.0</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                              var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI_HDM");
+                              if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              {
+                                  return true;
+                              }
+                              return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="No" type="caseActivity">
+                        <guid>{5b8d5568-fe18-4c66-9eb6-863f4242475e}</guid>
+                        <label>No</label>
+                        <x>138.0332</x>
+                        <y>507.95996</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{5a5c6631-7e89-43fa-855c-31a07ce3d41e}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{f3be1ace-16dc-4ae0-9a82-95a9500014f9}</guid>
+                <label>Client Issue</label>
+                <x>276.0581</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{610ba94c-8266-4c5a-9bb8-e1d33c78ca0a}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>259.0376</x>
+                    <y>256.75293</y>
+                  </child>
+                  <child name="OpenIssue" type="switchActivity">
+                    <guid>{0dfce53b-0f10-4ee3-960f-6c3584d72d35}</guid>
+                    <label>Open Issue</label>
+                    <x>267.37256</x>
+                    <y>396.55762</y>
+                    <childList>
+                      <child name="No" type="caseActivity">
+                        <guid>{3fc194fe-bb19-4f02-83c0-fc8be121f470}</guid>
+                        <label>No</label>
+                        <x>330.0664</x>
+                        <y>507.95996</y>
+                      </child>
+                      <child name="YEs" type="caseActivity">
+                        <guid>{400a4435-cdc8-4990-bcd0-53641e2e5390}</guid>
+                        <label>Yes</label>
+                        <x>222.1842</x>
+                        <y>799.9439</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.DesconfigureHSIHDMHandleIssueSubprocess_cwr9/seqActivity_DesconfigureHSIHDMHandleIssueStart</element>
+                            <guid>{1799f340-966f-4d65-82cb-e1caac6fab58}</guid>
+                            <label>Repeat To Start</label>
+                            <x>222.0332</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                              pendencyFinder.searchDocument.cwOrderId = orderId;
+                              var pendRes = pendencyFinder.search();
+                              var status;
+                                  for (var i =0;i < pendRes.length;i++){
+                                      if (pendRes[i].flagIssueStatus == 0){
+                                          return true;
+                                      }
+                                  }
+                              //var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+                              //if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              //{
+                              //   return true;
+                              //}
+                              //return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Desconfigurar HSI&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de
+      Desonfigurar HSI. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a
+      resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de desonfigura&#231;&#227;o de HSI autom&#225;tica para o sistema
+      de Rede, ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o
+      subprocesso de Desonfigurar HSI - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Desconfigure HSI HDM Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.DesconfigureHSIHDMHandleIssueSubprocess</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

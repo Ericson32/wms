@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHInventoryInterface.LiberateFacilityAutomaticTask">
+  <activity name="LiberateFacilityAutomaticTaskStart" type="seqActivity">
+    <guid>{7d69ab5a-8971-46ad-b186-348dec870f66}</guid>
+    <label>Liberate Facility Automatic Task Start</label>
+    <x>110.55799</x>
+    <y>824.651</y>
+    <childList>
+      <child name="LiberateFacilitySendOperation" type="opActivity">
+        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_AssignFacilitySendOperation</element>
+        <guid>{affd9012-9f36-4ef6-a4ff-92e0151754ad}</guid>
+        <label>Liberate Facility Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>248.71275</x>
+        <y>967.7246</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHInventoryInterface.CreateInventoryMessage(this.process.processOrder, this.process.id, "LIBERAR_FACILIDADE" ,this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Liberate Facility Automatic Task", "Liberate Facility Send Operation", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Liberate Facility Automatic Task", "Liberate Facility Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              //FTTHInventoryInterface.updateInventoryOrderNumber(this.process.processOrder, this.activityData.key);
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("LIBERAR_FACILIDADE"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("LIBERAR_FACILIDADE"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("LIBERAR_FACILIDADE"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckSendOperationResult" type="switchActivity">
+        <guid>{b6175dda-ecbf-4fac-bb0e-557b64ae17a2}</guid>
+        <label>Check Send Operation Result</label>
+        <x>195.76329</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{9c150b37-cac3-4521-8134-d30c0ff930b6}</guid>
+            <label>Success</label>
+            <x>382.4234</x>
+            <y>178.15527</y>
+            <childList>
+              <child name="WaitingAutomaticActivity" type="choiceActivity">
+                <guid>{7a99dad5-e9b7-4122-b3fe-8fe2c7992799}</guid>
+                <label>Waiting Automatic Activity</label>
+                <x>41.078613</x>
+                <y>185.80469</y>
+                <childList>
+                  <child name="TimeoutControl" type="timeoutActivity">
+                    <guid>{1bbe9184-acb6-4da1-90a7-e6eef590c8dd}</guid>
+                    <label>Timeout Control</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              var timeout = Global.getConfigVariable("TIMEOUT_INVENTORY");
+                              return timeout;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>30.0</x>
+                    <y>326.60938</y>
+                  </child>
+                  <child name="LiberateFacilityReceiveOperation" type="opActivity">
+                    <element>iface_FTTHInventoryInterface.InventoryListenerInterface/oper_ReceiveOperation</element>
+                    <guid>{1dac4b4e-ac55-4d2c-a87d-bb8124b3c296}</guid>
+                    <label>Liberate Facility Receive Operation</label>
+                    <participant>part_FTTHInventoryInterface.InventoryListenerParticipant</participant>
+                    <x>125.34766</x>
+                    <y>311.9082</y>
+                    <methodList>
+                      <method name="cwOnProcActAfter" type="action">
+                        <category>script</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHCommon.log(this.process.processOrder.id, this.process.id, "Liberate Facility Automatic Task", "Liberate Facility Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                          var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("LIBERAR_FACILIDADE"), status);
+
+                          FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("LIBERAR_FACILIDADE"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("ASYNC_RESPONSE"));
+                          FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("LIBERAR_FACILIDADE"));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var result = FTTHCommon.getStatusActivity(this.process.processOrder.id, Global.getConfigVariable("LIBERAR_FACILIDADE"));
+                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Liberate Facility Automatic Task", "Check Send Operation Result", "cwOnProcActCond", result);
+                  return (result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"));
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{09ca59a2-1c82-43fe-b250-9920452a2ae0}</guid>
+            <label>Error</label>
+            <x>261.2873</x>
+            <y>333.95996</y>
+          </child>
+        </childList>
+      </child>
+      <child name="exceptionHandlerInterface" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{709b971d-16eb-4497-82c3-eeb0e4a75cce}</guid>
+        <label>Exception Handler Interface</label>
+        <x>144.01352</x>
+        <y>975.0752</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("LIBERAR_FACILIDADE"), Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{abd22613-5d37-471c-abe9-41909c8034b1}</guid>
+        <label>Check Resend</label>
+        <x>132.73586</x>
+        <y>467.7129</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>155.67441</x>
+            <y>559.7129</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>proc_FTTHInventoryInterface.LiberateFacilityAutomaticTask/seqActivity_LiberateFacilityAutomaticTaskStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "LIBERAR_FACILIDADE", "INVENTORY_SYSTEM");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>110.8287</x>
+                    <y>685.8164</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>224.86386</x>
+                <y>693.167</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, "LIBERAR_FACILIDADE", "INVENTORY_SYSTEM"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="LiberateFacilityAutomaticTaskComplete" type="completeActivity">
+            <guid>{fd5faa2b-3e80-45c5-932d-f75b877e8155}</guid>
+            <label>Assign Facility Automatic Task Complete</label>
+            <x>214.17831</x>
+            <y>797.21875</y>
+          </child>
+        </childList>
+      </child>
+      <child name="exceptionHandlerTimeout" type="onExceptionActivity">
+        <element>excp_cwf_pm.timeout</element>
+        <guid>{fc4dfe10-89c8-4b09-adac-e73e107eb10e}</guid>
+        <label>Exception Handler Timeout</label>
+        <x>39.3143</x>
+        <y>975.0752</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("LIBERAR_FACILIDADE"), Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{09b13d0a-c8b3-4665-ac87-56fc7c2d293c}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>218.06236</x>
+        <y>1108.5293</y>
+      </child>
+      <child name="InventoryListenerParticipant" type="participantActivity">
+        <guid>{9d424d80-5f99-4b11-a437-40f9a6854c6f}</guid>
+        <label>Inventory Listener Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryListenerParticipant</participant>
+        <x>146.4497</x>
+        <y>185.80469</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("LIBERAR_FACILIDADE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("LIBERAR_FACILIDADE");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Liberar
+      Facilidades. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de libera&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de
+      tempo pr&#233; determinado, ser&#227;o feitas mais algumas retentativas. A
+      quantidade de retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo
+      usu&#225;rio.
+    </p>
+    <p style="margin-top: 0">
+      O sistema de Invent&#225;rio ir&#225; enviar uma notifica&#231;&#227;o de libera&#231;&#227;o de
+      facilidades para cada servi&#231;o que a ordem possuir. Ao final do envio de
+      todas as libera&#231;&#245;es o Sistema de Invent&#225;rio ir&#225; enviar uma notifica&#231;&#227;o
+      informando que todos os servi&#231;os foram liberados. Ao receber essa
+      notifica&#231;&#227;o o WMS dever&#225; considerar o processo como finalizado e dever&#225;
+      concluir o processo.
+    </p>
+  ]]></description>
+  <guid>{b4f2f153-85a9-481f-8d30-3ee415f6095b}</guid>
+  <label>Liberate Facility Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>15</revision>
+  <type>User</type>
+</process>

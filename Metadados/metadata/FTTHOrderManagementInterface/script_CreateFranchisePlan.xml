@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateFranchisePlan">
+  <label>Create Franchise Plan</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+    <parameter name="isNewData" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Franchise Plan');
+
+    var planoFranquiaArray = new Array();
+
+    for (var i = 0; i < requisicao.acessos.acesso.length; i++) {
+        var acesso = requisicao.acessos.acesso[i];
+
+        if (acesso.idCatalogo == 'OI_VOIP') {
+            var plan = acesso.plano;
+
+            // Mapeamento dos Planos
+            for (var j = 0; j< plan.length; j++) {
+
+                if(mustRead(isNewData, acesso.plano[j].acao)) {
+                    var planData = new Document('FTTHOrder.FranchisePlan');
+
+                    isNewData == true ? planData.flagIsOriginal = 'N' : planData.flagIsOriginal = 'O';
+
+                    planData.tipoPlano = acesso.plano[j].tipoPlano;
+                    planData.unidadeFranquia = acesso.plano[j].unidadeFranquia;
+                    planData.valorFranquia = acesso.plano[j].valorFranquia;
+                    planData.tipoUso = acesso.plano[j].valorFranquia;
+                    planData.acao = acesso.plano[j].acao;
+                    planData.idCatalogo = acesso.plano[j].idCatalogo;
+                    planData.tipoDado = 'PLANO'
+
+                    planoFranquiaArray.push(planData);
+
+                    var planItem = acesso.planosFranquia.planoFranquia;
+
+                    // Mapemamento dos Planos de Franquia
+                    Global.logInfo('Create Product Data - acesso voip - planos de franquia');
+                    for (var k = 0; k < planItem.length; k++) {
+                        var item = planItem[k];
+                        if(mustRead(isNewData, item.acao)) {
+                            var planData = new Document('FTTHOrder.FranchisePlan');
+
+
+                            isNewData == true ? planData.flagIsOriginal = 'N' : planData.flagIsOriginal = 'O';
+
+                            planData.tipoPlano = item.tipoPlano;
+                            planData.unidadeFranquia = item.unidadeFranquia;
+                            planData.valorFranquia = item.valorFranquia;
+                            planData.tipoUso = item.valorFranquia;
+                            planData.acao = item.acao;
+                            planData.idCatalogo = item.idCatalogo;
+                            planData.tipoDado = 'FRANQUIA'
+
+                            planoFranquiaArray.push(planData);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return planoFranquiaArray;
+
+    function mustRead(isNew, acao) {
+        if((isNew && acao != 'remover') || (!isNew && acao != 'adicionar'))
+            return true;
+
+        return false;
+    }
+  ]]></script>
+</script>

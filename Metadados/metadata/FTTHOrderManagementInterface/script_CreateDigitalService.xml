@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateDigitalService">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Mapeamento dos servicos digitais
+    </p>
+  ]]></description>
+  <label>Create Digital Service</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Dados da Ordem&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    * PRJ14217 - Mapeamento dos servicos digitais
+    * PRJ21262 - #552 - Jayce Ayres e ACCD
+    */
+    for (var i=0; i < requisicao.acessos.acesso.length; i++) {
+        var acesso = requisicao.acessos.acesso[i];
+
+        if (acesso.idCatalogo =='OI_VOIP') {
+            for (var t=0; t < acesso.servicosDigitais.servicoDigital.length; t++) {
+                var servicoDigital = acesso.servicosDigitais.servicoDigital[t];
+
+                switch (servicoDigital.idServico) {
+                    case "SVCDIG_IDTC_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isBina = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover'){
+                        if (ordem.ProductData){
+                            ordem.ProductData.isBina = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isBina = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_CHAESP_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isChamadaEspera = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_CXPOST_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isCaixaPostal = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isCaixaPostal = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isCaixaPostal = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_CONF_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isConferencia = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isConferencia = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isConferencia = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_SIGAME_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isSigame = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isSigame = false;
+                        }
+                        if (ordem.OriginalData.ProductData) {
+                            ordem.OriginalData[0].ProductData.isSigame = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_COMB1_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = true;
+                            ordem.ProductData.isBina = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = false;
+                            ordem.ProductData.isBina = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isChamadaEspera = true;
+                            ordem.OriginalData[0].ProductData.isBina = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_COMB2_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = true;
+                            ordem.ProductData.isBina = true;
+                            ordem.ProductData.isSigame = true;
+                            ordem.ProductData.isCaixaPostal = true;
+                            ordem.ProductData.isConferencia = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = false;
+                            ordem.ProductData.isBina = false;
+                            ordem.ProductData.isSigame = false;
+                            ordem.ProductData.isCaixaPostal = false;
+                            ordem.ProductData.isConferencia = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isChamadaEspera = true;
+                            ordem.OriginalData[0].ProductData.isBina = true;
+                            ordem.OriginalData[0].ProductData.isSigame = true;
+                            ordem.OriginalData[0].ProductData.isCaixaPostal = true;
+                            ordem.OriginalData[0].ProductData.isConferencia = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_COMB3_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = true;
+                            ordem.ProductData.isBina = true;
+                            ordem.ProductData.isCaixaPostal = true;
+                            ordem.ProductData.isConferencia = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = false;
+                            ordem.ProductData.isBina = false;
+                            ordem.ProductData.isCaixaPostal = false;
+                            ordem.ProductData.isConferencia = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isChamadaEspera = true;
+                            ordem.OriginalData[0].ProductData.isBina = true;
+                            ordem.OriginalData[0].ProductData.isCaixaPostal = true;
+                            ordem.OriginalData[0].ProductData.isConferencia = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_COMB4_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = true;
+                            ordem.ProductData.isBina = true;
+                            ordem.ProductData.isConferencia = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = false;
+                            ordem.ProductData.isBina = false;
+                            ordem.ProductData.isConferencia = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isChamadaEspera = true;
+                            ordem.OriginalData[0].ProductData.isBina = true;
+                            ordem.OriginalData[0].ProductData.isConferencia = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_COMB5_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isBina = true;
+                            ordem.ProductData.isCaixaPostal = true;
+                            ordem.ProductData.isConferencia = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isBina = false;
+                            ordem.ProductData.isCaixaPostal = false;
+                            ordem.ProductData.isConferencia = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isBina = true;
+                            ordem.OriginalData[0].ProductData.isCaixaPostal = true;
+                            ordem.OriginalData[0].ProductData.isConferencia = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_COMB6_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isBina = true;
+                            ordem.ProductData.isConferencia = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isBina = false;
+                            ordem.ProductData.isConferencia = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isBina = true;
+                            ordem.OriginalData[0].ProductData.isConferencia = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_COMB7_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isBina = true;
+                            ordem.ProductData.isCaixaPostal = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isBina = false;
+                            ordem.ProductData.isCaixaPostal = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isBina = true;
+                            ordem.OriginalData[0].ProductData.isCaixaPostal = true;
+                        }
+                    }
+                    break;
+                    case "SVCDIG_COMB8_VOIP":
+                    if (servicoDigital.acao == 'adicionar') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = true;
+                            ordem.ProductData.isConferencia = true;
+                        }
+                    } else if (servicoDigital.acao == 'remover') {
+                        if (ordem.ProductData){
+                            ordem.ProductData.isChamadaEspera = false;
+                            ordem.ProductData.isConferencia = false;
+                        }
+                        if ((ordem.OriginalData) && (ordem.OriginalData[0].ProductData)){
+                            ordem.OriginalData[0].ProductData.isChamadaEspera = true;
+                            ordem.OriginalData[0].ProductData.isConferencia = true;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    ordem.save();
+  ]]></script>
+</script>

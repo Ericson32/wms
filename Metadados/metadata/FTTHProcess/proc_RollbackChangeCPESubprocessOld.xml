@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.RollbackChangeCPESubprocessOld">
+  <activity name="ChangeCPEStart" type="seqActivity">
+    <guid>{855a3793-8f97-49b7-93c6-6e51bb5cd0b4}</guid>
+    <label>Change CPE Start</label>
+    <x>28.866016</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateStockAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHManterEquipamentoInventarioSAPInterface.UpdateStockAutomaticTask</element>
+        <guid>{2b2c6cca-8863-43e6-82e2-fe01598ac557}</guid>
+        <label>UpdateStock Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>122.0</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+              if(result != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return true;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="DissociateSTBAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DissociateSTBAutomaticTask</element>
+        <guid>{acf774ca-59c8-43d8-bdd4-3f00f7e5515d}</guid>
+        <label>Dissociate STB Automatic Task</label>
+        <syc>true</syc>
+        <x>37.668945</x>
+        <y>246.10352</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DISSOCIAR_STB");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+              if(result != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return true;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="AssociateONTAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.AssociateONTAutomaticTask</element>
+        <guid>{0b555bd2-f64b-45c3-a814-c606c1eada93}</guid>
+        <label>Associate ONT Automatic Task</label>
+        <syc>true</syc>
+        <x>37.66797</x>
+        <y>384.9082</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("ASSOCIAR_ONT");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+              if(result != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return true;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="UpdateCPEAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.UpdateCPEAutomaticTask</element>
+        <guid>{7837d113-709d-4bd4-921f-affde173461b}</guid>
+        <label>Update CPE Automatic Task</label>
+        <syc>true</syc>
+        <x>37.66797</x>
+        <y>523.7129</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+              if(result != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return true;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{c05aaa51-63f6-48ae-acab-3544f37dbcfe}</guid>
+  <label>Rollback Change CPE Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process>

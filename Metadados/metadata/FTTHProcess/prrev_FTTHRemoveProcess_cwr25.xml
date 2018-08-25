@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.FTTHRemoveProcess_cwr25">
+  <activity name="FTTHRemoveProcessStart" type="seqActivity">
+    <guid>{ed6f0fc1-8fb4-4059-89c7-22dc72b69ca6}</guid>
+    <label>FTTH Remove Process Start</label>
+    <x>119.91911</x>
+    <y>45.671288</y>
+    <childList>
+      <child name="ConsultOriginalFacilitySubprocess" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.ConsultOriginalFacilityAutomaticTask1</element>
+        <guid>{1011d2c8-42a3-4508-93f2-9d9e6b85b8cb}</guid>
+        <label>Consult Original Facility Subprocess</label>
+        <syc>true</syc>
+        <x>115.70407</x>
+        <y>156.10352</y>
+      </child>
+      <child name="ConsultEquipmentDataSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConsultEquipmentInventory_cwr3</element>
+        <guid>{354f2ace-ba08-445d-a1c4-656ca7a4adc9}</guid>
+        <label>Consult Equipment Data Subprocess</label>
+        <x>115.70407</x>
+        <y>294.9082</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "%CONSULTAR%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return (result);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="bloquearFacilidades" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendFacilitySubprocess_cwr14</element>
+        <guid>{0fa69fc3-42b5-4ea7-9528-1eb6ea51269c}</guid>
+        <label>Bloquear Facilidades</label>
+        <x>117.04001</x>
+        <y>435.7129</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script>return FTTHOrderManagementInterface.bloqueiaFacilidadesFluxoScript(process, document);</script>
+          </method>
+        </methodList>
+      </child>
+      <child name="FieldActivity" type="seqActivity">
+        <guid>{8e97d9ec-9abd-482d-807a-600802a4ac79}</guid>
+        <label>Field Activity</label>
+        <x>124.44958</x>
+        <y>549.4658</y>
+        <childList>
+          <child name="rolloutClick" type="switchActivity">
+            <guid>{5d3c7754-c2f3-4509-ac50-8f08faf9ecdd}</guid>
+            <label>Rollout Click?</label>
+            <x>128.71188</x>
+            <y>651.167</y>
+            <childList>
+              <child name="yes" type="caseActivity">
+                <guid>{154c55a0-c239-4118-a02a-c515979b6e52}</guid>
+                <label>Yes</label>
+                <x>343.4024</x>
+                <y>564.11523</y>
+                <childList>
+                  <child name="clickExecution" type="seqActivity">
+                    <guid>{03a9b642-df55-460a-8004-24bcb5a807ce}</guid>
+                    <label>Click Execution</label>
+                    <x>216.8858</x>
+                    <y>935.4258</y>
+                    <childList>
+                      <child name="ExecuteEquipmentBASubprocess" type="subflowActivity">
+                        <element>prrev_FTTHProcess.ExecuteEquipmentBASubprocess1_cwr12</element>
+                        <guid>{0db4c70b-49ca-4e48-9fd4-3fd495aa92f7}</guid>
+                        <label>Execute BA Equipment Subprocess</label>
+                        <x>214.01373</x>
+                        <y>1163.2305</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var activityId;
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              //activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                              activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                                  return false;
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var result = FTTHCommon.defineRolloutNecessity(orderId);
+
+                      return result;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="no" type="caseActivity">
+                <guid>{f42ae6d5-3136-4342-aba1-7ba5781f6e51}</guid>
+                <label>No</label>
+                <x>248.18294</x>
+                <y>830.7246</y>
+                <childList>
+                  <child name="OMExecution" type="seqActivity">
+                    <guid>{3069699c-a82c-4dc3-b753-6d728f76b8ca}</guid>
+                    <label>OM Execution</label>
+                    <x>91.74382</x>
+                    <y>801.9717</y>
+                    <childList>
+                      <child name="RemoveClientEquipmentSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHProcess.InstallRemoveClientEquipmentSubprocessV1_1_cwr18</element>
+                        <guid>{da754909-bd31-4d26-87dc-e3dc841c365c}</guid>
+                        <label>Remove Client Equipment SubprocessV1.1</label>
+                        <x>73.861786</x>
+                        <y>911.02344</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <description><![CDATA[
+                              <p style="margin-top: 0">
+                                AAAA
+                              </p>
+                            ]]></description>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var activityId;
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              return (!(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")) || process.processOrder.OrderHeader.flagEquipmentIssue);
+                            ]]></script>
+                          </method>
+                          <method name="cwOnProcActBefore" type="action">
+                            <category>before</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var ord = this.process.processOrder;
+                              ord.OrderHeader.flagEquipmentIssue = false;
+                              ord.save();
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="equipmentIssue" type="switchActivity">
+                        <guid>{38ba9a84-fa8e-42dd-9a11-0b4567618d3b}</guid>
+                        <label>Equipment Issue ?</label>
+                        <x>89.20456</x>
+                        <y>1051.8281</y>
+                        <childList>
+                          <child name="yes" type="caseActivity">
+                            <guid>{1fa6f84f-4ecb-42ea-9a1b-add859e3af55}</guid>
+                            <label>Yes</label>
+                            <x>20.0</x>
+                            <y>1162.9316</y>
+                            <childList>
+                              <child name="recheckRollout" type="repeatActivity">
+                                <element>prrev_FTTHProcess.FTTHRemoveProcess_cwr25/seqActivity_FTTHRemoveProcessStart/seqActivity_FieldActivity/switchActivity_rolloutClick</element>
+                                <guid>{c2537d3e-0423-4ec5-a0b0-2e0c5ce1b825}</guid>
+                                <label>Recheck Rollout Necessity</label>
+                                <x>30.0</x>
+                                <y>1163.2305</y>
+                              </child>
+                            </childList>
+                            <methodList>
+                              <method name="cwOnProcActCond" type="action">
+                                <category>cond</category>
+                                <system>true</system>
+                                <script>return this.process.processOrder.OrderHeader.flagEquipmentIssue;</script>
+                              </method>
+                            </methodList>
+                          </child>
+                          <child name="no" type="caseActivity">
+                            <guid>{87a9212a-0543-48e5-91b2-5ac8e19257f5}</guid>
+                            <label>No</label>
+                            <x>134.01373</x>
+                            <y>1177.9316</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="DesconfigureFacilitySubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.DesconfigureFacilitySubprocess_cwr17</element>
+        <guid>{7f3ba808-6c52-46fd-9052-4fcc10cd0876}</guid>
+        <label>Desconfigure Facility Subprocess</label>
+        <x>165.76611</x>
+        <y>1289.334</y>
+      </child>
+      <child name="DeleteFrachise" type="seqActivity">
+        <guid>{4b28185c-6cf9-4fc3-a9d2-b2cd8ef8323d}</guid>
+        <label>Delete Frachise</label>
+        <x>226.89934</x>
+        <y>1415.4375</y>
+        <childList>
+          <child name="DeleteFranchiseSubprocess" type="subflowActivity">
+            <element>prrev_FTTHProcess.DeleteFranchiseSubprocess_cwr7</element>
+            <guid>{17817ff4-6c58-45ef-8258-94ca9046f152}</guid>
+            <label>Delete Franchise Subprocess</label>
+            <x>280.61728</x>
+            <y>1507.4375</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var atividade = "REMOVER_FRANQUIA_IN";
+                  var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  return result;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="MoreFranchiseToDelete" type="switchActivity">
+            <guid>{f5844894-521b-433e-b0ab-6dbe014b0381}</guid>
+            <label>More Franchise To Delete?</label>
+            <x>354.05994</x>
+            <y>30.0</y>
+            <childList>
+              <child name="yes" type="caseActivity">
+                <guid>{1aa0730a-791b-416c-9a53-8ab5e89b099c}</guid>
+                <label>Yes</label>
+                <x>41.483593</x>
+                <y>230.0</y>
+                <childList>
+                  <child name="ResendToDelete" type="repeatActivity">
+                    <element>prrev_FTTHProcess.FTTHRemoveProcess_cwr25/seqActivity_FTTHRemoveProcessStart/seqActivity_DeleteFrachise</element>
+                    <guid>{aaee02e0-0637-4886-a211-f1877fd6c0fd}</guid>
+                    <label>Resend To Delete</label>
+                    <x>300.71033</x>
+                    <y>792.2705</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var atividade = "REMOVER_FRANQUIA_IN";
+                      var resultNecessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                      if(resultNecessity){
+                          var result = FTTHActivationInterface.checkFranchisePlanResendNecessity(process.processOrder.OrderHeader.cwOrderId, 'remover', 'O');
+                          if (result == true){
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, "REMOVER_FRANQUIA_IN", Global.getConfigVariable("ACTIVITY_STATUS_NEW"));
+                          }
+
+                          return result;
+                      }
+                      return resultNecessity;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="no" type="caseActivity">
+                <guid>{7fc70aec-20bd-421f-a5d4-94283fea2868}</guid>
+                <label>No</label>
+                <x>455.39764</x>
+                <y>177.15527</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="updateInventory" type="seqActivity">
+        <guid>{7dc8e319-daaa-4baa-9068-1e47dd8f676f}</guid>
+        <label>Update Inventory</label>
+        <x>438.84216</x>
+        <y>319.31055</y>
+        <childList>
+          <child name="hasCPEToUpdate" type="switchActivity">
+            <guid>{61d7e6a7-ecb9-49f2-be85-29872a5608a0}</guid>
+            <label>Has CPE To Update?</label>
+            <x>498.7287</x>
+            <y>435.7129</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{562253e7-824d-4ac0-b96e-f44ba0037e45}</guid>
+                <label>Yes</label>
+                <x>378.27423</x>
+                <y>1874.8079</y>
+                <childList>
+                  <child name="updateCPE" type="seqActivity">
+                    <guid>{0ee34d64-7653-427a-b433-f9194cfaff72}</guid>
+                    <label>updateCPE</label>
+                    <x>454.39764</x>
+                    <y>549.4658</y>
+                    <childList>
+                      <child name="updateInventory" type="subflowActivity">
+                        <element>prrev_FTTHProcess.UpdateStockSubprocess_cwr9</element>
+                        <guid>{652369a4-10a3-4caf-ae36-c04bf124593b}</guid>
+                        <label>Update Stock Subprocess</label>
+                        <x>444.71307</x>
+                        <y>643.8164</y>
+                      </child>
+                      <child name="repeat" type="repeatActivity">
+                        <element>prrev_FTTHProcess.FTTHRemoveProcess_cwr25/seqActivity_FTTHRemoveProcessStart/seqActivity_updateInventory</element>
+                        <guid>{4c05018a-f935-49ba-9670-a2faa40518a4}</guid>
+                        <label>repeat</label>
+                        <x>430.65775</x>
+                        <y>799.6211</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      //30/04/2018 - Utilizando a tabela de histórico para verificação da necessidade de updateStock
+                      var order = this.process.processOrder;
+
+                      if(order.OrderHeader.flagHistoryFlow){
+                          return FTTHProcess.updateStock(order.id);
+                      }
+                      //end 30/04/2018
+                      if(FTTHCommon.parseBoolean(Global.getConfigVariable('IS_BYPASS_SAP_ON'))){
+                          return false;
+                      }
+
+                      var searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:CPEValidationStatus");
+                      searchDoc.cwOrderId     = this.process.processOrder.id;
+                      searchDoc.statusStock     = "pendente";
+
+                      var equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+
+                      if(equipments){
+                          if(equipments.length > 0){
+                              var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+                              var status = "NEW";
+                              FTTHCommon.createOrUpdateActivity(searchDoc.cwOrderId, activityId);
+
+                              return true;
+                          }
+                      }
+
+                      var equipmentToRemove = new Document('FTTHOrder:EquipmentDataBATime');
+                      equipmentToRemove.statusAcao = 'A Remover';
+                      equipmentToRemove.status = 'wait';
+                      equipmentToRemove.cwOrderId = this.process.processOrder.id;
+                      var equipmentBATimeFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentBATimeFinder', equipmentToRemove);
+
+                      if(equipmentBATimeFinder && equipmentBATimeFinder.length > 0){
+                          var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+                          var status = "NEW";
+                          FTTHCommon.setStatusActivity( this.process.processOrder.id, Global.getConfigVariable("ATUALIZAR_ESTOQUE"), status);
+
+                          return true;
+                      }
+
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{eeeed012-b264-4bd9-b326-321174f7e48d}</guid>
+                <label>No</label>
+                <x>571.7668</x>
+                <y>547.11523</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="LiberateFacilitySubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.LiberateFacilitySubprocess_cwr9</element>
+        <guid>{2be3e889-7b67-4ebd-b8b4-93eb5b0687d1}</guid>
+        <label>Liberate Facility Subprocess</label>
+        <x>556.0822</x>
+        <y>643.8164</y>
+      </child>
+      <child name="NotifyClosingSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.NotifyClosingSubprocess_cwr6</element>
+        <guid>{3d5b9387-4ee8-41c1-9377-327403c1bf67}</guid>
+        <label>Notify Closing Subprocess</label>
+        <x>556.0822</x>
+        <y>784.9199</y>
+      </child>
+      <child name="FTTHRemoveProcessComplete" type="completeActivity">
+        <guid>{b481b21e-ceec-4ac7-b360-414b89b1ff0d}</guid>
+        <label>FTTH Remove Process Complete</label>
+        <x>562.0881</x>
+        <y>911.02344</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;;
+              var status = Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE");
+              FTTHCommon.setStatusExecution(orderId, status);
+
+              FTTHCommon.setStatusOrder(orderId,  Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE"));
+
+              process.processOrder.OrderHeader.dataFechamento = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+              process.processOrder.save();
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Processo respons&#225;vel pela execu&#231;&#227;o da OS de Retirada. Esse processo
+      chamar sequencialmente os seguintes subprocessos:
+    </p>
+    <p style="margin-top: 0">
+      - Consultar Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Desconfigurar Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Retirar Equipamento
+    </p>
+    <p style="margin-top: 0">
+      - Liberar Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Notificar Fechamento de OS
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Um processo s&#243; poder&#225; ser inicializado ap&#243;s a finaliza&#231;&#227;o com sucesso do
+      seu antecessor.
+    </p>
+  ]]></description>
+  <label>FTTH Remove Process</label>
+  <metaVersion>3</metaVersion>
+  <migrationList>
+    <migration type="pmig">
+      <action>&lt;Migrate&gt;</action>
+      <revision>21</revision>
+    </migration>
+    <migration type="pmig">
+      <action>&lt;Migrate&gt;</action>
+      <revision>22</revision>
+    </migration>
+  </migrationList>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.FTTHRemoveProcess</process>
+  <revision>25</revision>
+  <type>User</type>
+</process__revision>

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.DesconfigureOTTIESFHandleIssueSubprocess_cwr10">
+  <activity name="DesconfigureOTTIESFHandleIssueStart" type="seqActivity">
+    <guid>{16677603-c52d-4db3-b40e-52ca7e045ad7}</guid>
+    <label>Desconfigure OTT IESF Handle Issue Start</label>
+    <x>118.81992</x>
+    <y>612.0117</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{ee60ed5f-f4d1-4378-b09a-bf538e97b822}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>119.88164</x>
+        <y>712.65314</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{be3f1ef5-9bcd-4f36-bdfc-7b746194db75}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>240.69727</x>
+            <y>807.41406</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{dcc3aab5-e09b-48ae-9dc4-ac79f849837c}</guid>
+        <label>Check Issue Type</label>
+        <x>235.3698</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{5ca39a7f-114e-40b5-be38-629d19fa7e31}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{33a8d3c7-68a2-47fd-bb26-21cfeafb41a9}</guid>
+                <label>Technical Issue</label>
+                <x>76.67569</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="DesconfigureOTTIESFSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DesconfigureOTTIESFSolveIssueTask_cwr4</element>
+                    <guid>{0df512e9-b4a0-41a4-8de6-f9fadc2fb8b2}</guid>
+                    <label>Desconfigure OTT IESF Solve Issue Task</label>
+                    <x>70.67236</x>
+                    <y>248.40231</y>
+                  </child>
+                  <child name="AnyIssueOpen" type="switchActivity">
+                    <guid>{7e83b8e0-caa0-42f4-a5a5-dfa55d70f377}</guid>
+                    <label>Any Issue Open?</label>
+                    <x>79.67041</x>
+                    <y>389.207</y>
+                    <childList>
+                      <child name="Yes" type="caseActivity">
+                        <guid>{8046510b-b4ef-4279-92f2-4e0bcbdec172}</guid>
+                        <label>Yes</label>
+                        <x>201.73535</x>
+                        <y>803.99567</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.DesconfigureOTTIESFHandleIssueSubprocess_cwr10/seqActivity_DesconfigureOTTIESFHandleIssueStart</element>
+                            <guid>{0d490e86-9dcf-4b0d-8ef8-382078531b90}</guid>
+                            <label>Repeat To Start</label>
+                            <x>30.0</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                              var activityId = Global.getConfigVariable("DESCONFIGURAR_OTT_IESF");
+                              if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              {
+                                  return true;
+                              }
+                              return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="No" type="caseActivity">
+                        <guid>{5b8d5568-fe18-4c66-9eb6-863f4242475e}</guid>
+                        <label>No</label>
+                        <x>138.0332</x>
+                        <y>507.95996</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{87d74493-396e-4759-a39f-8c3f79131f13}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{b72747ff-8cd1-4e71-b8ac-0481f034f25e}</guid>
+                <label>Client Issue</label>
+                <x>276.0581</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{59ec1b52-9ff1-49f5-94f3-41734da3761b}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>259.0376</x>
+                    <y>256.7529</y>
+                  </child>
+                  <child name="OpenIssue" type="switchActivity">
+                    <guid>{a306a914-aed3-4a0b-b6ad-de14f6a633dc}</guid>
+                    <label>Open Issue</label>
+                    <x>267.37256</x>
+                    <y>396.5576</y>
+                    <childList>
+                      <child name="No" type="caseActivity">
+                        <guid>{3fc194fe-bb19-4f02-83c0-fc8be121f470}</guid>
+                        <label>No</label>
+                        <x>330.0664</x>
+                        <y>507.95996</y>
+                      </child>
+                      <child name="YEs" type="caseActivity">
+                        <guid>{400a4435-cdc8-4990-bcd0-53641e2e5390}</guid>
+                        <label>Yes</label>
+                        <x>222.1842</x>
+                        <y>799.9439</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.DesconfigureOTTIESFHandleIssueSubprocess_cwr10/seqActivity_DesconfigureOTTIESFHandleIssueStart</element>
+                            <guid>{1799f340-966f-4d65-82cb-e1caac6fab58}</guid>
+                            <label>Repeat To Start</label>
+                            <x>222.0332</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                              pendencyFinder.searchDocument.cwOrderId = orderId;
+                              var pendRes = pendencyFinder.search();
+                              var status;
+                                  for (var i =0;i < pendRes.length;i++){
+                                      if (pendRes[i].flagIssueStatus == 0){
+                                          return true;
+                                      }
+                                  }
+                              //var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+                              //if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              //{
+                              //   return true;
+                              //}
+                              //return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Desconfigurar OTT&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de
+      Desonfigurar OTT. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a
+      resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de desonfigura&#231;&#227;o de OTT autom&#225;tica para o sistema
+      de Rede, ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o
+      subprocesso de Desonfigurar OTT - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Desconfigure OTT IESF Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.DesconfigureOTTIESFHandleIssueSubprocess</process>
+  <revision>10</revision>
+  <type>Sub-flow</type>
+</process__revision>

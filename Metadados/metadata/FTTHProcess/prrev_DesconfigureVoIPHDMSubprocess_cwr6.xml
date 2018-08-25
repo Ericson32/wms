@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DesconfigureVoIPHDMSubprocess_cwr6">
+  <activity name="DesconfigureVoIPHDMStart" type="seqActivity">
+    <guid>{42b17e09-b9ba-4985-a999-55af664f485c}</guid>
+    <label>Desconfigure VoIP HDM Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="DesconfigureVoIPHDMAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DesconfigureVoIPHDMAutomaticTask</element>
+        <guid>{625a5cb6-38da-45f8-83c8-f1268d960bb5}</guid>
+        <label>Desconfigure VoIP HDM Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{d02193bb-1759-4c5c-8ef4-dd2c12986fc0}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{23b2f6fc-d592-4e57-8e34-28156b730e74}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_HDM");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{1d8fcb9b-9915-405b-b019-9278302c11b0}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{da7b80e4-bcc5-4eb1-a21e-980fe34a64e2}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="DesconfigureVoIPHDMHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DesconfigureVoIPHDMHandleErrorTask_cwr1</element>
+                    <guid>{4fce7967-6082-405c-9d88-a78a23955a7a}</guid>
+                    <label>Desconfigure VoIP HDM Handle Error Task</label>
+                    <x>160.46594</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{ec32a05c-48f6-4fd7-8d96-6cdf48fdbbcc}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{6dd22074-2ad3-4561-af61-5d6e1f437bc4}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{a73f96af-b6fc-4046-a186-ad1082a4e0f7}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="DesconfigureVoIPHDMSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.DesconfigureVoIPHDMHandleIssueSubprocess_cwr7</element>
+                                <guid>{58d247d9-3a6d-4dcc-b9e6-46bcf35988ca}</guid>
+                                <label>Desconfigure VoIP HDM Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.DesconfigureVoIPHDMSubprocess_cwr6/seqActivity_DesconfigureVoIPHDMStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{71bb8195-6a8e-4032-8bb8-a96dc182692c}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_HDM");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{fe80be45-82c5-471e-829e-010e6a404b3a}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.DesconfigureVoIPHDMSubprocess_cwr6/seqActivity_DesconfigureVoIPHDMStart</element>
+                            <guid>{8a2ca109-6d8d-4a27-8add-178651dafc24}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Desconfigurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de
+      Desonfigurar VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a
+      resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de desonfigura&#231;&#227;o de VoIP autom&#225;tica para o sistema
+      de Rede, ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o
+      subprocesso de Desonfigurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Desconfigure VoIP HDM Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DesconfigureVoIPHDMSubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

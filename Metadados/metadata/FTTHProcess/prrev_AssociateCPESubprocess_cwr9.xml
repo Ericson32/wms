@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.AssociateCPESubprocess_cwr9">
+  <activity name="AssociateCPEStart" type="seqActivity">
+    <guid>{7261e18e-e5ef-4fe9-9526-9d071b3a4f37}</guid>
+    <label>Associate CPE Start</label>
+    <x>75.509285</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ValidateCPEAutomaticTaskScript" type="scriptActivity">
+        <guid>{91980a0d-9a54-45f0-bd76-0a4120d7c48a}</guid>
+        <label>Validate CPE Automatic Task Script</label>
+        <x>73.515144</x>
+        <y>124.76094</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var ord = this.process.processOrder;
+
+              if(ord.OrderHeader.tipoOS == "TIPO_ORDEM_RETIRADA" || this.process.processDocument.acaoNovo == "remover" || this.process.processDocument.acaoOriginal == "remover"){
+                  FTTHCommon.setStatusActivity(this.process.processOrder.id,  Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"));
+                  return;
+              } else{
+                  FTTHCommon.setStatusActivity(this.process.processOrder.id,  Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), "WAIT");
+                  Process.startSubProcess("FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask",  this.process.id, this.process.processDocument);
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="checkBypassSap" type="switchActivity">
+        <guid>{fbe2569a-adc7-4e64-ab13-30eca31de668}</guid>
+        <label>Check Bypass Sap</label>
+        <x>84.853035</x>
+        <y>263.5656</y>
+        <childList>
+          <child name="ON" type="caseActivity">
+            <guid>{8a231bbc-3d29-488e-91ed-d2c634b2383d}</guid>
+            <label>ON</label>
+            <x>134.70508</x>
+            <y>399.0197</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  //return FTTHCommon.parseBoolean(Global.getConfigVariable('IS_BYPASS_SAP_ON'));
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="OFF" type="caseActivity">
+            <guid>{aff4159e-5477-4aa9-8f56-4c1208fe7b4d}</guid>
+            <label>OFF</label>
+            <x>39.311035</x>
+            <y>365.5656</y>
+            <childList>
+              <child name="waitCPEValidation" type="joinActivity">
+                <element>proc_FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask</element>
+                <guid>{6fd20bd1-cdfd-4856-9cf8-3153c8949dd7}</guid>
+                <label>Wait CPE Validation</label>
+                <x>30.0</x>
+                <y>391.66913</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="CPESuccessfullyValidated" type="switchActivity">
+        <guid>{ac11f6e2-8f69-4eba-88a1-4c4f2817a9d7}</guid>
+        <label>CPE Successfully Validated</label>
+        <x>70.18311</x>
+        <y>503.07147</y>
+        <childList>
+          <child name="Yes" type="caseActivity">
+            <guid>{b4a66760-0f04-4102-af93-f5aff1f39ed2}</guid>
+            <label>Yes</label>
+            <x>114.0</x>
+            <y>515.77264</y>
+            <childList>
+              <child name="UpdateCPESequence" type="seqActivity">
+                <guid>{bc3cc919-8959-4139-9b26-bd9f5e7a1b4e}</guid>
+                <label>Update CPE Sequence</label>
+                <x>128.18399</x>
+                <y>629.17505</y>
+                <childList>
+                  <child name="UpdateCPEAutomaticTaskScript" type="scriptActivity">
+                    <guid>{d7b7f3d8-b798-477c-ac59-956d2fd07cf7}</guid>
+                    <label>Update CPE Automatic Task Script</label>
+                    <x>120.85157</x>
+                    <y>723.936</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          Process.startSubProcess("FTTHInventoryInterface.UpdateCPEAutomaticTask",  this.process.id, this.process.processDocument);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="waitCPEUpdate" type="joinActivity">
+                    <element>proc_FTTHInventoryInterface.UpdateCPEAutomaticTask</element>
+                    <guid>{581fd5a2-25a8-4b18-91b8-e74351ff3ef7}</guid>
+                    <label>Wait CPE Update</label>
+                    <x>124.861336</x>
+                    <y>864.74066</y>
+                  </child>
+                  <child name="CPESuccessfullyUpdated" type="switchActivity">
+                    <guid>{c46ef822-c0a1-467b-a7a8-937a37ed170f}</guid>
+                    <label>CPE Successfully Updated</label>
+                    <x>117.51954</x>
+                    <y>976.14307</y>
+                    <childList>
+                      <child name="Yes" type="caseActivity">
+                        <guid>{b4a66760-0f04-4102-af93-f5aff1f39ed2}</guid>
+                        <label>Yes</label>
+                        <x>114.0</x>
+                        <y>515.77264</y>
+                        <childList>
+                          <child name="AssociateONTSequence" type="seqActivity">
+                            <guid>{bc3cc919-8959-4139-9b26-bd9f5e7a1b4e}</guid>
+                            <label>Associate ONT Sequence</label>
+                            <x>173.25606</x>
+                            <y>1102.2466</y>
+                            <childList>
+                              <child name="AssociateONTAutomaticTaskScript" type="scriptActivity">
+                                <guid>{b9c12877-0cd6-444b-abbd-122777ba23e5}</guid>
+                                <label>Associate ONT Automatic Task Script</label>
+                                <x>171.52441</x>
+                                <y>1197.0076</y>
+                                <methodList>
+                                  <method name="cwOnProcActBefore" type="action">
+                                    <category>before</category>
+                                    <system>true</system>
+                                    <script><![CDATA[
+                                      if(this.process.processDocument.tipoEquipamentoNovo == "ONT"){
+                                      Process.startSubProcess("FTTHActivationInterface.AssociateONTAutomaticTask",  this.process.id, this.process.processDocument);
+                                      } else{
+                                          var status = FTTHCommon.defineStatusAutomaticActivity(0, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                                          FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("ASSOCIAR_ONT_APC"), status);
+                                      }
+                                    ]]></script>
+                                  </method>
+                                </methodList>
+                              </child>
+                              <child name="waitONTAssociation" type="joinActivity">
+                                <element>proc_FTTHActivationInterface.AssociateONTAutomaticTask</element>
+                                <guid>{5e8da6f4-7d79-4586-9321-5e76a1925e8f}</guid>
+                                <label>Wait ONT Association</label>
+                                <x>170.84766</x>
+                                <y>1337.8123</y>
+                              </child>
+                              <child name="ONTSuccessfullyAssociated" type="switchActivity">
+                                <guid>{1c169d32-94ac-4240-912a-bea3fbb389bc}</guid>
+                                <label>ONT Successfully Associated</label>
+                                <x>168.19238</x>
+                                <y>1449.2146</y>
+                                <childList>
+                                  <child name="Yes" type="caseActivity">
+                                    <guid>{b4a66760-0f04-4102-af93-f5aff1f39ed2}</guid>
+                                    <label>Yes</label>
+                                    <x>114.0</x>
+                                    <y>515.77264</y>
+                                    <childList>
+                                      <child name="AssociateONTSequence" type="seqActivity">
+                                        <guid>{bc3cc919-8959-4139-9b26-bd9f5e7a1b4e}</guid>
+                                        <label>Associate ONT Sequence</label>
+                                        <x>209.00505</x>
+                                        <y>1671.0492</y>
+                                      </child>
+                                    </childList>
+                                    <methodList>
+                                      <method name="cwOnProcActCond" type="action">
+                                        <category>cond</category>
+                                        <system>true</system>
+                                        <script><![CDATA[
+                                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                                          var statusPendente  = Global.getCodeDescription("FTTHOrder:statusONT", "PEN"); // Status PENDENTE in statusONT enumeration
+                                          var statusInsucesso = Global.getCodeDescription("FTTHOrder:statusONT", "INS"); // Status INSUCESSO in statusONT enumeration
+                                          var statusSucesso = Global.getCodeDescription("FTTHOrder:statusONT", "SUC"); // Status SUCESSO in statusONT enumeration
+
+                                          var descriptionInsu  = "Erro ao associar ONT ";
+                                          var descriptionSuc  = "ONT associado com sucesso ";
+                                          var descriptionPen  = "A aguardar resposta ";       // description of status PENDENTE
+
+                                          var activityId = Global.getConfigVariable("ASSOCIAR_ONT_APC");
+                                          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                                          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                                              //Search all entries for orderId response
+                                              var fndONTActivation = new FTTHOrder.ONTActivationStatusFinder;
+                                              fndONTActivation.searchDocument.cwOrderId = orderId
+                                              var resultONT = fndONTActivation.search();
+                                              //if exist information, read first line because it is the most current
+                                              if(resultONT.length != 0){
+                                                  resultONT[0].receiveDate = new Date();
+                                                  resultONT[0].statusONT = statusSucesso;
+                                                  resultONT[0].description =  descriptionSuc;
+                                                  resultONT[0].save(); //save Document with current status
+                                              }
+                                              return true;
+                                          }
+                                          return false;
+                                        ]]></script>
+                                      </method>
+                                    </methodList>
+                                  </child>
+                                  <child name="No" type="caseActivity">
+                                    <guid>{09753690-c694-4142-9120-1ba71b3c89c2}</guid>
+                                    <label>No</label>
+                                    <x>100.78047</x>
+                                    <y>750.30835</y>
+                                    <childList>
+                                      <child name="RollbackSubprocess" type="seqActivity">
+                                        <guid>{bce78212-4e20-4977-a31b-a553193c5230}</guid>
+                                        <label>Rollback Subprocess</label>
+                                        <x>122.27731</x>
+                                        <y>1575.3181</y>
+                                        <childList>
+                                          <child name="Rollback" type="subflowActivity">
+                                            <element>prrev_FTTHProcess.RollbackNetwinAssociateCPE_cwr2</element>
+                                            <guid>{42e9293e-5a50-4471-b761-de81c4176a97}</guid>
+                                            <label>Rollback</label>
+                                            <x>121.26755</x>
+                                            <y>1670.0791</y>
+                                          </child>
+                                          <child name="waitRollback" type="joinActivity">
+                                            <element>proc_FTTHInventoryInterface.UpdateCPEAutomaticTask</element>
+                                            <guid>{7caae67a-7668-401a-b2b6-8b51ed02643d}</guid>
+                                            <label>Wait Rollback</label>
+                                            <x>121.26755</x>
+                                            <y>1766.7803</y>
+                                          </child>
+                                        </childList>
+                                      </child>
+                                    </childList>
+                                  </child>
+                                </childList>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                                  return true;
+                              return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="No" type="caseActivity">
+                        <guid>{09753690-c694-4142-9120-1ba71b3c89c2}</guid>
+                        <label>No</label>
+                        <x>88.19239</x>
+                        <y>1463.9158</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId =  Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="No" type="caseActivity">
+            <guid>{09753690-c694-4142-9120-1ba71b3c89c2}</guid>
+            <label>No</label>
+            <x>48.192383</x>
+            <y>1219.0593</y>
+          </child>
+        </childList>
+      </child>
+      <child name="NotifyClickValidationStatus" type="opActivity">
+        <element>iface_FTTHClickGestaoInventario.GestaoInventarioPortType/oper_NotificarValidacaoEquipamentoFTTH</element>
+        <guid>{72eac0ea-f4b2-4cd0-bda5-1a364b845e53}</guid>
+        <label>Notify Click Validation Status</label>
+        <participant>part_FTTHClickInterface.ClickSenderParticipant</participant>
+        <x>107.4738</x>
+        <y>1908.1826</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              /*
+                  Marcos Souza - marcossouza@br.ibm.com - PRJ 11255 - 20/06/2017
+                  script responsável pelo envio da mensagem para o CLICK da notificação de validação de equipamento
+               */
+
+
+              var atividade = "";// = this.process.processDocument.operacao;
+              var originSystem = "";
+              var sistema = "";
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId;
+              var result;
+
+              var searchDoc;
+
+              //NÃO ALTERAR ESSA ORDEM, ORDEM É A ORDEM DE EXECUÇÃO DO PROCESSO
+              var atividades = [
+                  Global.getConfigVariable("VALIDAR_EQUIPAMENTO"),
+                  Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"),
+                  Global.getConfigVariable("ASSOCIAR_ONT_APC")
+              ];
+
+              for(var i = 0; i < atividades.length; i++){
+                  activityId = atividades[i];
+                  result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      switch(activityId){
+                          case Global.getConfigVariable("VALIDAR_EQUIPAMENTO"):
+                            sistema = Global.getConfigVariable("SAP_SYSTEM");
+                            originSystem = Global.getConfigVariable("SAP");
+                            break;
+                          case Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"):
+                            sistema = Global.getConfigVariable("INVENTORY_SYSTEM");
+                            originSystem = Global.getConfigVariable("NETWIN");
+                            break;
+                          case Global.getConfigVariable("ASSOCIAR_ONT_APC"):
+                            sistema = Global.getConfigVariable("ACTIVATION_SYSTEM");
+                            originSystem = Global.getConfigVariable("SIS");
+                            break;
+                      }
+                      atividade = activityId;
+                      break;
+                  }
+              }
+
+
+                  if (originSystem != '') {
+                      switch(this.process.processDocument.tipoEquipamentoNovo){
+                          case 'ONT':
+                              searchDoc = new Document('FTTHOrder:BaseEquipmentData');
+                              searchDoc.cwOrderId = orderId;
+
+                              searchDoc.codEquipamento      =       null;
+                              searchDoc.codEquipamentoHGW      =      null;
+                              searchDoc.flagDadoOriginal      =      null;
+                              searchDoc.flgValidado      =      null;
+                              searchDoc.idAtivo      =      null;
+                              searchDoc.idAtivoHGW      =      null;
+                              searchDoc.numeroSerieHomeGateway = null;
+                              searchDoc.numeroSerieONT = null;
+
+                              var equipamentoBase = Finder.runSearch('FTTHOrder:equipamentoBaseFinder', searchDoc);
+                              if (equipamentoBase.size > 0) {
+                                  equipamentoBase[0].isSAP = 0;
+                                  equipamentoBase[0].isNETWIN = 0;
+                                  equipamentoBase[0].save();
+                              }
+                              break;
+                         case 'HGW':
+                              searchDoc = new Document('FTTHOrder:BaseEquipmentData');
+                              searchDoc.cwOrderId = orderId;
+
+                              searchDoc.codEquipamento      =       null;
+                              searchDoc.codEquipamentoHGW      =      null;
+                              searchDoc.flagDadoOriginal      =      null;
+                              searchDoc.flgValidado      =      null;
+                              searchDoc.idAtivo      =      null;
+                              searchDoc.idAtivoHGW      =      null;
+                              searchDoc.numeroSerieHomeGateway = null;
+                              searchDoc.numeroSerieONT = null;
+
+                              var equipamentoBase = Finder.runSearch('FTTHOrder:equipamentoBaseFinder', searchDoc);
+                              if (equipamentoBase.size > 0) {
+                                  equipamentoBase[0].isSAPHGW = 0;
+                                  equipamentoBase[0].isNETWINHGW = 0;
+                                  equipamentoBase[0].save();
+                              }
+                              break;
+                         case 'STB':
+                              searchDoc = new Document('FTTHOrder:EquipmentData');
+
+                              searchDoc.cwOrderId = orderId;
+                              searchDoc.cwDocId = null;
+                              searchDoc.cwOrderId = null;
+                              searchDoc.flagDadoOriginal       = null;
+                              searchDoc.flgValidado       = null;
+                              searchDoc.idAtivo       = this.process.processDocument.idAtivoNovo;
+                              searchDoc.numeroSerieSetTopBox= null;
+
+                              var equipamentoPonta = Finder.runSearch('FTTHOrder:equipamentoPontaFinder', searchDoc);
+                              if (equipamentoPonta.size > 0) {
+                                  equipamentoPonta[0].isSAP = 0;
+                                  equipamentoPonta[0].isNETWIN = 0;
+                                  equipamentoPonta[0].save();
+                              }
+                              break;
+                      }
+                  }
+
+
+              var msg = FTTHClickInterface.createClickNotificationMessage(this.process.processDocument, sistema, atividade, this.activityData, null, originSystem);
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+
+              var base = process.processOrder.EquipmentData[0].BaseEquipmentData;
+
+              var validateEquipDoc = this.process.processDocument;
+
+              if (validateEquipDoc.numeroSerieEquipamentoNovo != null){
+                  if(validateEquipDoc.tipoEquipamentoNovo == "ONT" || validateEquipDoc.tipoEquipamentoNovo == "HGW"){
+                      base.flgValidado = true;
+                  } else if(validateEquipDoc.tipoEquipamentoNovo == "STB"){
+                      var pontaLength = process.processOrder.EquipmentData[0].AddPointsEquipmentData.length;
+                     for (var i = 0; i < pontaLength; i++) {
+                         var ponta = process.processOrder.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData;
+                         if (ponta.idAtivo == validateEquipDoc.idAtivoNovo){
+                             ponta.flgValidado = true;
+                         }
+                     }
+                  }
+              }
+              process.processOrder.save();
+
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              /*
+              this.activityData.MessageHeader.Response.Return[0].Code
+              this.activityData.MessageHeader.Response.Return[0].Description
+
+              //this.activityData.MessageHeader.Response.Return[0].NativeReturn.AppId
+              this.activityData.MessageHeader.Response.Return[0].NativeReturn.Code
+              this.activityData.MessageHeader.Response.Return[0].NativeReturn.Description
+              //this.activityData.MessageHeader.Response.Return[0].NativeReturn.Detail
+              */
+
+              var ValidateEquipmentDoc = this.process.processDocument;
+              var tipoEquipamento = ValidateEquipmentDoc.tipoEquipamentoNovo?ValidateEquipmentDoc.tipoEquipamentoNovo:ValidateEquipmentDoc.tipoEquipamentoOriginal;
+              var idAtivo =  ValidateEquipmentDoc.acaoNovo? ValidateEquipmentDoc.acaoNovo:ValidateEquipmentDoc.idAtivoOriginal;
+
+              FTTHClickInterface.atualizarFlagIsProcessandoEquip(this.process.processOrder.id, false, tipoEquipamento, idAtivo);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Validate Equipment Automatic Task", "Validate Equipment Send Operation", Global.getConfigVariable("CWONPROCACTBEFORE") , this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.MessageHeader.Response.Return[0].Code,  Global.getConfigVariable("SAP_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                      Global.getConfigVariable("SAP_SYSTEM"),
+                                      Global.getConfigVariable("VALIDAR_EQUIPAMENTO"),
+                                      status,
+                                      this.activityData.MessageHeader.Response.Return[0].Code,
+                                      this.activityData.MessageHeader.Response.Return[0].Description,
+                                      this.process.id,
+                                      Global.getConfigVariable("SYNC_REQ_RESP"));
+              //FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,  Global.getConfigVariable("SAP_SYSTEM"), Global.getConfigVariable("VALIDAR_EQUIPAMENTO"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ClickSenderParticipant" type="participantActivity">
+        <guid>{49c9f498-0cb0-48ea-be10-ee9396ba1998}</guid>
+        <label>Click Sender Participant</label>
+        <participant>part_FTTHClickInterface.ClickSenderParticipant</participant>
+        <x>80.47673</x>
+        <y>2034.2861</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Associate CPE Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.AssociateCPESubprocess</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

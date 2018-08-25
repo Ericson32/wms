@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.createMessageToConfigureDigitalService">
+  <label>Create Message To Configure Digital Service</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Ordem a ser utilizada na montagem da mensagem.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Atividade para qual dever&amp;#225; ser criada a mensagem.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.String64</type>
+    </parameter>
+    <parameter name="correlationID" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Id do correla&amp;#231;&amp;#227;o.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.String64</type>
+    </parameter>
+    <parameter name="request" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHActivationInterface.request</type>
+    </parameter>
+    <parameter name="operation" type="rifp">
+      <type>dtype_FTTHCommon.operacao</type>
+    </parameter>
+  </parameterList>
+  <valueType>dstruct_FTTHActivationInterface.request</valueType>
+  <script><![CDATA[
+    /*
+    * Script de envio da mensagem de configuração de serviço de acordo com o tipo de bloqueio.
+    */
+
+    //Parametros de LOG
+    var LOG_INTERFACE = "ACTIVATION";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+    var LOG_ACTIVITY = atividade;
+    var LOG_SCRIPT = "createMessageToActivation - Suspend Digital FTTHClickService";
+    var LOG_OPERATION = "Sender";
+
+
+    var isMudEnd = false, isMudBundle = false;
+    var isDissociarSTB = atividade == 'Dissociar STB';
+    var requestFranchisePlan = null;
+    //verificar solicitacoes da ordem para mudanca de endereco com mudanca de bundle
+    checkSolicitacoes();
+    var possuiTodosAtributosObrigatorios = true;
+    var msgCamposSemvalor = 'Campo(s) obrigatorio(s) sem valor => ';
+
+    var indCancelamento = FTTHCommon.isCancelOrder(ordem.OrderHeader.cwOrderId);
+
+    request.operation = operation.operacao;
+    request.isPRE = FTTHCommon.parseBooleanToString(ordem.ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO"));
+    request.isPREOld = (ordem.OriginalData) ? FTTHCommon.parseBooleanToString(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO")) : null;
+    request.isCaixaPostal = ordem.ProductData.isCaixaPostal == 1 ? 'true' : 'false';
+    request.isBina = ordem.ProductData.isBina == 1 ? 'true' : 'false';
+    request.isChamadaEspera = ordem.ProductData.isChamadaEspera == 1 ? 'true' : 'false';
+    request.isConferencia = ordem.ProductData.isConferencia == 1 ? 'true' : 'false';
+    request.isSigame = ordem.ProductData.isSigame == 1 ? 'true' : 'false';
+
+    if(ordem.OriginalData){
+    request.isCaixaPostalOld = ordem.OriginalData[0].ProductData.isCaixaPostal == 1 ? 'true' : 'false';
+    request.isBinaOld = ordem.OriginalData[0].ProductData.isBina == 1 ? 'true' : 'false';
+    request.isChamadaEsperaOld = ordem.OriginalData[0].ProductData.isChamadaEspera == 1 ? 'true' : 'false';
+    request.isConferenciaOld = ordem.OriginalData[0].ProductData.isConferencia == 1 ? 'true' : 'false';
+    request.isSigameOld = ordem.OriginalData[0].ProductData.isSigame == 1 ? 'true' : 'false';
+    }
+
+
+    var searchAttributes = new Document('FTTHActivationInterface:AttributeFinderDocument');
+    searchAttributes.acao = operation.operacao;
+    searchAttributes.os = ordem.id;
+    var attributes = Finder.runSearch('FTTHActivationInterface:AttributeFinder', searchAttributes);
+
+
+
+    if (attributes) {
+        var listaAtributos = new Array();
+
+        for (var i = 0; i < attributes.size; i++) {
+            var atributo = new DataStructure('FTTHActivationInterface.attributeType');
+            var attribute = attributes[i];
+            var valor = null;
+            var valorOriginal = null;
+            if(attribute.enviarDadoOriginal == 0 || attribute.enviarDadoOriginal == 1){
+                try {
+                    var enviaDadosOriginais = attribute.enviarDadoOriginal;
+                    if(indCancelamento) {
+                        if(attribute.enviarDadoOriginal == 0) {
+                            enviaDadosOriginais = 1;
+                        } else if(attribute.enviarDadoOriginal == 1) {
+                            enviaDadosOriginais = 0;
+                        }
+                    }
+                    var documento = FTTHCommon.getDocument(ordem, attribute.nomeDocumento, enviaDadosOriginais);
+                    if(documento.isCollection)
+                    {
+                        //CR Dissociar STB
+                        if(isDissociarSTB){
+                            var stbAtual = ordem.OrderHeader.countIPTV;
+                            var doc = FTTHCommon.getDocument(ordem, attribute.nomeDocumento, enviaDadosOriginais, stbAtual);
+                            valor = doc.getValueByName(attribute.identificadorCampo);
+                            //PRJ 9291
+                            if(attribute.nomeDocumento == 'Equipament Point Data' && attribute.identificadorCampo == 'numeroSerieSetTopBox' && atividade == 'Dissociar STB'){
+                                valor = doc.getValueByName("deviceGUID");
+                            }
+                            //
+                            checkMandatoryValues(valor,atributo,attribute);
+                        }
+                        else{
+                            for(var k = 0; k < documento.length; k++){
+                                var doc = FTTHCommon.getDocument(ordem, attribute.nomeDocumento, enviaDadosOriginais, k);
+                                valor = doc.getValueByName(attribute.identificadorCampo);
+                                checkMandatoryValues(valor,atributo,attribute);
+                                if(k != documento.length - 1 && atributo.value !== null){
+                                    listaAtributos[listaAtributos.length] = atributo;
+                                    atributo = new DataStructure('FTTHActivationInterface.attributeType');
+                                }
+                            }
+                        }
+                    }else{
+                        valor = documento.getValueByName(attribute.identificadorCampo);
+                        checkMandatoryValues(valor,atributo,attribute);
+                    }
+                } catch (e) {
+                    valor = null;
+                    if(attribute.obrigatoriedade){
+                        possuiTodosAtributosObrigatorios = false;
+                        msgCamposSemvalor = msgCamposSemvalor + '[value][' + attribute.nomeDocumento + ']' + '[' + attribute.identificadorCampo + '][indDadoOriginal]['+attribute.enviarDadoOriginal+']\n';
+                    }
+                    FTTHCommon.log( ordem.id, correlationID,
+                    LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                    "Erro ao preencher campo => " + e, -1,
+                    LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                }
+            }else if(attribute.enviarDadoOriginal == 2){
+                try {
+                    var documento = FTTHCommon.getDocument(ordem, attribute.nomeDocumento, false);
+                    valor = documento.getValueByName(attribute.identificadorCampo);
+                    var documentoOriginal = FTTHCommon.getDocument(ordem, attribute.nomeDocumento, true);
+                    valorOriginal = documentoOriginal.getValueByName(attribute.identificadorCampo);
+                    if(valor != null && valorOriginal == null){
+                        atributo.name = attribute.identificadorCampo;
+                        atributo.value = valor;
+                    }else if(valorOriginal != null && valor == null){
+                        atributo.name = attribute.identificadorCampo;
+                        atributo.value = valorOriginal;
+                    }else if(valorOriginal != null && valor != null){
+                        atributo.name = attribute.identificadorCampo;
+                        atributo.value = valor;
+                        atributo.originalValue = valorOriginal;
+                    }else{
+                        FTTHCommon.log( ordem.id, correlationID,
+                        LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                        "Campo e campo original sem valor => attribute.identificadorCampo:" + attribute.identificadorCampo, -1,
+                        LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                        if(attribute.obrigatoriedade){
+                            msgCamposSemvalor = msgCamposSemvalor + '[value][' + attribute.nomeDocumento + ']' + '[' + attribute.identificadorCampo + '][indDadoOriginal]['+attribute.enviarDadoOriginal+']\n';
+                            possuiTodosAtributosObrigatorios = false;
+                        }
+                    }
+                } catch (e) {
+                    valor = null;
+                    valorOriginal = null;
+                    if(attribute.obrigatoriedade){
+                        possuiTodosAtributosObrigatorios = false;
+                        msgCamposSemvalor = msgCamposSemvalor + '[value][' + attribute.nomeDocumento + ']' + '[' + attribute.identificadorCampo + '][indDadoOriginal]['+attribute.enviarDadoOriginal+']\n';
+                    }
+                    FTTHCommon.log( ordem.id, correlationID,
+                    LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                    "Erro ao preencher campo  => " + e, -1,
+                    LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                }
+            }
+            if(atributo.value !== null)
+                listaAtributos[listaAtributos.length] = atributo;
+        }
+    }else{
+        possuiTodosAtributosObrigatorios = false;
+        msgCamposSemvalor = "Nao existem atributos cadastrados para a operacao " + operation.operacao;
+
+        FTTHCommon.log( ordem.id, correlationID,
+        LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+        "Nao existem atributos cadastrados para a operacao => searchAttributes:: " + searchAttributes.toXML(), -1,
+        LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+    }
+    if(possuiTodosAtributosObrigatorios){
+        for(i = 0; i < listaAtributos.length; i++){
+            request.attributeList.attribute[i].name = listaAtributos[i].name;
+            request.attributeList.attribute[i].value = listaAtributos[i].value;
+            if(listaAtributos[i].originalValue != null)
+                request.attributeList.attribute[i].originalValue = listaAtributos[i].originalValue;
+        }
+
+        var activityCodeDoc = new Document('FTTHCommon:NomeAtividadeQuery');
+        activityCodeDoc.atividade = atividade;
+
+        var result = Finder.runSearch('FTTHCommon:ActivityCodeFinder', activityCodeDoc);
+
+        var activityCode;
+        if(result && result.size != 0){
+            activityCode = result[0].atividade;
+        }else{
+            activityCode = atividade;
+        }
+
+        FTTHCommon.saveEvent(ordem.id,
+                     Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                     activityCode,
+                     "INITIAL",
+                     0000,
+                     "ESTADO INICIAL DO ENVIO DE MENSAGEM ASSINCRONA DE ATIVACAO",
+                     correlationID,
+                     Global.getConfigVariable("ASYNC_REQUEST"));
+
+
+    }else{
+        FTTHCommon.log( ordem.id, correlationID,
+                    LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                    msgCamposSemvalor, -1,
+                    LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+
+        var activityCodeDoc = new Document('FTTHCommon:NomeAtividadeQuery');
+        activityCodeDoc.atividade = atividade;
+
+        var result = Finder.runSearch('FTTHCommon:ActivityCodeFinder', activityCodeDoc);
+
+        var activityCode;
+        if(result && result.size != 0){
+            activityCode = result[0].atividade;
+        }else{
+            activityCode = atividade;
+        }
+
+        FTTHCommon.saveEvent(ordem.id,
+                     Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                     activityCode,
+                     "FUNCTIONAL_ERROR",
+                     -1000,
+                     msgCamposSemvalor,
+                     correlationID,
+                     Global.getConfigVariable("ASYNC_REQUEST"));
+
+        FTTHCommon.updateAutomaticActivityDocument(ordem, Global.getConfigVariable("ACTIVATION_SYSTEM"), activityCode);
+
+    }
+
+    return request;
+
+    function checkMandatoryValues(valor, atributo,attribute ){
+        if(valor != null){
+            atributo.name = attribute.identificadorCampo;
+            atributo.value = valor;
+        }else{
+            FTTHCommon.log( ordem.id, correlationID,
+                            LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                            "Campo sem valor => attribute.identificadorCampo::" + attribute.identificadorCampo + " :: attribute.enviarDadoOriginal::" + attribute.enviarDadoOriginal, -1,
+                            LOG_INTERFACE, LOG_NIVEL, "WARN" );
+            if(attribute.obrigatoriedade){
+                msgCamposSemvalor = msgCamposSemvalor + '[value][' + attribute.nomeDocumento + ']' + '[' + attribute.identificadorCampo + '][indDadoOriginal]['+attribute.enviarDadoOriginal+']\n';
+                possuiTodosAtributosObrigatorios = false;
+            }
+        }
+    }
+
+    function checkSolicitacoes(){
+        var orderSolicitacoes = new Finder('FTTHCommon.RequestFinder');
+        orderSolicitacoes.searchDocument.cwOrderId = ordem.id
+        var orderSolicitacoesResult = orderSolicitacoes.search();
+        for (var x=0; x<orderSolicitacoesResult.length; x++) {
+            switch(orderSolicitacoesResult[x].requestId) {
+                case ('MUDANCA_ENDERECO') :
+                    isMudEnd = true;
+                    break;
+                case ('MUDANCA_PACOTE') :
+                    isMudBundle = true;
+                    break;
+            }
+        }
+    }
+  ]]></script>
+</script>

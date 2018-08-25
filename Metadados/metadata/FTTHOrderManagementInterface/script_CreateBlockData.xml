@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateBlockData">
+  <label>Create Franchise Plan</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+    <parameter name="isNewData" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Block Data');
+
+    var blockDataArray = new Array();
+
+    for (var i = 0; i < requisicao.acessos.acesso.length; i++) {
+        var acesso = requisicao.acessos.acesso[i];
+
+        if (acesso.idCatalogo == 'OI_VOIP') {
+            // Mapeamento dos bloqueios
+            for (var j = 0; j < acesso.bloqueios.bloqueio.length; j++) {
+                var item = acesso.bloqueios.bloqueio[j];
+
+                if (mustRead(isNewData, item.acao)) {
+                    var bloqueio = new Document('FTTHOrder.BlockData');
+
+                    isNewData == true ? bloqueio.flagIsOriginal = 'N' : bloqueio.flagIsOriginal = 'O';
+                bloqueio.acao = item.acao;
+                bloqueio.idAtivo = item.idAtivo;
+                bloqueio.nomeBloqueio = item.idCatalogo;
+                bloqueio.idServico = acesso.idCatalogo;
+                bloqueio.nomeServico = acesso.idCatalogo;
+
+                blockDataArray.push(bloqueio);
+            }
+        }
+    }
+    }
+
+    return blockDataArray;
+
+    function mustRead(isNew, acao) {
+        if((isNew && acao != 'remover') || (!isNew && acao != 'adicionar'))
+            return true;
+
+        return false;
+    }
+  ]]></script>
+</script>

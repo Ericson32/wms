@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHHandleIssueProcess.ConsultEquipmentHandleIssueSubprocess">
+  <activity name="ConsultEquipmentHandleIssueSubprocessStart" type="seqActivity">
+    <guid>{4262157c-2353-4d37-a6ac-1fde85a4e425}</guid>
+    <label>Consult Equipment Handle Issue Sub process Start</label>
+    <x>120.141785</x>
+    <y>612.0117</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{3931eee0-5759-4828-b91c-07f9c7f0d5a1}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>119.88162</x>
+        <y>718.53357</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{bebee127-7390-4f76-aea8-8eb39e861c0a}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>240.69725</x>
+            <y>813.2945</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="checkIssueType" type="switchActivity">
+            <guid>{8d17e82a-b3be-43cb-818c-dd9d36d38502}</guid>
+            <label>Check Issue Type</label>
+            <x>235.36978</x>
+            <y>30.0</y>
+            <childList>
+              <child name="Technical" type="caseActivity">
+                <guid>{5c40d6ce-af8f-4bf5-aed4-0e03e0c2da13}</guid>
+                <label>Technical</label>
+                <x>31.677734</x>
+                <y>566.96796</y>
+                <childList>
+                  <child name="technicalIssue" type="seqActivity">
+                    <guid>{d2264267-c58d-437b-b993-b628874a83f8}</guid>
+                    <label>Technical Issue</label>
+                    <x>76.67567</x>
+                    <y>156.40234</y>
+                    <childList>
+                      <child name="ConsultEquipmentSolveIssueTask" type="subflowActivity">
+                        <element>proc_FTTHUserInterface.ConsultEquipmentInventorySolveIssueTask</element>
+                        <guid>{c7f67943-62b9-4d26-baab-672e7f753de9}</guid>
+                        <label>Consult Equipment Solve Issue Task</label>
+                        <x>75.008286</x>
+                        <y>248.40234</y>
+                      </child>
+                      <child name="AnyIssueOpen" type="switchActivity">
+                        <guid>{1f8598f8-e2b5-48f4-bdfb-d0ec9d7a5f0e}</guid>
+                        <label>Any Issue Open?</label>
+                        <x>79.670395</x>
+                        <y>389.20703</y>
+                        <childList>
+                          <child name="Yes" type="caseActivity">
+                            <guid>{8046510b-b4ef-4279-92f2-4e0bcbdec172}</guid>
+                            <label>Yes</label>
+                            <x>201.73535</x>
+                            <y>803.99567</y>
+                            <childList>
+                              <child name="RepeatToStart" type="repeatActivity">
+                                <element>proc_FTTHHandleIssueProcess.ConsultEquipmentHandleIssueSubprocess/seqActivity_ConsultEquipmentHandleIssueSubprocessStart</element>
+                                <guid>{0d490e86-9dcf-4b0d-8ef8-382078531b90}</guid>
+                                <label>Repeat To Start</label>
+                                <x>29.999985</x>
+                                <y>500.60938</y>
+                              </child>
+                            </childList>
+                            <methodList>
+                              <method name="cwOnProcActCond" type="action">
+                                <category>cond</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                                  var activityId = Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO");
+                                  if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                                  {
+                                      return true;
+                                  }
+                                  return false;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                          <child name="No" type="caseActivity">
+                            <guid>{5b8d5568-fe18-4c66-9eb6-863f4242475e}</guid>
+                            <label>No</label>
+                            <x>138.03319</x>
+                            <y>507.95996</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+              <child name="client_cancel" type="caseActivity">
+                <guid>{0d6d1848-222a-4c3f-af98-e2aaa2b34a35}</guid>
+                <label>Client/Cancel</label>
+                <x>30.0</x>
+                <y>437.5656</y>
+                <childList>
+                  <child name="ClientIssue" type="seqActivity">
+                    <guid>{58001766-1c14-4425-9e20-24d9f69a3537}</guid>
+                    <label>Client Issue</label>
+                    <x>276.0581</x>
+                    <y>156.40234</y>
+                    <childList>
+                      <child name="closeClientCancelIssueTask" type="spawnActivity">
+                        <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                        <guid>{fdcf1128-c839-4cb8-8b1c-6ff6c382a7c9}</guid>
+                        <label>Close Cliente/Cancel Issue task</label>
+                        <syc>true</syc>
+                        <x>259.0376</x>
+                        <y>256.75293</y>
+                      </child>
+                      <child name="OpenIssue" type="switchActivity">
+                        <guid>{4c4ed6a7-b746-480b-90bf-3f2639d0e53d}</guid>
+                        <label>Open Issue</label>
+                        <x>267.37256</x>
+                        <y>396.55762</y>
+                        <childList>
+                          <child name="No" type="caseActivity">
+                            <guid>{3fc194fe-bb19-4f02-83c0-fc8be121f470}</guid>
+                            <label>No</label>
+                            <x>330.0664</x>
+                            <y>507.95996</y>
+                          </child>
+                          <child name="YEs" type="caseActivity">
+                            <guid>{400a4435-cdc8-4990-bcd0-53641e2e5390}</guid>
+                            <label>Yes</label>
+                            <x>222.1842</x>
+                            <y>799.9439</y>
+                            <childList>
+                              <child name="RepeatToStart" type="repeatActivity">
+                                <element>proc_FTTHHandleIssueProcess.ConsultEquipmentHandleIssueSubprocess/seqActivity_ConsultEquipmentHandleIssueSubprocessStart</element>
+                                <guid>{1799f340-966f-4d65-82cb-e1caac6fab58}</guid>
+                                <label>Repeat To Start</label>
+                                <x>222.03319</x>
+                                <y>500.60938</y>
+                              </child>
+                            </childList>
+                            <methodList>
+                              <method name="cwOnProcActCond" type="action">
+                                <category>cond</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                                  var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                                  pendencyFinder.searchDocument.cwOrderId = orderId;
+                                  var pendRes = pendencyFinder.search();
+                                  var status;
+                                      for (var i =0;i < pendRes.length;i++){
+                                          if (pendRes[i].flagIssueStatus == 0){
+                                              return true;
+                                          }
+                                      }
+                                  //var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+                                  //if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                                  //{
+                                  //   return true;
+                                  //}
+                                  //return false;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var count = process.processOrder.IssueData.length;
+                      var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                      if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                          return true;
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{494e80c2-8fa5-48e1-81b2-9cce0baeed89}</guid>
+  <label>Consult Equipment Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process>

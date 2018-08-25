@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CancelOrder">
+  <label>CancelOrder</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderHeader" type="rifp">
+      <type>doc_FTTHOrder.OrderHeader</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var isRepairCancellation = false;
+
+    var docParameter = new Document('FTTHOrderManagementInterface.OrderParameters');
+    docParameter.orderId = orderHeader.cwOrderId;
+    docParameter.operacao = 'cancelamentoFTTH';
+    docParameter.indCancelamento = true;
+    docParameter.save();
+
+    Global.logInfo('Busca as atividades que dever ser desfeitas');
+    var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+    ohs.numeroOS = orderHeader.cwOrderId;
+
+    Global.logInfo("Busca ordem com id: " + orderHeader.cwOrderId);
+    var ord = Order.getOrderById(orderHeader.cwOrderId);
+    if(!ord) {
+        Global.logInfo("Ordem nao encontrada com id " + orderHeader.cwOrderId);
+        return;
+    }
+
+    if(ord.SRTicketActivityData && ord.SRTicketActivityData.length > 0 && ord.SRTicketActivityData[0].SRTicketActivityData){
+         isRepairCancellation = true;
+     }
+
+    var atividadesCancelamento = Finder.runSearch('FTTHOrderManagementInterface:CancelActivitiesFinder', ohs);
+    if(atividadesCancelamento.size > 0 && !isRepairCancellation) {
+        for (var i = 0; i < atividadesCancelamento.size; i++) {
+
+            var atividade = atividadesCancelamento[i];
+
+            var docAtividade = new Document("FTTHCommon:Activity");
+            docAtividade.orderId = atividade.cwOrderId;
+            docAtividade.activityId = atividade.codAtividade;
+            docAtividade.indCancelamento = true;
+            docAtividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            docAtividade.save();
+
+            // cria formulário de atividade automática
+            FTTHOrderManagementInterface.CreateAutomaticActivityDoc(atividade, ord);
+        }
+    }
+
+    Global.logInfo('Cria atividade de notificacao de encerramento do cancelamento');
+    var docAtividade = new Document("FTTHCommon:Activity");
+    docAtividade.orderId = orderHeader.cwOrderId;
+    docAtividade.activityId = Global.getConfigVariable('NOTIFICAR_ENCERRAMENTO');
+    docAtividade.indCancelamento = true;
+    docAtividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+    docAtividade.save();
+
+    Global.logInfo('Busca as acoes que dever ser desfeitas');
+    var acoesCancelamento = Finder.runSearch('FTTHOrderManagementInterface:CancelActionsFinder', ohs);
+    if(acoesCancelamento.size > 0) {
+        for (var i = 0; i < acoesCancelamento.size; i++) {
+
+            var acao = acoesCancelamento[i];
+
+            var orderAction = new Document("FTTHOrderManagementInterface:OrderAction");
+            orderAction.cwOrderId = acao.cwOrderId;
+            orderAction.indCancelamento = true;
+
+            var strArray = new Array();
+            if(acao.acao.startsWith('ALTERAR')) {
+                orderAction.acao = acao.acao;
+            } else {
+                strArray = acao.acao.split('_');
+
+                if(acao.acao.startsWith('DESIGNAR'))
+                    orderAction.acao = 'LIBERAR_';
+                else
+                    orderAction.acao = 'DESIGNAR_';
+
+                orderAction.acao += strArray[1];
+            }
+
+            orderAction.save();
+        }
+    }
+
+    //Fechar todas as pendencias abertas
+    FTTHOrderManagementInterface.closeIssue(ord, null, null);
+    ord.OrderHeader.dataCancelamento = new Date();
+    ord.save();
+
+    Process.startProcess('FTTHProcess.FTTHCandellationProcess', orderHeader.cwOrderId);
+  ]]></script>
+</script>

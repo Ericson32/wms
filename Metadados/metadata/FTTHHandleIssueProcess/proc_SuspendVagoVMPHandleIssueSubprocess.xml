@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHHandleIssueProcess.SuspendVagoVMPHandleIssueSubprocess">
+  <activity name="SuspendVagoVMPHandleIssueStart" type="seqActivity">
+    <guid>{b0e7d699-a6ac-49dd-962c-546ecca718b5}</guid>
+    <label>Suspend Vago VMP Handle Issue Start</label>
+    <x>118.280846</x>
+    <y>612.0117</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{c3a06ef9-9fdc-45df-919d-191848608f14}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>119.88162</x>
+        <y>712.6532</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{27d15059-dd1c-4929-b504-391e02608481}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>240.69725</x>
+            <y>807.4141</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{49db1147-3889-4adb-b906-3512e6f3aaeb}</guid>
+        <label>check Issue Type</label>
+        <x>235.36978</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{308afc3c-f36d-4280-b08e-ca3463e04b8c}</guid>
+            <label>Technical</label>
+            <x>116.6875</x>
+            <y>470.2588</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{ce916ced-d748-445b-afa8-a81751e34a04}</guid>
+                <label>Technical Issue</label>
+                <x>76.675674</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="SuspendVagoVMPSolveIssueTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.SuspendVagoVMPSolveIssueTask</element>
+                    <guid>{1f426217-fc56-4420-b806-8dd09ed095d6}</guid>
+                    <label>Suspend Vago VMP Solve Issue Task</label>
+                    <x>75.008286</x>
+                    <y>248.40234</y>
+                  </child>
+                  <child name="AnyIssueOpen" type="switchActivity">
+                    <guid>{ef19d6c5-5874-4933-8537-a7abaeff5150}</guid>
+                    <label>Any Issue Open?</label>
+                    <x>79.670395</x>
+                    <y>389.20703</y>
+                    <childList>
+                      <child name="Yes" type="caseActivity">
+                        <guid>{8046510b-b4ef-4279-92f2-4e0bcbdec172}</guid>
+                        <label>Yes</label>
+                        <x>201.73535</x>
+                        <y>803.99567</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>proc_FTTHHandleIssueProcess.SuspendVagoVMPHandleIssueSubprocess/seqActivity_SuspendVagoVMPHandleIssueStart</element>
+                            <guid>{0d490e86-9dcf-4b0d-8ef8-382078531b90}</guid>
+                            <label>Repeat To Start</label>
+                            <x>29.999985</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+                              if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              {
+                                  return true;
+                              }
+                              return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="No" type="caseActivity">
+                        <guid>{5b8d5568-fe18-4c66-9eb6-863f4242475e}</guid>
+                        <label>No</label>
+                        <x>138.03319</x>
+                        <y>507.95996</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{f79ea497-8077-4f54-93e6-e67019f08b20}</guid>
+            <label>Client/Cancel</label>
+            <x>181.0</x>
+            <y>178.0</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{88adfc46-a678-4385-912b-b02631d3b7ad}</guid>
+                <label>Client Issue</label>
+                <x>276.05807</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{7c128d4d-5dda-4311-bc82-968708e131d9}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <x>259.03757</x>
+                    <y>256.75293</y>
+                  </child>
+                  <child name="OpenIssue" type="switchActivity">
+                    <guid>{f66f8f47-1b0b-44ed-9fa5-4a6c0cfedd15}</guid>
+                    <label>Open Issue</label>
+                    <x>267.37253</x>
+                    <y>396.55762</y>
+                    <childList>
+                      <child name="No" type="caseActivity">
+                        <guid>{3fc194fe-bb19-4f02-83c0-fc8be121f470}</guid>
+                        <label>No</label>
+                        <x>330.0664</x>
+                        <y>507.95996</y>
+                      </child>
+                      <child name="YEs" type="caseActivity">
+                        <guid>{400a4435-cdc8-4990-bcd0-53641e2e5390}</guid>
+                        <label>Yes</label>
+                        <x>222.1842</x>
+                        <y>799.9439</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>proc_FTTHHandleIssueProcess.SuspendVagoVMPHandleIssueSubprocess/seqActivity_SuspendVagoVMPHandleIssueStart</element>
+                            <guid>{1799f340-966f-4d65-82cb-e1caac6fab58}</guid>
+                            <label>Repeat To Start</label>
+                            <x>222.03319</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                              pendencyFinder.searchDocument.cwOrderId = orderId;
+                              var pendRes = pendencyFinder.search();
+                              var status;
+                                  for (var i =0;i < pendRes.length;i++){
+                                      if (pendRes[i].flagIssueStatus == 0){
+                                          return true;
+                                      }
+                                  }
+                              //var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+                              //if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              //{
+                              //   return true;
+                              //}
+                              //return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{ab1c012d-bf6c-4377-b749-76d598a3cf77}</guid>
+  <label>SuspendVagoVMPHandleIssueSubprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process>

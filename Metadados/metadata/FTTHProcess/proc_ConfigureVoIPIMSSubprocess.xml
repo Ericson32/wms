@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.ConfigureVoIPIMSSubprocess">
+  <activity name="ConfigureVoIPIMSStart" type="seqActivity">
+    <guid>{67ba0994-22ec-456a-a064-d18dc26ab941}</guid>
+    <label>Configure VoIP IMS Start</label>
+    <x>28.133202</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureVoIPIMSAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureVoIPIMSAutomaticTask</element>
+        <guid>{8e0c5b2f-d5fb-4dde-ba6d-d42f8c08bcad}</guid>
+        <label>Configure VoIP IMS Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{8769bb08-a7dc-4c0c-b472-3fc4394ad8f0}</guid>
+        <label>Check Task Result</label>
+        <x>66.66113</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{7d8739f3-32e2-4bf7-a512-22c170d921cb}</guid>
+            <label>Success</label>
+            <x>34.74292</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_IMS");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{4440907c-debf-427d-9048-c50b531975cd}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{7af6ccb0-0159-4c0c-bf58-bb18e7daf138}</guid>
+                <label>Handle Error Start</label>
+                <x>119.41323</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="ConfigureVoIPIMSHandleErrorTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.ConfigureVoIPIMSHandleErrorTask</element>
+                    <guid>{ebbd1cd3-cf32-452c-b352-f820a7952693}</guid>
+                    <label>Configure VoIP IMS Handle Error Task</label>
+                    <x>158.73035</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{d227c9fb-fda2-4e6b-bd06-b3180cb77cfb}</guid>
+                    <label>Check Error Handling</label>
+                    <x>120.47591</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{17639451-e35b-429b-8e1c-55859aae8264}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{e50428c8-4aec-4b30-a225-c46367392edf}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.77109</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureVoIPIMSSolveIssueTask" type="subflowActivity">
+                                <element>proc_FTTHHandleIssueProcess.ConfigureVoIPIMSHandleIssueSubprocess</element>
+                                <guid>{e52e63b6-2312-42ce-85d0-75e740963450}</guid>
+                                <label>Configure VoIP IMS Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>proc_FTTHProcess.ConfigureVoIPIMSSubprocess/seqActivity_ConfigureVoIPIMSStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{bb574ae2-6e71-4f11-8446-fecf8bc3b5d0}</guid>
+                                <label>Repeat</label>
+                                <x>152.6748</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_VOIP_IMS");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{49c3fe91-fdb9-4e06-a1e5-0d1a40a9598d}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>proc_FTTHProcess.ConfigureVoIPIMSSubprocess/seqActivity_ConfigureVoIPIMSStart</element>
+                            <guid>{13908a65-83a7-4fe1-b953-7c75d95ff7e0}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <guid>{abc31f9a-dc77-480a-8f69-f36ada451b47}</guid>
+  <label>Configure VoIP IMS Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process>

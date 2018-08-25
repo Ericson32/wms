@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DeleteFranchiseSubprocess_cwr6">
+  <activity name="DeleteFranchiseStart" type="seqActivity">
+    <guid>{81453f71-b1e3-4e53-80d9-4ed076da4364}</guid>
+    <label>Delete Franchise Start</label>
+    <x>27.133202</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="DeleteFranchiseAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DeleteFrachiseAutomaticTask</element>
+        <guid>{66563eab-53af-4fbd-963f-a4511d5f4819}</guid>
+        <label>Delete Franchise Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{41d3db42-82ce-41ee-90fd-e627f51bc5bf}</guid>
+        <label>Check Task Result</label>
+        <x>66.66113</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{9391c616-7963-4c7b-999d-79b056272398}</guid>
+            <label>Success</label>
+            <x>34.74292</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = "REMOVER_FRANQUIA_IN";
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{0ef39329-2984-4093-a1da-8b3bdb9befb3}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{a57c21ec-56bc-4452-b93b-cb73128b0c5f}</guid>
+                <label>Handle Error Start</label>
+                <x>119.41323</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="DeleteFranchiseHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DeleteFranchiseHandleErrorTask_cwr3</element>
+                    <guid>{36dca00f-28d5-4ad0-957e-2d2bd129fc5c}</guid>
+                    <label>Delete Franchise Handle Error Task</label>
+                    <x>158.73035</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{8bdbe2a4-d4e1-4658-8e34-e797f05e2cd8}</guid>
+                    <label>Check Error Handling</label>
+                    <x>120.47591</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{dfee2e99-bb0f-42b3-a572-30eb28904fca}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{eb8abd8c-eb3a-4c07-8c74-014753e90711}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.77109</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="DeleteFranchiseSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.DeleteFranchiseHandleIssueSubprocess_cwr8</element>
+                                <guid>{0a49f655-8ea3-4201-8ae4-156214ca7ff1}</guid>
+                                <label>Delete Franchise Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.DeleteFranchiseSubprocess_cwr6/seqActivity_DeleteFranchiseStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{6a7f18f9-af11-4cb0-8a89-bc5287d8451d}</guid>
+                                <label>Repeat</label>
+                                <x>152.6748</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = "REMOVER_FRANQUIA_IN";
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{b32213b5-2c2d-4859-ba37-07f03100af0a}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.DeleteFranchiseSubprocess_cwr6/seqActivity_DeleteFranchiseStart</element>
+                            <guid>{7b9a9486-841b-44d2-865c-b0bb78072f8f}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Delete Franchise Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DeleteFranchiseSubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

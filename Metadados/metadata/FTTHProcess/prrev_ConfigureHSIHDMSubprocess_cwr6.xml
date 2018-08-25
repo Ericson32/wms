@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureHSIHDMSubprocess_cwr6">
+  <activity name="ConfigureHSIHDMStart" type="seqActivity">
+    <guid>{ddd2d50d-52dd-4eb4-93af-99dc3a40e849}</guid>
+    <label>Configure HSI HDM Start</label>
+    <x>30.537891</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureHSIHDMAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureHSIHDMAutomaticTask</element>
+        <guid>{a6e79b26-9463-49af-bb76-be6b82969a9f}</guid>
+        <label>Configure HSI HDM Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{f5f8d0e6-04e7-4739-bc07-37f98614bd53}</guid>
+        <label>Check Task Result</label>
+        <x>65.762695</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{8059f8b1-ae32-47a5-a294-e8aa92f40e6d}</guid>
+            <label>Success</label>
+            <x>33.844482</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{5039666f-8416-4879-bd24-fa055bcc5bee}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{dfad67f3-8397-4d6d-a33c-21721739bef6}</guid>
+                <label>Handle Error Start</label>
+                <x>118.51479</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="ConfigureHSIHDMHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureHSIHDMHandleErrorTask_cwr4</element>
+                    <guid>{5b491440-9975-4d5c-806c-7a4c6f09da66}</guid>
+                    <label>Configure HSI HDM Handle Error Task</label>
+                    <x>155.15125</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{f8f0258b-ed06-4e23-99eb-ae8490d78bf7}</guid>
+                    <label>Check Error Handling</label>
+                    <x>119.80208</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{9321f055-403a-4a17-95d7-1d3fcdeda0c2}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{4eef2b58-3737-4131-b8d6-34879336f16b}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.09726</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureHSIHDMSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConfigureHSIHDMHandleIssueSubprocess_cwr8</element>
+                                <guid>{cbdad180-417e-4aa2-98e7-3402a1bdac1e}</guid>
+                                <label>Configure HSI HDM Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConfigureHSIHDMSubprocess_cwr6/seqActivity_ConfigureHSIHDMStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{bf3bd945-6193-46c2-950f-56bde042dcc6}</guid>
+                                <label>Repeat</label>
+                                <x>151.77637</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_HSI_HDM");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{5e24140e-0cde-4f9d-95a4-0e670dc37e10}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConfigureHSIHDMSubprocess_cwr6/seqActivity_ConfigureHSIHDMStart</element>
+                            <guid>{577e906b-81d8-4c7a-a2dd-1464e78642ef}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar HSI&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      HSI. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar HSI - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure HSI HDM Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureHSIHDMSubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

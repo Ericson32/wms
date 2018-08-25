@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.NotifyRepairRequestClosing">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel por notificar o OM do fechamento da solicita&#231;&#227;o de
+      reparo.
+    </p>
+  ]]></description>
+  
+  <label>Notify Repair Request Closing</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="servReq" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <type>dtype_cwf_pm.PROCESS_ID</type>
+    </parameter>
+    <parameter name="msg" type="rifp">
+      <type>dstruct_FTTHOrderManagementInterface.notificacao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var LOG_INTERFACE = "OM";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_OM');
+    var LOG_ACTIVITY = "Notify Repair Request Closing Automatic Task";
+    var LOG_SCRIPT = "Notify Repair Request Closing Interface Script";
+    var LOG_OPERATION = "Repair Request Closing Operation";
+    var tipoSolicitacao;
+    var orderId = servReq.OrderHeader.cwOrderId;
+    var baData = FTTHServiceRequest.getTicketActivityData(null, null, orderId);
+    var doc = null;
+    var error = null;
+
+    //20121019 EPC inicio
+    var dataAtivacao = servReq.OrderHeader.dataAtivacao;
+    if(dataAtivacao == null) {
+        FTTHCommon.log(servReq.id, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, 'O campo dataAtivacao em OrderHeader eh nulo.', null, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        dataAtivacao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss'); // TODO remover isso!
+    }
+    //20121019 EPC fim
+    var numeroOS =  FTTHCommon.getNumeroOs(servReq.OrderHeader.numeroPedido, servReq.OrderHeader.tipoOS);
+
+    msg.idMensagem = servReq.OrderHeader.numeroPedido;
+    //msg.correlationId = servReq.OrderHeader.numeroOS;
+    msg.correlationId = numeroOS;
+    msg.status = '0';
+    msg.descricao = 'Closing Operation';
+    msg.timestampExecucao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    dataAtivacao = FTTHOrderManagementInterface.getActivationDate(servReq);
+    if (dataAtivacao){
+         msg.listaAtributos.atributo[0].nome = 'dataAtivacao';
+         msg.listaAtributos.atributo[0].valor = Calendar.formatDate(dataAtivacao, 'yyyy-MM-dd\'T\'HH:mm:ss');
+    }
+    //20121019 EPC inicio
+    msg.listaAtributos.atributo[1].nome = 'numeroOS';
+    //msg.listaAtributos.atributo[1].valor = servReq.OrderHeader.numeroOS;
+    msg.listaAtributos.atributo[1].valor = numeroOS;
+    //20121019 EPC fim
+
+    //MS - marcossouza@br.ibm.com - 05/12/2017 - Enviando o campo dataEncerramento para o SOM na notificação de closing
+    msg.listaAtributos.atributo[2].nome = "dataEncerramento";
+    msg.listaAtributos.atributo[2].valor = new Date();
+    //end MS
+
+
+    //MS - marcossouza@br.ibm.com - 18/12/2017 - Enviando campos do encerramento
+    var SRAT = baData;
+    if(SRAT){
+        msg.listaAtributos.atributo[2].nome = "dataEncerramento";
+        msg.listaAtributos.atributo[2].valor = SRAT.dataEncerramento;
+
+        msg.listaAtributos.atributo[3].nome = "horaEncerramento";
+        msg.listaAtributos.atributo[3].valor = SRAT.horaEncerramento;
+
+        msg.listaAtributos.atributo[4].nome = "codEncerramento";
+        msg.listaAtributos.atributo[4].valor = SRAT.codEncerramento;
+
+        msg.listaAtributos.atributo[5].nome = "informacoes";
+        msg.listaAtributos.atributo[5].valor = SRAT.informacoes;
+
+        msg.listaAtributos.atributo[6].nome = "observacao";
+        msg.listaAtributos.atributo[6].valor = SRAT.Observacao;
+
+        msg.listaAtributos.atributo[7].nome = "descLivre";
+        msg.listaAtributos.atributo[7].valor = SRAT.descLivre;
+    }
+
+    //end MS
+
+
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = servReq.OrderHeader.cwOrderId;
+    ops.indCancelamento = FTTHCommon.isCancelOrder(servReq.OrderHeader.cwOrderId);
+
+    var parameters = Finder.runSearch('FTTHOrderManagementInterface:OrderParametersFinder', ops);
+
+    for (var i = 0; i < parameters.size; i++) {
+        var param = parameters[i];
+        msg.operacoes.operacao[i].operacao = param.operacao; //CORRECAO INTRODUZIDA PELO CR2: msg.operacoes[i]. Foi alterada a estrutura.
+    }
+
+    return msg;
+  ]]></script>
+</script>

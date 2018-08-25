@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.FTTHRemoveProcess_cwr8">
+  <activity name="FTTHRemoveProcessStart" type="seqActivity">
+    <guid>{ed6f0fc1-8fb4-4059-89c7-22dc72b69ca6}</guid>
+    <label>FTTH Remove Process Start</label>
+    <x>30.808788</x>
+    <y>29.0</y>
+    <childList>
+      <child name="ConsultOriginalFacilitySubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConsultOriginalFacilitySubprocess_cwr9</element>
+        <guid>{c548d5b6-ee80-4306-9970-34f2ee4874f6}</guid>
+        <label>Consult Original Facility Subprocess</label>
+        <x>33.66797</x>
+        <y>124.76094</y>
+      </child>
+      <child name="DesconfigureFacilitySubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.DesconfigureFacilitySubprocess_cwr10</element>
+        <guid>{7f3ba808-6c52-46fd-9052-4fcc10cd0876}</guid>
+        <label>Desconfigure Facility Subprocess</label>
+        <x>30.0</x>
+        <y>265.5656</y>
+      </child>
+      <child name="RemoveClientEquipmentSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.InstallRemoveClientEquipmentSubprocessV1_1_cwr8</element>
+        <guid>{e92a4fad-52d3-4d75-83ff-6457de513bd7}</guid>
+        <label>Remove Client Equipment SubprocessV1.1</label>
+        <x>33.66797</x>
+        <y>391.66913</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <description><![CDATA[
+              <p style="margin-top: 0">
+                AAAA
+              </p>
+            ]]></description>
+            <system>true</system>
+            <script><![CDATA[
+              var activityId;
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+              if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return false;
+              return true;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="LiberateFacilitySubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.LiberateFacilitySubprocess_cwr7</element>
+        <guid>{0b6a275e-7e9d-4a42-9944-a7e754597de3}</guid>
+        <label>Liberate Facility Subprocess</label>
+        <x>32.66797</x>
+        <y>530.4738</y>
+      </child>
+      <child name="NotifyClosingSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.NotifyClosingSubprocess_cwr5</element>
+        <guid>{8f6af7e3-4819-4f37-96f8-6673452cee49}</guid>
+        <label>Notify Closing Subprocess</label>
+        <x>33.66797</x>
+        <y>658.57733</y>
+      </child>
+      <child name="FTTHRemoveProcessComplete" type="completeActivity">
+        <guid>{d1266834-c447-4f98-bfe0-e96def40ef34}</guid>
+        <label>FTTH Remove Process Complete</label>
+        <x>34.67383</x>
+        <y>784.68085</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;;
+              var status = Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE");
+              FTTHCommon.setStatusExecution(orderId, status);
+
+              FTTHCommon.setStatusOrder(orderId,  Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE"));
+
+              process.processOrder.OrderHeader.dataFechamento = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+              process.processOrder.save();
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Processo respons&#225;vel pela execu&#231;&#227;o da OS de Retirada. Esse processo
+      chamar sequencialmente os seguintes subprocessos:
+    </p>
+    <p style="margin-top: 0">
+      - Consultar Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Desconfigurar Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Retirar Equipamento
+    </p>
+    <p style="margin-top: 0">
+      - Liberar Facilidades
+    </p>
+    <p style="margin-top: 0">
+      - Notificar Fechamento de OS
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Um processo s&#243; poder&#225; ser inicializado ap&#243;s a finaliza&#231;&#227;o com sucesso do
+      seu antecessor.
+    </p>
+  ]]></description>
+  <label>FTTH Remove Process</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.FTTHRemoveProcess</process>
+  <revision>8</revision>
+  <type>User</type>
+</process__revision>

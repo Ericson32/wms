@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHServiceRequest.createSRFacilityData">
+  <label>Preenche Formulário de Dados da Facilidade do Service Request</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="serviceRequest" type="rifp">
+      <type>dstruct_FTTHServiceRequest.serviceRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     * AUTHOR:      Marcos Souza - marcossouza@br.ibm.com - 19/07/2017 - PRJ17683
+     * DESCRIPTION: Script reponsável por criar e preencher o formulário de dados da facilidade
+     */
+     Global.logInfo("--- Create SR Facility Data ---");
+
+     var facilityData = new Document('FTTHOrder:FacilityData');
+
+     facilityData.acessoGPON = FTTHCommon.getValueAttributeFromAttributeList("idAcesso", serviceRequest.atributos);
+
+     //Realizando o mapeamento do campo acessoGESTAO (obrigatorio para o SIS) conforme alinhado com TULIO.
+     //Não existe definição do mapeamento no DSOL/DI
+     facilityData.acessoGESTAO =  facilityData.acessoGPON;
+
+     return facilityData;
+  ]]></script>
+</script>

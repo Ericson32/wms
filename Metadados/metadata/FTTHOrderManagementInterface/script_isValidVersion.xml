@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.isValidVersion">
+  <label>isValidVersion</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="numeroOS" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHCommon.numeroOS</type>
+    </parameter>
+    <parameter name="versao" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHCommon.versao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Script IsUpdatedOrder');
+
+    var isValidVersion = true;
+
+    var searchOSNumberDoc = new Document("FTTHOrderManagementInterface:OrderHeaderSearch");
+    searchOSNumberDoc.numeroOS = numeroOS;
+
+    var resultOSNumberDoc = Finder.runSearch("FTTHOrderManagementInterface:OSNumberFinder", searchOSNumberDoc);
+    var resultVersion = resultOSNumberDoc.versao;
+
+    if (resultVersion != null) {
+        if (resultVersion > versao) {
+            isValidVersion = false;
+        } else {
+            isValidVersion = true;
+        }
+    }
+
+    return isValidVersion;
+  ]]></script>
+</script>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DesconfigureHSIAPCSolveIssueTask_cwr4">
+  <activity name="startDesconfigureHSIAPCSolveIssue" type="seqActivity">
+    <guid>{357d4b5c-17fb-4dda-a719-504799801f0b}</guid>
+    <label>Start Desconfigure HSI APC Solve Issue</label>
+    <x>32.747658</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureHSIAPCSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureHSIAPCSolveIssue</element>
+        <guid>{fc95c328-bb56-4196-af07-3f139477f765}</guid>
+        <label>Desconfigure HSI APC Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>130.6414</y>
+      </child>
+      <child name="DesconfigureHSIAPCSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureHSIAPCSolveIssueSuccess</element>
+        <guid>{f043d3c6-a8a9-456d-812b-f6144454999f}</guid>
+        <label>Desconfigure HSI APC Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>382.84845</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var ord = process.processOrder;
+              var orderId = ord.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI_APC");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{0d0f335c-5ef2-49d2-82c8-8d2b2e58ab12}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Desconfigurar HSI - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Desconfigure HSI APC Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DesconfigureHSIAPCSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

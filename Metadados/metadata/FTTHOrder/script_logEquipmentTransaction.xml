@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.logEquipmentTransaction">
+  
+  <label>Log Equipment Transaction</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="equipment" type="rifp"/>
+    <parameter name="operation" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="action" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="transactionCompleted" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var equipmentTransaction = new Document("FTTHOrder:EquipmentTransactionsHistory");
+
+    equipmentTransaction.cwOrderId              = equipment.cwOrderId;
+    equipmentTransaction.equipmentId            = equipment.equipmentId;
+    equipmentTransaction.tipoEquipamento        = equipment.equipmentType;
+    equipmentTransaction.timestamp              = new Date();
+    equipmentTransaction.numeroSerieEquipamento = equipment.numeroSerieEquipamento;
+    equipmentTransaction.codEquipamento         = equipment.codEquipamento;
+    equipmentTransaction.nomeCPE                = equipment.nomeCPE;
+    equipmentTransaction.foiDevolvido           = equipment.foiDevolvido;
+    equipmentTransaction.motivoRetirada         = equipment.motivoRetirada;
+    equipmentTransaction.flagDadoOriginal       = equipment.flagDadoOriginal;
+    equipmentTransaction.idAtivo                = equipment.idAtivo;
+    equipmentTransaction.deviceGUID             = equipment.deviceGUID;
+    equipmentTransaction.possuiDVRIntegrado     = equipment.possuiDVRIntegrado;
+    equipmentTransaction.operacao               = operation;
+    equipmentTransaction.acao                   = action;
+
+    if(transactionCompleted){
+        equipmentTransaction.updateStockAction  = action;//(action == "adicionar") ? "ativo" : ((equipmentTransaction.foiDevolvido) ? "disponivel" : "extraviado");
+        equipmentTransaction.statusStock        = "pendente";
+    } else{
+        equipmentTransaction.updateStockAction  = "-";
+        equipmentTransaction.statusStock        = "-";
+    }
+
+    equipmentTransaction.save();
+  ]]></script>
+</script>

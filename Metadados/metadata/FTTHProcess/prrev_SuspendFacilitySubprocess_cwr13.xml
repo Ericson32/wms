@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.SuspendFacilitySubprocess_cwr13">
+  <activity name="SuspendRestoreFacilityStart" type="seqActivity">
+    <guid>{34a87d8c-8770-467e-9b09-97c094e03182}</guid>
+    <label>Suspend Restore Facility Start</label>
+    <x>20.59668</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendRestoreHSI" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendHSIPlatformsSubprocess_cwr5</element>
+        <guid>{1dbbda34-40fc-4dba-861d-836f557aaeb4}</guid>
+        <label>Suspend Restore HSI</label>
+        <x>30.0</x>
+        <y>124.76094</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var result = FTTHCommon.hasActivity(this.process.processOrderId,["BLOQUEAR_HSI_APC","DESBLOQUEAR_HSI_APC"],"NEW");
+
+              return (process.processOrder.OriginalData[0].ProductData.identificadorHSI != null && result);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="SuspendRestoreVoIP" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendVOIPPlatformsSubprocess_cwr5</element>
+        <guid>{1456853e-df21-4ae1-9a41-dc1b6dd17ca7}</guid>
+        <label>Suspend Restore VoIP</label>
+        <x>30.0</x>
+        <y>250.86444</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var result = FTTHCommon.hasActivity(this.process.processOrderId,["BLOQUEAR_VOIP_IMS","DESBLOQUEAR_VOIP_IMS"],"NEW");
+
+              return (process.processOrder.OriginalData[0].ProductData.identificadorVoIP != null && result);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="SuspendRestoreIPTV" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendIPTVPlatformsSubprocess_cwr8</element>
+        <guid>{6451a4ec-0dd7-4a68-a240-f99232657847}</guid>
+        <label>Suspend Restore IPTV</label>
+        <x>29.0</x>
+        <y>376.96796</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var result = FTTHCommon.hasActivity(this.process.processOrderId,["BLOQUEAR_IPTV_APC","DESBLOQUEAR_IPTV_APC", "BLOQUEAR_IPTV_IESF","DESBLOQUEAR_IPTV_IESF"],"NEW");
+
+              return ((process.processOrder.OriginalData[0].ProductData.identificadorIPTV != null || process.processOrder.OriginalData[0].ProductData.identificadorRFTV != null)
+                   && result);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="SuspendRestoreOTT" type="subflowActivity">
+        <element>prrev_FTTHProcess.SuspendOTTPlatformsSubprocess_cwr5</element>
+        <guid>{1fbce9fd-570e-4ea3-ab6c-0786173f1cd8}</guid>
+        <label>Suspend Restore OTT</label>
+        <x>30.0</x>
+        <y>503.07147</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var result = FTTHCommon.hasActivity(this.process.processOrderId,["BLOQUEAR_OTT_IESF","DESBLOQUEAR_OTT_IESF"],"NEW");
+
+              return (process.processOrder.OriginalData[0].ProductData.identificadorOTT != null && result);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela realiza&#231;&#227;o das atividades autom&#225;ticas
+      Bloquear HSI,
+    </p>
+    <p style="margin-top: 0">
+      Bloquear IPTV, Bloquear OTT e Bloquear VoIP. As atividades s&#243; dever&#227;o
+      ser realizadas caso o cliente tenha o servi&#231;o associado a cada uma.
+    </p>
+    <p style="margin-top: 0">
+      Para o caso da atividade Bloquear OTT, a mesma s&#243; poder&#225; ser realizada
+      caso a Bloquear do IPTV tenha sido realizada com sucesso anteriormente.
+    </p>
+  ]]></description>
+  <label>Suspend Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.SuspendFacilitySubprocess</process>
+  <revision>13</revision>
+  <type>Sub-flow</type>
+</process__revision>

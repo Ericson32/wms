@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="override_cwf_pm.sendResubmission">
+  <label>Send Resubmission</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="menuOwner" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="type" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+          Script Send Resubmission
+          AUTOR: Felipe Machado
+          DATA: 15/12/2016
+          DESCRICAO: Este script pega todas as operações que foram selecionas e reenvia as mesmas para suas respectivas interfaces.
+    */
+
+
+
+    var pid = null;
+    var i = 0;
+    var order = null;
+    var oper = "";
+    var processName = "sendResubmission";
+    var result = null;
+    var tarefaSelecionada = null;
+    var worklist = null;
+    var error = null;
+
+    try
+    {
+          tarefaSelecionada = menuOwner.selected;  // vetor com as tarefas selecionadas na WorkList
+
+          // Para cada elemento do vetor
+          for (i = 0; i < tarefaSelecionada.length; i++)
+          {
+                worklist = tarefaSelecionada[i];
+                order = Order.getOrderById(worklist.OrderId);
+                oper = override_cwf_pm.getOperation(worklist,order,type);
+                // Chama o sendPerformWorklistAction com a Operacao
+                result = override_cwf_pm.sendPerformWorklistAction(worklist,oper,order);
+          }
+
+    }catch (e)
+    {
+         error = e;
+    }
+        return;
+  ]]></script>
+</script>

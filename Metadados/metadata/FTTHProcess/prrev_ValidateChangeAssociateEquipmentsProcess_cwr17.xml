@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ValidateChangeAssociateEquipmentsProcess_cwr17">
+  <activity name="ValidateChangeAssociateStart" type="seqActivity">
+    <guid>{8a7ecbc1-a918-4794-b8c5-2473458fcdf7}</guid>
+    <label>Validate Change Associate Start</label>
+    <x>150.55632</x>
+    <y>45.000004</y>
+    <childList>
+      <child name="WhichOperationToExecute" type="switchActivity">
+        <guid>{a900b60f-b90d-4fca-aef4-0892c1fdf168}</guid>
+        <label>Which Operation To Execute?</label>
+        <x>150.70671</x>
+        <y>124.760925</y>
+        <childList>
+          <child name="Associate" type="caseActivity">
+            <guid>{e0743eeb-917c-4772-a37b-942d508b06e7}</guid>
+            <label>Associate</label>
+            <x>4.0</x>
+            <y>202.0</y>
+            <childList>
+              <child name="AssociateEquipmentSequence" type="seqActivity">
+                <guid>{1651ff41-4e7c-4174-bd21-78c4faaa2c69}</guid>
+                <label>Associate Equipment Sequence</label>
+                <x>270.43066</x>
+                <y>265.5656</y>
+                <childList>
+                  <child name="AssociateCPESubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.AssociateCPESubprocess_cwr16</element>
+                    <guid>{196e8124-0b02-4ae2-aaa7-d65d3c490e94}</guid>
+                    <label>Associate CPE Subprocess</label>
+                    <x>260.73828</x>
+                    <y>366.20703</y>
+                    <methodList>
+                      <method name="cwOnProcActAfter" type="action">
+                        <category>script</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          //DATE: 27/03/2018
+                          var ord = this.process.processOrder;
+                          var ValidateEquipmentDoc = this.process.processDocument;
+                          var equipResult = FTTHProcess.getProcessingEquipment(ord, ValidateEquipmentDoc);
+
+                          // Defeito PRJ14008#1139 - 11/06/2018
+                          if(equipResult){
+                              //FTTHOrder.updateEquipmentLockStatus(equipResult.cwDocId, ValidateEquipmentDoc.tipoEquipamentoNovo, ord.OrderHeader.cwOrderId, false);
+                              FTTHProcess.saveOrderData(this.process.processDocument, this.process.processOrder);
+                          } else{
+                              //FTTHOrder.updateEquipmentLockStatus(null, ValidateEquipmentDoc.tipoEquipamentoNovo, ord.OrderHeader.cwOrderId, false);
+                          }
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  if(this.process.processDocument.operacao == 'Associar CPE')
+                         return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Change" type="caseActivity">
+            <guid>{dfac5612-b321-46d9-b41e-a14529afb16c}</guid>
+            <label>Change</label>
+            <x>4.0</x>
+            <y>202.0</y>
+            <childList>
+              <child name="ChangeEquipmentSequence" type="seqActivity">
+                <guid>{4f6e0267-c47c-430c-a3a1-bbe0ea087580}</guid>
+                <label>Change Equipment Sequence</label>
+                <x>155.05371</x>
+                <y>265.5656</y>
+                <childList>
+                  <child name="ChangeCPESubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.ChangeCPESubprocess_cwr20</element>
+                    <guid>{77ee07e8-7dee-41e2-835f-8d094bbb1cf6}</guid>
+                    <label>Change CPE Subprocess</label>
+                    <x>146.36914</x>
+                    <y>366.20703</y>
+                    <methodList>
+                      <method name="cwOnProcActAfter" type="action">
+                        <category>script</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          //DATE: 27/03/2018
+                          var ord = this.process.processOrder;
+                          var ValidateEquipmentDoc = this.process.processDocument;
+                          var equipResult = FTTHProcess.getProcessingEquipment(ord, ValidateEquipmentDoc);
+
+
+                          //FTTHOrder.updateEquipmentLockStatus(equipResult.cwDocId, ValidateEquipmentDoc.tipoEquipamentoNovo, ord.OrderHeader.cwOrderId, false);
+                          FTTHProcess.saveOrderData(this.process.processDocument, this.process.processOrder, true);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  if(this.process.processDocument.operacao == 'Trocar CPE')
+                         return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Validate" type="caseActivity">
+            <guid>{e5ce36ed-278d-4346-8bfd-2c6bb15ea2a6}</guid>
+            <label>Validate</label>
+            <x>4.0</x>
+            <y>202.0</y>
+            <childList>
+              <child name="ValidateEquipmentSequence" type="seqActivity">
+                <guid>{28ba001d-33b8-4590-801b-fcc74451ee83}</guid>
+                <label>Validate Equipment Sequence</label>
+                <x>39.68457</x>
+                <y>265.5656</y>
+                <childList>
+                  <child name="ValidateCPESubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.ValidateCPESubprocess_cwr9</element>
+                    <guid>{a59bdc3f-64b9-4a72-b77d-045180ef0760}</guid>
+                    <label>Validate CPE Subprocess</label>
+                    <x>30.0</x>
+                    <y>366.20703</y>
+                    <methodList>
+                      <method name="cwOnProcActAfter" type="action">
+                        <category>script</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          //DATE: 27/03/2018
+
+                          var ord = this.process.processOrder;
+                          var ValidateEquipmentDoc = this.process.processDocument;
+                          var equipResult = FTTHProcess.getProcessingEquipment(ord, ValidateEquipmentDoc);
+
+                          //FTTHOrder.updateEquipmentLockStatus(equipResult.cwDocId, ValidateEquipmentDoc.tipoEquipamentoNovo, ord.OrderHeader.cwOrderId, false);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  if(this.process.processDocument.operacao == 'Validar CPE')
+                         return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          //DATE: 27/03/2018
+
+          var ord = this.process.processOrder;
+          var ValidateEquipmentDoc = this.process.processDocument;
+          var equipResult = FTTHProcess.getProcessingEquipment(ord, ValidateEquipmentDoc);
+
+          //FTTHOrder.updateEquipmentLockStatus(equipResult.cwDocId, ValidateEquipmentDoc.tipoEquipamentoNovo, ord.OrderHeader.cwOrderId, true);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var ord = this.process.processOrder;
+          var ValidateEquipmentDoc = this.process.processDocument;
+
+          //31/05/2018 - Correção inclusão de ponto adicional pelo CLICK
+          //Código colocado aqui para evitar a criação de revision e ter que realizar migrations de ordens. Alinhado com @accd
+           if(ValidateEquipmentDoc.tipoEquipamentoNovo == "STB" && //Se STB
+                   (!ValidateEquipmentDoc.idAtivoNovo || ValidateEquipmentDoc.idAtivoNovo == "") && //SE É ADD PONTO EM TEMPO DE BA
+                   (!ValidateEquipmentDoc.userId || ValidateEquipmentDoc.userId == "") && //SE É PELO CLICK
+                   (ValidateEquipmentDoc.operacao == "Associar CPE")){ //SE FOR ASSOCIAÇÃO
+
+              if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")) {
+                  var productData = ord.OriginalData[0].ProductData;
+              } else {
+                  var productData = ord.ProductData;
+              }
+
+              if(ValidateEquipmentDoc.operacao == "Associar CPE"){
+                  var qtdPontosHDPagoExtra     = (productData.qtdPontosHDPagoExtra == null)    ? 0 :  productData.qtdPontosHDPagoExtra;
+                  productData.qtdPontosHDPagoExtra++;
+              }
+
+              productData.save();
+
+              if (ord.EquipmentData == null){
+                  ord.addItem("EquipmentData");
+                  ord.EquipmentData.newInstance();
+              }
+
+              if (ord.EquipmentData[0].AddPointsEquipmentData == null){
+                  ord.EquipmentData[0].addItem("AddPointsEquipmentData");
+              }
+
+              var equip = ord.EquipmentData[0].AddPointsEquipmentData.newInstance();
+
+              equip.EquipmentPointData.numeroSerieSetTopBox = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+              equip.EquipmentPointData.codEquipamento = ValidateEquipmentDoc.codMaterialNovo;
+              equip.EquipmentPointData.foiDevolvidoSetTopBox = 0;
+              equip.EquipmentPointData.instalado = 1;
+              equip.EquipmentPointData.acao = ValidateEquipmentDoc.acaoNovo;
+              equip.EquipmentPointData.atividade = "INSTALAR_EQUIPAMENTO_CLIENTE";
+              equip.EquipmentPointData.flagDadoOriginal = "N";
+              equip.EquipmentPointData.flgValidado = true;
+
+               //código dos equipamentos HGW e ONT
+              var searchDoc = FTTHCommon.createEmptyDoc("FTTHReportApplication:registerCPE");
+              searchDoc.isTV = true;
+              searchDoc.codigoMaterial = ValidateEquipmentDoc.codMaterialNovo;
+
+              var pointEquipment = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+              equip.EquipmentPointData.nomeCPE = pointEquipment[0].nomeCPE;
+
+              equip.EquipmentPointData.save();
+          }
+          //end 31/05/2018
+
+
+
+
+
+          var equipResult = FTTHProcess.getProcessingEquipment(ord, ValidateEquipmentDoc);
+
+          if(equipResult){
+              return true;
+          }
+
+          return false;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <document>doc_FTTHClickInterface.ValidateEquipmentDoc</document>
+  <label>Validate Change Associate Equipments Process</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ValidateChangeAssociateEquipmentsProcess</process>
+  <revision>17</revision>
+  <type>User</type>
+</process__revision>

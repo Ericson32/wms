@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ReconfigureVoIPHandleErrorTask">
+  <activity name="startReconfigureVoIPHandleError" type="seqActivity">
+    <guid>{0af68db8-1097-4c3a-ad02-2318b96a1013}</guid>
+    <label>Start Reconfigure VoIP Handle Error</label>
+    <x>85.754295</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureVoIPSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHandleError</element>
+        <guid>{fa544c7c-aa83-44f3-9668-b8d929850529}</guid>
+        <label>Reconfigure VoIP Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>88.35254</x>
+        <y>124.76094</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{31516644-8eba-4d4a-bfb3-12de857962e5}</guid>
+        <label>Wait Manual Activity</label>
+        <x>36.675293</x>
+        <y>265.5656</y>
+        <childList>
+          <child name="ReconfigureVoIPHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHandleErrorIssue</element>
+            <guid>{87131652-7e37-474c-8903-7f9067835bed}</guid>
+            <label>Reconfigure VoIP Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>159.47998</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReconfigureVoIPHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ReconfigureVoIPHandleErrorResend</element>
+            <guid>{37bae5e2-ae3d-4102-951e-140207bbcba3}</guid>
+            <label>Reconfigure VoIP Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>30.0</x>
+            <y>406.66913</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{917aed3b-ad43-4552-9b68-77a477b52f7c}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>128.04834</x>
+        <y>265.5656</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a reconfigura&#231;&#227;o de VoIP autom&#225;tica n&#227;o tenha sido
+      realizada com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser
+      finalizada com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{6f0a4b01-a339-449e-8f14-12e2061e64ae}</guid>
+  <label>Reconfigure VoIP Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

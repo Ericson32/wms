@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHManterEquipamentoInventarioSAPInterface.defineBaseEquipmentToProcess">
+  <label>Define Equipment To Process</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderid" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="cwDocId" type="rifp">
+      <type>dtype_cwf.cwDocId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        AUTOR: Manoella Cordeiro
+        DATA: 01/05/2017
+        DESCRICAO: Busca do Equipamento a ser processado.
+
+    */
+
+    var equipmentDoc = null;
+    var equipmentFinder = null;
+    var result = true;
+    var error;
+    var equipmentToProcess = null;
+
+    //Busca pelo Equipamento Base
+    equipmentDoc =  new Document('FTTHOrder:BaseEquipmentData');
+    equipmentDoc.cwOrderId = orderid;
+    //equipmentDoc.statusAcao = "em processamento";
+    equipmentDoc.statusAcao = null;
+    //teste
+    equipmentDoc.cwDocId = cwDocId;
+
+    equipmentFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.BaseEquipmentFinder', equipmentDoc);
+
+    if (equipmentFinder.length > 0){
+        equipmentToProcess = equipmentFinder[0];
+
+    }else{
+        equipmentDoc =  new Document('FTTHOrder:BaseEquipmentData');
+        equipmentDoc.cwOrderId = orderid;
+        //equipmentDoc.statusAcao = "pendente";
+        equipmentDoc.statusAcao = null;
+
+        equipmentFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.BaseEquipmentFinder', equipmentDoc);
+        if (equipmentFinder.length > 0){
+            equipmentToProcess = equipmentFinder[0];
+        }
+    }
+        return equipmentToProcess;
+  ]]></script>
+</script>

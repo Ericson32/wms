@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ReconfigureHSINASSHandleIssueSubprocess_cwr10">
+  <activity name="ReconfigureHSINASSHandleIssueStart" type="seqActivity">
+    <guid>{6527c6e0-6ada-4ae3-8360-73112d69ea23}</guid>
+    <label>Reconfigure HSI NASS Handle Issue Start</label>
+    <x>122.81603</x>
+    <y>612.0117</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{2eb37f7c-8c45-4c07-a2da-2c4dd6d6b9bc}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>119.88165</x>
+        <y>712.65314</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{00622263-5b1f-49f6-be66-7827114e2e2a}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>240.69728</x>
+            <y>807.41406</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{cf59a971-6653-4690-9272-99902c6f1dbe}</guid>
+        <label>Check Issue Type</label>
+        <x>235.36981</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{dd6a58fe-703a-434d-a0ff-ccaa8635952b}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{42c5592f-5ca0-46fa-86af-1c48cee1dcb2}</guid>
+                <label>Technical Issue</label>
+                <x>76.675705</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="ReconfigureHSINASSSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ReconfigureHSINASSSolveIssueTask_cwr2</element>
+                    <guid>{b5c9b1c0-233b-42eb-8226-378ba8f665f0}</guid>
+                    <label>Reconfigure HSI NASS Solve Issue Task</label>
+                    <x>73.67238</x>
+                    <y>248.40231</y>
+                  </child>
+                  <child name="AnyIssueOpen" type="switchActivity">
+                    <guid>{1861b6b9-6221-44b3-991a-4f1ec6015fd6}</guid>
+                    <label>Any Issue Open?</label>
+                    <x>79.670425</x>
+                    <y>389.207</y>
+                    <childList>
+                      <child name="Yes" type="caseActivity">
+                        <guid>{8046510b-b4ef-4279-92f2-4e0bcbdec172}</guid>
+                        <label>Yes</label>
+                        <x>201.73535</x>
+                        <y>803.99567</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.ReconfigureHSINASSHandleIssueSubprocess_cwr10/seqActivity_ReconfigureHSINASSHandleIssueStart</element>
+                            <guid>{0d490e86-9dcf-4b0d-8ef8-382078531b90}</guid>
+                            <label>Repeat To Start</label>
+                            <x>30.000015</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("RECONFIGURAR_HSI_NASS");
+
+                              if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              {
+                                  return true;
+                              }
+                              return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="No" type="caseActivity">
+                        <guid>{5b8d5568-fe18-4c66-9eb6-863f4242475e}</guid>
+                        <label>No</label>
+                        <x>138.03322</x>
+                        <y>507.95996</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{01e6847d-1dec-443b-921b-0ffaef91e396}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{8079cc43-5185-4ded-b3e2-1019650ca0a3}</guid>
+                <label>Client Issue</label>
+                <x>276.05814</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{c4439f31-913a-40a7-ba2a-0181cd53fe81}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>259.03763</x>
+                    <y>256.7529</y>
+                  </child>
+                  <child name="OpenIssue" type="switchActivity">
+                    <guid>{d3296f67-70e8-4c27-81f9-9c350e124ae7}</guid>
+                    <label>Open Issue</label>
+                    <x>267.3726</x>
+                    <y>396.5576</y>
+                    <childList>
+                      <child name="No" type="caseActivity">
+                        <guid>{3fc194fe-bb19-4f02-83c0-fc8be121f470}</guid>
+                        <label>No</label>
+                        <x>330.06644</x>
+                        <y>507.95996</y>
+                      </child>
+                      <child name="YEs" type="caseActivity">
+                        <guid>{400a4435-cdc8-4990-bcd0-53641e2e5390}</guid>
+                        <label>Yes</label>
+                        <x>222.1842</x>
+                        <y>799.9439</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.ReconfigureHSINASSHandleIssueSubprocess_cwr10/seqActivity_ReconfigureHSINASSHandleIssueStart</element>
+                            <guid>{1799f340-966f-4d65-82cb-e1caac6fab58}</guid>
+                            <label>Repeat To Start</label>
+                            <x>222.03323</x>
+                            <y>500.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                              pendencyFinder.searchDocument.cwOrderId = orderId;
+                              var pendRes = pendencyFinder.search();
+                              var status;
+                                  for (var i =0;i < pendRes.length;i++){
+                                      if (pendRes[i].flagIssueStatus == 0){
+                                          return true;
+                                      }
+                                  }
+                              //var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+                              //if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              //{
+                              //   return true;
+                              //}
+                              //return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Reconfigurar HSI&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de
+      Reconfigurar HSI. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a
+      resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de reconfigura&#231;&#227;o de HSI autom&#225;tica para o sistema
+      de Rede, ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o
+      subprocesso de Reconfigurar HSI - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Reconfigure HSI NASS Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ReconfigureHSINASSHandleIssueSubprocess</process>
+  <revision>10</revision>
+  <type>Sub-flow</type>
+</process__revision>

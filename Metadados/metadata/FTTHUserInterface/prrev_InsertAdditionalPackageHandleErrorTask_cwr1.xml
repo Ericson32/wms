@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.InsertAdditionalPackageHandleErrorTask_cwr1">
+  <activity name="startInsertAdditionalPackageHandleError" type="seqActivity">
+    <guid>{1a519f40-7018-428a-b8bd-a644e41b8c5a}</guid>
+    <label>Start Insert Additional Package Handle Error</label>
+    <x>82.79932</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InsertAdditionalPackageSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_InsertAdditionalPackageHandleError</element>
+        <guid>{de249687-f4e0-4034-8c9d-57c18fcfe564}</guid>
+        <label>Insert Additional Package Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>86.02783</x>
+        <y>136.52188</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{46eb61f2-3d17-4353-8c05-b02026c8798d}</guid>
+        <label>Wait Manual Activity</label>
+        <x>30.0</x>
+        <y>277.32657</y>
+        <childList>
+          <child name="InsertAdditionalPackageHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_InsertAdditionalPackageHandleErrorIssue</element>
+            <guid>{001584da-ef13-4bcb-a348-c32acaacdc9b}</guid>
+            <label>Insert Additional Package Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>156.81055</x>
+            <y>418.43008</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="InsertAdditionalPackageHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_InsertAdditionalPackageHandleErrorResend</element>
+            <guid>{08d3ec1b-be12-4c3b-8281-1e58cfbfe541}</guid>
+            <label>Insert Additional Package Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>35.342285</x>
+            <y>418.43008</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{38452199-9a8f-4bd5-aedf-2967c37c7d2a}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>121.37305</x>
+        <y>277.32657</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227; de VoIP autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Insert Franchise Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.InsertAdditionalPackageHandleErrorTask</process>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.SuspendVoIPVMPServiceHandleErrorTask_cwr6">
+  <activity name="SuspendVoIPVMPServiceHandleErrorTaskStart" type="seqActivity">
+    <guid>{f07b7f4c-d328-4448-95f5-5dbce0f43048}</guid>
+    <label>Suspend VoIP VMP Service Handle Error Task Start</label>
+    <x>77.96572</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendVoIPVMPServiceHandleError" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVOIPVMPServiceHandleError</element>
+        <guid>{f5cb0567-7524-4b81-8db7-9bd82f17e464}</guid>
+        <label>Suspend VoIP VMP Service Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>89.180176</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{d17dc613-7639-460d-bbd1-d6f8376193f7}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="SuspendVoIPVMPServiceHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPIMSServiceHandleErrorIssue</element>
+                <guid>{1f6f6a45-a6ff-4b1f-929b-55f12c10a149}</guid>
+                <label>Suspend VoIP VMP Service Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>158.13477</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_VMP_SERVICO");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="SuspendVoIPVMPServiceHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVoIPVMPServiceHandleErrorResend</element>
+                <guid>{3e8b4241-cb78-4cd3-bdd2-5ba093f11b43}</guid>
+                <label>Suspend VoIP VMP Service Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>24.838379</x>
+                <y>410.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_VMP_SERVICO");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{49d32f3c-4f42-490d-8884-460913bb5bc5}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>104.0293</x>
+        <y>269.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_VMP_SERVICO");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso o bloqueio de VoIP autom&#225;tica n&#227;o tenha sido realizada com
+      sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Suspend VoIP VMP Service Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.SuspendVoIPVMPServiceHandleErrorTask</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

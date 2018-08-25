@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.updateFranchisePlanStatus">
+  <label>Update Franchise Plan Status</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderid" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <type>dtype_cwf_pm.PROCESS_ID</type>
+    </parameter>
+    <parameter name="flagIsOriginal" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <type>dtype_FTTHCommon.statusAcao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        REGRA para o ponto de decisão "More Franchise To Insert" para os processos de Insert Delete e Update Franchise.
+        AUTOR: Manoella Cordeiro
+        DATA: 06/04/2017
+        DESCRICAO: ESTE SCRIPT VERIFICA A NECESSIDADE DE Inserir, Remover ou Alterar um Plano de Franquia.
+
+    */
+
+    var franchisePlanDoc = null;
+    var franchisePlanFinder = null;
+    var result = true;
+    var doc = null;
+    var error = null;
+
+
+        franchisePlanDoc =  new Document('FTTHOrder:FranchisePlan');
+        franchisePlanDoc.cwOrderId = orderid;
+        franchisePlanDoc.PROCESS_ID = processId;
+        franchisePlanDoc.flagIsOriginal = flagIsOriginal;
+         franchisePlanDoc.statusAcao = 'em processamento';
+        franchisePlanFinder = Finder.runSearch('FTTHActivationInterface.FrachisePlanFinder', franchisePlanDoc);
+        try {
+            if (franchisePlanFinder.size > 0) {
+                    doc = franchisePlanFinder[0];
+                    doc.statusAcao = status;
+                    doc.save();
+                    return;
+            }
+        } catch(e){
+            error = e;
+        }
+  ]]></script>
+</script>

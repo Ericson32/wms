@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.SuspendVoIPIMSSolveIssueTask_cwr4">
+  <activity name="SuspendVoIPIMSSolveIssueTaskStart" type="seqActivity">
+    <guid>{0a1dba2b-46c9-4430-a913-2c9a13e3f7d9}</guid>
+    <label>Suspend VoIP IMS Solve Issue Task Start</label>
+    <x>31.943748</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendVoIPIMSSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendVoIPIMSSolveIssue</element>
+        <guid>{b1032738-ac64-444d-b0d3-eafedbc5ac62}</guid>
+        <label>Suspend VoIP IMS Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>37.4834</x>
+        <y>130.6414</y>
+      </child>
+      <child name="SuspendVoIPIMSSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendVoIPIMSSolveIssueSuccess</element>
+        <guid>{d1c0b756-b117-451a-9226-c54534107c09}</guid>
+        <label>Suspend VoIP IMS Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>37.4834</x>
+        <y>368.14728</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_IMS");
+              activityId = '%' + activityId;
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{851415c1-7a28-4461-8b03-53d9b64e7def}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>256.74493</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_IMS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Bloquear VoIP - Erro tenha sido
+      finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual ser&#225;
+      gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Suspend VoIP IMS Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.SuspendVoIPIMSSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

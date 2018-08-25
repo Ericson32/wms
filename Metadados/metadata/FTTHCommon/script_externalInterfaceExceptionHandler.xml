@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.externalInterfaceExceptionHandler">
+  <label>externalInterfaceExceptionHandler</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp"/>
+    <parameter name="processOrdeId" type="rifp"/>
+    <parameter name="processId" type="rifp"/>
+    <parameter name="activityFrom" type="rifp"/>
+    <parameter name="iface" type="rifp"/>
+    <parameter name="activityData" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    var LOG_INTERFACE = iface;
+    var LOG_ACTIVITY = "EXTERNAL INTERFACE EXCEPTION";
+    var LOG_SCRIPT = "externalInterfaceExceptionHandler";
+    var LOG_OPERATION = activityFrom;
+
+    var errorTypeResult = "" ;
+    var searchErrorTypeDoc = "";
+
+    FTTHCommon.log( processOrdeId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, "External Interface Exception Handler", null, LOG_INTERFACE,"TRACE" );
+
+    var activity = Global.getConfigVariable(activityFrom);
+    var status = Global.getConfigVariable("ACTIVITY_RETURN_TECHNICAL_ERROR");
+
+
+    FTTHCommon.setStatusActivity(processOrdeId, activity, status);
+
+    searchErrorTypeDoc = new Document("FTTHCommon:ErrorTypeDocument");
+    searchErrorTypeDoc.errorType = Global.getConfigVariable("TECNICO");
+    searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable(iface);
+
+    errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+    var errorType = errorTypeResult.start;
+
+    FTTHCommon.saveEvent(processOrdeId,
+                         Global.getConfigVariable(iface),
+                         Global.getConfigVariable(activityFrom),
+                         status,
+                         errorType.errorCode,
+                         errorType.errorDescription,
+                         processId,
+                         Global.getConfigVariable("ASYNC_REQUEST"));
+
+    FTTHCommon.updateAutomaticActivityDocument(order,iface, activity);
+
+    FTTHCommon.log( processOrdeId, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,"Fim script External Interface Exception Handler", null, LOG_INTERFACE, "TRACE" );
+  ]]></script>
+</script>

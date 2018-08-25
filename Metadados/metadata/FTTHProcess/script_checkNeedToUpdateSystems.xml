@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHProcess.checkNeedToUpdateSystems">
+  <label>Check Need To Update Systems</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <type>dtype_FTTHCommon.string16</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+            AUTHOR:        MARCOS SOUZA - marcossouza@br.ibm.com - 30/11/2017
+            DESCRIPTION:   Verifica se houve a exclusão de equipamentos, se houver,
+                           executará o fluxo de atualização de equipamento no NETWIN e SIS.
+    */
+
+    var equipmentToProcess = null;
+    //Preenche os dados do equipamento que vai ser removido se tiver algum.
+    var equipmentToRemove = new Document('FTTHOrder:EquipmentDataBATime');
+    equipmentToRemove.statusAcao = 'A Remover';
+    equipmentToRemove.cwOrderId = orderId;
+    equipmentToRemove.cwDocId = null;
+    equipmentToRemove.status = null;
+
+    if(status){
+        equipmentToRemove.status = status;
+    }
+
+    //Verifica se existe algum equipamento de ponta para ser removido(ponto adicional) caso tenha ele que deve ser processado primeiro.
+    var equipmentBATimeFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentBATimeFinder', equipmentToRemove);
+    if(equipmentBATimeFinder && equipmentBATimeFinder.length > 0){
+        //TODO descomentar para novo fluxo começar a valer
+        return equipmentBATimeFinder[0];
+    }
+
+    return null;
+  ]]></script>
+</script>

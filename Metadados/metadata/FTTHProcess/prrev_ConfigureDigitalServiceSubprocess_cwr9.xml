@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureDigitalServiceSubprocess_cwr9">
+  <activity name="ConfigureDigitalServiceStart" type="seqActivity">
+    <guid>{c81a65cd-9568-4a69-a474-4257eda1fe2a}</guid>
+    <label>Configure Digital Service Start</label>
+    <x>25.995705</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureDigitalServiceAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureDigitalServiceAutomaticTask</element>
+        <guid>{febd3cd7-6edd-469f-af52-bffd9afc143f}</guid>
+        <label>Configure Digital Service Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>364.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{72fe8819-a64d-4031-ad44-b1bd7ea10dff}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>518.0715</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{bfe78213-bdd8-40be-ac8e-5c2fe81d1b26}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>644.175</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_SERVICO_DIGITAL");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{ef82f7f6-eb68-427f-9315-409a5b2ccbbd}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{ee3b847c-15cc-4f6f-bb98-2f1fdc9f4d40}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>646.5256</y>
+                <childList>
+                  <child name="ConfigureDigitalServiceHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureDigitalServiceHandleErrorTask_cwr6</element>
+                    <guid>{86773589-d9dd-476a-a966-4dac78a1b326}</guid>
+                    <label>Configure Digital Service Handle Error Task</label>
+                    <x>160.5719</x>
+                    <y>740.87616</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{c2db359f-b021-4170-98a1-82661666ebb8}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{25964f65-e6ed-409d-a2ab-56b2e7bf0af0}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{41f5d358-a110-43a6-af0e-deec250efff1}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureDigitalServiceSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConfigureDigitalServiceHandleIssueSubprocess_cwr12</element>
+                                <guid>{b91622fc-9960-4ec3-bb02-3f90166b1238}</guid>
+                                <label>Configure Digital Service Solve Issue Task</label>
+                                <x>133.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConfigureDigitalServiceSubprocess_cwr9/seqActivity_ConfigureDigitalServiceStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{7026ecee-b89e-49e1-92fc-26dd7218c294}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>532.77264</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_SERVICO_DIGITAL");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{4422e117-2ccb-43f8-b5be-da8b41eac7b0}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConfigureDigitalServiceSubprocess_cwr9/seqActivity_ConfigureDigitalServiceStart</element>
+                            <guid>{12ed1725-42b5-455a-bfc2-6aa998b0126b}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Configure Digital Service</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureDigitalServiceSubprocess</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

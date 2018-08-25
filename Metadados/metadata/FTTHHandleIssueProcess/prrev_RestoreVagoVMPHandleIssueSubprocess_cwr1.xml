@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.RestoreVagoVMPHandleIssueSubprocess_cwr1">
+  <activity name="RestoreVagoVMPHandleIssueStart" type="seqActivity">
+    <guid>{fe064e84-d88e-4c3e-ba44-c83ec9802424}</guid>
+    <label>Restore Vago VMP Handle Issue Start</label>
+    <x>110.95752</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssue" type="seqActivity">
+        <guid>{934d902d-cd49-4629-8899-f6c708fb9744}</guid>
+        <label>Notify Open Issue</label>
+        <x>113.89189</x>
+        <y>124.760925</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{f8d35cfb-06f3-4def-ae53-473d6ed9e4bd}</guid>
+            <label>NotifyIssueAutomaticTask</label>
+            <x>78.686035</x>
+            <y>216.76093</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="CheckIssueType" type="switchActivity">
+            <guid>{2284723b-0d77-4495-9251-dcfab23c400a}</guid>
+            <label>Check Issue Type</label>
+            <x>118.69678</x>
+            <y>313.4621</y>
+            <childList>
+              <child name="Technical" type="caseActivity">
+                <guid>{296c932a-640e-4fbe-8797-733c14e5a5ac}</guid>
+                <label>Technical</label>
+                <x>70.01074</x>
+                <y>409.70117</y>
+                <childList>
+                  <child name="TechnicalIssue" type="seqActivity">
+                    <guid>{613a89e3-cb9a-4620-9cd4-3cc8c3f72d4d}</guid>
+                    <label>Technical Issue</label>
+                    <x>185.71426</x>
+                    <y>424.86444</y>
+                    <childList>
+                      <child name="RestoreVagoVMPSolveIssueTask" type="subflowActivity">
+                        <element>prrev_FTTHUserInterface.RestoreVagoVMPSolveIssueTask_cwr1</element>
+                        <guid>{ec1644ba-0740-4593-b648-3096133dffda}</guid>
+                        <label>Restore Vago VMP Solve Issue Task</label>
+                        <x>184.04688</x>
+                        <y>516.86444</y>
+                      </child>
+                      <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                        <guid>{a8fd81ad-775b-4ebd-9ac6-99ce4aef1b71}</guid>
+                        <label>Notify CloseI ssue Automatic Task</label>
+                        <x>188.37793</x>
+                        <y>657.6691</y>
+                        <methodList>
+                          <method name="cwOnProcActBefore" type="action">
+                            <category>before</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var ultimo =  process.processOrder.IssueData.length;
+                              var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+
+                              Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+              <child name="client_cancel" type="caseActivity">
+                <guid>{fcf619b2-e00a-450d-ac5b-edc081f27f15}</guid>
+                <label>Client/Cancel</label>
+                <x>70.01074</x>
+                <y>409.70117</y>
+                <childList>
+                  <child name="ClientIssue" type="seqActivity">
+                    <guid>{010cea74-1e10-45cb-83c2-246e97c87ef3}</guid>
+                    <label>Client Issue</label>
+                    <x>59.023438</x>
+                    <y>424.86444</y>
+                    <childList>
+                      <child name="closeClientCancelIssueTask" type="spawnActivity">
+                        <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                        <guid>{797e3266-3180-4350-903a-a3a936c1b7c1}</guid>
+                        <label>CloseClient/Cancel Issue Task</label>
+                        <syc>true</syc>
+                        <x>30.0</x>
+                        <y>532.5656</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var count = process.processOrder.IssueData.length;
+                      var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                      if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                          return true;
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <label>Restore Vago VMP Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.RestoreVagoVMPHandleIssueSubprocess</process>
+  <type>Sub-flow</type>
+</process__revision>

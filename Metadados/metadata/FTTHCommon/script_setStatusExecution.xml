@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.setStatusExecution">
+  <label>Set Status Execution</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    //set order status
+    var order = Order.getOrderById(orderId);
+    var state = null;
+
+    if(status == Global.getConfigVariable("ACTIVITY_STATUS_NEW")) {
+        state = "Em processamento";
+    } else if(status == Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE")) {
+        order.OrderHeader.permiteCancelamento = false;
+        if(FTTHCommon.isCancelOrder(orderId))
+            state = "Cancelada";
+        else
+            state = "Concluída";
+
+        FTTHCommon.closeManualTasks(orderId);
+    }
+
+    if(state != null){
+        order.OrderHeader.estadoOS = state;
+        order.save();
+    }
+    return;
+  ]]></script>
+</script>

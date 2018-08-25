@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.NotifyEnrichmentInterfaceScript">
+  
+  <label>Notify Enrichment Interface Script</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <type>dtype_cwf_pm.PROCESS_ID</type>
+    </parameter>
+    <parameter name="msg" type="rifp">
+      <type>dstruct_FTTHOrderManagementInterface.notificacao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var LOG_INTERFACE = "OM";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_OM');
+    var LOG_ACTIVITY = "Notify BA Enrichment Automatic Task";
+    var LOG_SCRIPT = "Notify BA Enrichment Interface Script";
+    var LOG_OPERATION = "BA Enrichment Operation";
+    //20121019 EPC inicio
+    var dataAtivacao = ordem.OrderHeader.dataAtivacao;
+    if(dataAtivacao == null) {
+        FTTHCommon.log(ordem.id, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, 'O campo dataAtivacao em OrderHeader eh nulo.', null, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        dataAtivacao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss'); // TODO remover isso!
+    }
+    //20121019 EPC fim
+
+    var numeroOS =  FTTHCommon.getNumeroOs(ordem.OrderHeader.numeroPedido,ordem.OrderHeader.tipoOS);
+    msg.idMensagem = ordem.OrderHeader.numeroPedido;
+    //msg.correlationId = ordem.OrderHeader.numeroOS;
+    msg.correlationId = numeroOS;
+    msg.status = '0';
+    msg.descricao = 'BA Enrichment Operation';
+    msg.timestampExecucao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    dataAtivacao = FTTHOrderManagementInterface.getActivationDate(ordem);
+    if (dataAtivacao){
+        msg.listaAtributos.atributo[0].nome = 'dataAtivacao';
+        msg.listaAtributos.atributo[0].valor = Calendar.formatDate(dataAtivacao, 'yyyy-MM-dd\'T\'HH:mm:ss');
+    }
+    msg.listaAtributos.atributo[1].nome = 'numeroOS';
+    //msg.listaAtributos.atributo[1].valor = ordem.OrderHeader.numeroOS;
+    msg.listaAtributos.atributo[1].valor = numeroOS;
+
+    /* PRJ17683 - CR
+     * accd@br.ibm.com
+     * Se Reparo, então recupera numeroBA do SRTicketActivityData
+     */
+     msg.listaAtributos.atributo[2].nome = "numeroBA";
+     if(ordem.OrderHeader.tipoOS == 'TIPO_ORDEM_REPARO'){
+         msg.listaAtributos.atributo[2].valor = ordem.SRTicketActivityData[0].SRTicketActivityData.numBA;
+     }else{
+         msg.listaAtributos.atributo[2].valor = ordem.ManualActivityData[ordem.ManualActivityData.length - 1].ManualActivityData.numeroBA;
+     }
+
+    msg.listaAtributos.atributo[3].nome = "obsTecnica";
+    msg.listaAtributos.atributo[3].valor = "";
+
+    /* PRJ17683 - CR
+     * accd@br.ibm.com
+     * Se Reparo, então notificação enriquecimento com campo codEncerramento == null
+     */
+     if(ordem.OrderHeader.tipoOS == 'TIPO_ORDEM_REPARO'){
+         msg.listaAtributos.atributo[4].nome = "codEncerramento";
+         msg.listaAtributos.atributo[4].valor = "";
+
+         //adicionando em qual sistema ponta foi aberto o BA
+         msg.listaAtributos.atributo[5].nome = "sistemaBA";
+
+         //pegar a worklist
+         var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+         searchDoc.OrderId = ordem.OrderHeader.cwOrderId;
+         var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+         if(worklist && worklist.length > 0){
+            switch(worklist[0].Participant) {
+                case "FTTHUserInterface.SGFTManualActivity":
+                    msg.listaAtributos.atributo[5].valor = "SGFT";
+                    break;
+                case "FTTHUserInterface.ClickManualActivity":
+                    msg.listaAtributos.atributo[5].valor = "CLICK";
+                    break;
+                default:
+                    msg.listaAtributos.atributo[5].valor = "-";
+                    break;
+            }
+         }
+     }
+    //Adicionando a operação na mensagem de enriquecimento de BA 18/12/2017 PRJ 14008 #582
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = ordem.OrderHeader.cwOrderId;
+    ops.indCancelamento = FTTHCommon.isCancelOrder(ordem.OrderHeader.cwOrderId);
+
+    var parameters = Finder.runSearch('FTTHOrderManagementInterface:OrderParametersFinder', ops);
+    if(parameters)
+    {
+        for (var i = 0; i < parameters.size; i++) {
+            var param = parameters[i];
+            msg.operacoes.operacao[i].operacao = param.operacao; //CORRECAO INTRODUZIDA PELO CR2: msg.operacoes[i]. Foi alterada a estrutura.
+        }
+    }
+
+    return msg;
+  ]]></script>
+</script>

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConsultNewPhysicalFacilitySubProcess1_cwr2">
+  <activity name="ConsultNewPhysicalFacilityStart" type="seqActivity">
+    <guid>{aa251ed2-ddbb-471e-ad56-70de15e643cb}</guid>
+    <label>Consult New Physical Facility Start</label>
+    <x>40.87959</x>
+    <y>734.32227</y>
+    <childList>
+      <child name="ConsultNewPhysicalFacilityAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.ConsultNewPhysicalFacilityAutomaticTask</element>
+        <guid>{9d8065e0-0aff-4127-87d8-f3674640b787}</guid>
+        <label>Consult New Physical Facility Automatic Task</label>
+        <syc>true</syc>
+        <x>172.86823</x>
+        <y>834.9637</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{fbf438f3-802f-4f05-85b9-b7aed1399747}</guid>
+        <label>Check Task Result</label>
+        <x>197.58803</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Sucess" type="caseActivity">
+            <guid>{e67675fa-f4a7-4704-8a77-199dbb691f0a}</guid>
+            <label>Sucess</label>
+            <x>260.735</x>
+            <y>171.10352</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_NOVA");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      return true;
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Resend" type="caseActivity">
+            <guid>{aab92bd9-0d3f-4e39-a847-4f9cadc6c461}</guid>
+            <label>Resend</label>
+            <x>65.4975</x>
+            <y>706.21875</y>
+            <childList>
+              <child name="Resend" type="repeatActivity">
+                <element>prrev_FTTHProcess.ConsultNewPhysicalFacilitySubProcess1_cwr2/seqActivity_ConsultNewPhysicalFacilityStart</element>
+                <guid>{c803d0a7-83b7-4ec5-bfe3-abab79eae9f5}</guid>
+                <label>Resend</label>
+                <x>30.0</x>
+                <y>452.7129</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  return (!FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, "CONSULTAR_FAC_FISICA_NOVA", "INVENTORY_SYSTEM"));
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="HandleErrorStart" type="caseActivity">
+            <guid>{a341de08-ebf0-4b97-97c7-a4157abdb418}</guid>
+            <label>Handle Error Start</label>
+            <x>30.0</x>
+            <y>424.95197</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{e1db7016-7055-46aa-92fc-f40aeceafc74}</guid>
+                <label>Handle Error Start</label>
+                <x>152.05374</x>
+                <y>173.4541</y>
+                <childList>
+                  <child name="ConsultNewPhysicalFacilityHandleError" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConsultNewFacilityHandleErrorTask_cwr10</element>
+                    <guid>{1b2797e6-6dc4-4c22-9ad8-27a80d624ffe}</guid>
+                    <label>Consult New Physical Facility Handle Error</label>
+                    <x>155.72652</x>
+                    <y>267.8047</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_NOVA");
+                          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                          if(result == Global.getConfigVariable("ACTIVITY_RETURN_CHANGE")){
+                              return false;
+                          }else {
+                              return true;
+
+                          }
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{44882a70-d0e4-43ed-b800-f885a4e22524}</guid>
+                    <label>Check Error Handling</label>
+                    <x>138.43274</x>
+                    <y>438.01172</y>
+                    <childList>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{523d5cb3-5ba4-45ca-8424-ce54290b4c5a}</guid>
+                        <label>Resend</label>
+                        <x>144.0332</x>
+                        <y>854.7166</y>
+                        <childList>
+                          <child name="Resend" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConsultNewPhysicalFacilitySubProcess1_cwr2/seqActivity_ConsultNewPhysicalFacilityStart</element>
+                            <guid>{989c8140-83cf-472c-aabc-f6dc81caaba0}</guid>
+                            <label>Resend</label>
+                            <x>74.680664</x>
+                            <y>600.86816</y>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="SolveIssueStart" type="caseActivity">
+                        <guid>{cfcc4b56-d687-4654-8a5b-02d02a462ddf}</guid>
+                        <label>Solve Issue Start</label>
+                        <x>30.0</x>
+                        <y>817.9637</y>
+                        <childList>
+                          <child name="ConsultNewFacilityHandleIssueSubprocess" type="subflowActivity">
+                            <element>prrev_FTTHHandleIssueProcess.ConsultNewFacilityHandleIssueSubprocess_cwr12</element>
+                            <guid>{4f9e5ab1-9bf9-4a52-9d77-3563e70f404b}</guid>
+                            <label>Consult New Facility Handle Issue Subprocess</label>
+                            <x>169.04199</x>
+                            <y>564.11523</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_NOVA");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")  || result == Global.getConfigVariable("ACTIVITY_RETURN_CHANGE")){
+                                  return true;
+                              }
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                  <child name="Repeat" type="repeatActivity">
+                    <element>prrev_FTTHProcess.ConsultNewPhysicalFacilitySubProcess1_cwr2/seqActivity_ConsultNewPhysicalFacilityStart/switchActivity_CheckTaskResult/caseActivity_HandleErrorStart/seqActivity_HandleErrorStart</element>
+                    <guid>{72736b2f-9972-430e-82fe-29f120cd9971}</guid>
+                    <label>Repeat</label>
+                    <x>210.22119</x>
+                    <y>736.29236</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var ord = process.processOrder;
+          var orderId = ord.OrderHeader.cwOrderId;
+          var atividade;
+
+          var activityIdFisica = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_NOVA");
+          var statusFisica = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+          FTTHCommon.setStatusActivity(orderId, activityIdFisica, statusFisica);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <label>Consult New Physical Facility Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConsultNewPhysicalFacilitySubProcess1</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

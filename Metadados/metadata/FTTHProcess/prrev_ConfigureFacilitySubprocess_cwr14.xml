@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureFacilitySubprocess_cwr14">
+  <activity name="ConfigureFacilitySubprocessStart" type="seqActivity">
+    <guid>{2f8f7a56-9143-428b-ae91-fb530f559d77}</guid>
+    <label>Configure Facility Subprocess Start</label>
+    <x>25.601173</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureInfraPlatforms" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConfigureInfraPlatformsSubprocess_cwr7</element>
+        <guid>{b77e6ad2-7cae-4783-8fa7-65e569b5f45e}</guid>
+        <label>Configure Infra Platforms</label>
+        <x>32.666016</x>
+        <y>124.76094</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "CONFIGURAR_INFRA%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConfigureHSIPlatforms" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConfigureHSIPlatformsSubprocess_cwr8</element>
+        <guid>{b21f3dce-54be-42da-a971-e20bbb75c8b0}</guid>
+        <label>Configure HSI Platforms</label>
+        <x>32.666016</x>
+        <y>250.86444</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "CONFIGURAR_HSI%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="RestoreVagoVMP" type="subflowActivity">
+        <element>prrev_FTTHProcess.RestoreVagoVMPSubprocess_cwr4</element>
+        <guid>{a4d2a98d-b43d-4563-85d8-068bfbd825f3}</guid>
+        <label>Restore Vago VMP</label>
+        <x>30.0</x>
+        <y>376.96796</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "DESBLOQUEIO_VAGO_VMP";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConfigureVoIP" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConfigureVoIPPlatformsSubprocess_cwr7</element>
+        <guid>{8fcc4f07-ed9b-4417-a9e8-e1c3144daa16}</guid>
+        <label>Configure VoIP Platforms</label>
+        <x>32.666016</x>
+        <y>488.3703</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "CONFIGURAR_VOIP%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConfigureIPTV" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConfigureIPTVPlatformsSubprocess_cwr9</element>
+        <guid>{ba717821-84bc-4d0b-b33b-5107cfc0a723}</guid>
+        <label>Configure IPTV Platforms</label>
+        <x>32.666016</x>
+        <y>614.4738</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "CONFIGURAR_IPTV%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConfigureOTT" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConfigureOTTPlatformsSubprocess_cwr7</element>
+        <guid>{5d7c74b5-9b99-4da2-b55a-ff9f3d707bee}</guid>
+        <label>Configure OTT Platforms</label>
+        <x>32.666016</x>
+        <y>740.57733</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "CONFIGURAR_IPTV%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              if(result){
+                  orderId = process.processOrder.OrderHeader.cwOrderId;
+                  atividade = "CONFIGURAR_OTT%";
+                  result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              }
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela realiza&#231;&#227;o das atividades autom&#225;ticas: Configurar
+      HSI, Configurar IPTV, Configurar OTT e Configurar VoIP. As atividades s&#243;
+      dever&#227;o ser realizadas caso o cliente tenha solicitado o servi&#231;o
+      associado a cada uma. Para o caso da atividade Configurar OTT, a mesma
+      s&#243; poder&#225; ser realizada caso a Configura&#231;&#227;o do IPTV tenha sido
+      realizada com sucesso anteriormente.
+    </p>
+  ]]></description>
+  <label>Configure Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureFacilitySubprocess</process>
+  <revision>14</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHOrderManagementInterface.NotifyError_cwr1">
+  <activity name="NotifyErrorStart" type="seqActivity">
+    <guid>{e83e8085-6c1a-42e4-9207-ea9bd7e92977}</guid>
+    <label>NotifyErrorStart</label>
+    <x>94.0</x>
+    <y>49.0</y>
+    <childList>
+      <child name="NotifyError" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMSenderInterface/oper_NotifyOperation</element>
+        <guid>{f3d0bb42-75c3-4b10-bd7c-dca3cb815a29}</guid>
+        <invokeDirectly>true</invokeDirectly>
+        <label>NotifyError</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>86.0</x>
+        <y>152.0</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var docNotificacao = this.process.processDocument;
+
+              var msg = FTTHOrderManagementInterface.CreateNotifyErrorMessage(docNotificacao, this.activityData);
+
+              FTTHCommon.log(null, this.process.id, "Notify Error", "Notify Closing Send Operation", "cwOnProcActBefore", msg.toXML());
+
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(null, this.process.id, "Notify Error", "Notify Closing Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+              var docNotificacao = this.process.processDocument;
+              var msgLogDoc = UserProfile.getMsgLogDoc();
+              if(msgLogDoc != null) {
+                  msgLogDoc.userData1 = docNotificacao.numeroPedido;
+                  msgLogDoc.userData2 = docNotificacao.numeroOS;
+                  msgLogDoc.save();
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="OMSenderParticipant" type="participantActivity">
+        <guid>{4c870d3f-ac80-46dd-8267-17def7db151c}</guid>
+        <label>OM Sender Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>22.0</x>
+        <y>301.0</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Notifica&#231;&#227;o de errro na cria&#231;&#227;o da ordem no WMS
+    </p>
+  ]]></description>
+  <document>doc_FTTHOrderManagementInterface.ErrorNotification</document>
+  <label>Notify Error</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHOrderManagementInterface.NotifyError</process>
+  <type>User</type>
+</process__revision>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHOrder.TecnicoAuxiliar">
+  <dbSchema>ORDER</dbSchema>
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <generatedKey>true</generatedKey>
+  <guid>{e252a7dd-3ef9-491d-9461-a05920feaa63}</guid>
+  <label>Tecnico Auxiliar</label>
+  <metaVersion>4</metaVersion>
+  <variableList>
+    <variable name="cwDocId" type="leaf">
+      <column>CWDOCID</column>
+      <key>1</key>
+      <table>TBI_Tecnico_Auxiliar</table>
+      <valueType>dtype_cwf.cwDocId</valueType>
+    </variable>
+    <variable name="fk_manualActivity" type="leaf">
+      <column>FK_MANUALACTIVITY</column>
+      <table>TBI_Tecnico_Auxiliar</table>
+      <valueType>dtype_cwf.cwDocId64</valueType>
+    </variable>
+    <variable name="cwOrderId" type="leaf">
+      <column>CWORDERID</column>
+      <table>TBI_Tecnico_Auxiliar</table>
+      <valueType>dtype_cwf.cwOrderId</valueType>
+    </variable>
+    <variable name="nomeTecnico" type="leaf">
+      <column>NOMETECNICO</column>
+      <table>TBI_Tecnico_Auxiliar</table>
+      <valueType>dtype_FTTHCommon.nomeTecnico</valueType>
+    </variable>
+    <variable name="matriculaTecnico" type="leaf">
+      <column>MATRICULATECNICO</column>
+      <table>TBI_Tecnico_Auxiliar</table>
+      <valueType>dtype_FTTHCommon.matriculaTecnico</valueType>
+    </variable>
+  </variableList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHOrder.TecnicoAuxiliar</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="GridLayout" type="elvlt">
+                <elementList>
+                  <element name="GridLayout1" type="elgrd">
+                    <numOfCols>2</numOfCols>
+                    <elementList>
+                      <element name="nomeTecnico" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.TecnicoAuxiliar/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.TecnicoAuxiliar/leaf_nomeTecnico</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="matriculaTecnico" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.TecnicoAuxiliar/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.TecnicoAuxiliar/leaf_matriculaTecnico</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="Button" type="elbtn">
+                        <clickMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.TecnicoAuxiliar/ui_UserInterface/uimthd_addTecnico</variablePath>
+                          </variablePathList>
+                        </clickMethod>
+                        <label>OK</label>
+                      </element>
+                      <element name="Button1" type="elbtn">
+                        <clickMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.TecnicoAuxiliar/ui_UserInterface/uimthd_onCancel</variablePath>
+                          </variablePathList>
+                        </clickMethod>
+                        <label>Cancel</label>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</base>
+            <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfSave" type="eldel"/>
+              <override name="hl1" type="elext"/>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="addTecnico" type="uimthd">
+        <script><![CDATA[
+          var doc = new Document("FTTHOrder:TecnicoAuxiliar");
+          doc.nomeTecnico = this.model.nomeTecnico;
+          doc.matriculaTecnico = this.model.matriculaTecnico;
+          doc.cwOrderId = this.parent.owner.parent.model.cwOrderId;
+          doc.fk_manualActivity = this.parent.owner.parent.model.cwDocId;
+          if(this.model.nomeTecnico && this.model.matriculaTecnico)
+          {
+              if(this.model.nomeTecnico.trim() == "" || this.model.matriculaTecnico.trim() == "")
+              {
+                  Global.showUserMessage("O nome do Tecnico e a matricula precisam ser preenchidas!");
+              }
+              else{
+                  doc.save();
+              }
+          }
+          else
+          {
+               Global.showUserMessage("O nome do Tecnico e a matricula precisam ser preenchidas!");
+          }
+          this.parent.owner.parent.refreshTecnico();
+          return Global.STOP_UI;
+          //FTTHCommon.addTecnicoAuxiliar(doc);
+        ]]></script>
+      </method>
+      <method name="onCancel" type="uimthd">
+        <script>return Global.STOP_UI;</script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ModificarPlanoVoIPVMPSubprocess_cwr2">
+  <activity name="ModificarPlanoVoIPVMPStart" type="seqActivity">
+    <guid>{4812848e-cf1a-412a-a4ed-3845cd83d409}</guid>
+    <label>Modificar Plano VoIP VMP Start</label>
+    <x>23.605082</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ReconfigureVoIPVMPAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ModificarPlanoVoIPVMPAutomaticTask</element>
+        <guid>{d87a90a7-c42f-45f1-9f7a-f84b50e3c3e1}</guid>
+        <label>Modificar Plano VoIP VMP Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{a678cbe7-27a0-45cd-b54d-27d87a532845}</guid>
+        <label>Check Task Result</label>
+        <x>66.768555</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{b7919364-1157-4fa8-907c-1422e0c6d2ac}</guid>
+            <label>Success</label>
+            <x>36.102783</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("MODIFICAR_PLANO_VOIP_VMP");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{db42f803-de8e-487b-bf8a-345538035957}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{abee7e82-fd3f-4561-b230-fcac06587d4d}</guid>
+                <label>Handle Error Start</label>
+                <x>120.773094</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="ModificarPlanoVoIPVMPHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ModificarPlanoVoIPVMPHandleErrorTask_cwr1</element>
+                    <guid>{dbc0c114-df4e-413a-8cbb-8cc383e61146}</guid>
+                    <label>Modificar Plano VoIP VMP Handle Error Task</label>
+                    <x>160.46594</x>
+                    <y>728.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{0312ce57-57c1-461f-ba50-c2ba104b4d13}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{b1cd9e86-13f2-43f5-9f22-28b76146b839}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{6737662b-b8ed-4c40-b676-05a836503480}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ModificarPlanoVoIPVMPSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHUserInterface.ModificarPlanoVoIPVMPSolveIssueTask_cwr2</element>
+                                <guid>{d4d0a8ef-5ad6-42a8-a978-964395712687}</guid>
+                                <label>Modificar Plano VoIP VMP Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHUserInterface.ModificarPlanoVoIPVMPSubprocess_cwr2/seqActivity_ModificarPlanoVoIPVMPStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{eff31a16-49d9-426b-b83e-bab0d2de928a}</guid>
+                                <label>Repeat</label>
+                                <x>154.78613</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("MODIFICAR_PLANO_VOIP_VMP");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{1b4ae486-024c-48c4-8ed8-87274fea09ea}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHUserInterface.ModificarPlanoVoIPVMPSubprocess_cwr2/seqActivity_ModificarPlanoVoIPVMPStart</element>
+                            <guid>{2d5484d9-cab6-40d5-989a-aed95c5555b4}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <label>Modificar Plano VoIP VMP Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ModificarPlanoVoIPVMPSubprocess</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

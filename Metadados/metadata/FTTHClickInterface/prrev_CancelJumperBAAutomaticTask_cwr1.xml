@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHClickInterface.CancelJumperBAAutomaticTask_cwr1">
+  <activity name="startCancelJumperBAAutomaticTask" type="seqActivity">
+    <guid>{1ad29f25-f19f-4468-9c33-c7870c6b731f}</guid>
+    <label>Start Cancel Jumper BA Automatic Task</label>
+    <x>136.51277</x>
+    <y>30.0</y>
+    <childList>
+      <child name="cancelJumperBAOperation" type="opActivity">
+        <element>iface_FTTHClickWorkForceManager.WorkForceManagerPortType/oper_externalCloseTask</element>
+        <guid>{0bacdb91-e7e7-4b0b-a771-56c939b75fa2}</guid>
+        <label>Cancel Jumper BA Operation</label>
+        <participant>part_FTTHClickInterface.ClickCloseJumperBAParticipant</participant>
+        <x>135.91862</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var ord = this.process.processOrder;
+              var orderId = ord.OrderHeader.cwOrderId;
+              var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+              var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+              var response = new DataStructure("FTTHClickWorkForceManager.externalCloseTaskResponse");
+
+              try {
+                  var request = new DataStructure("FTTHClickWorkForceManager.externalCloseTaskRequest");
+
+                  var indCancelamento = true;
+
+                  request = FTTHClickInterface.createBAExternalCloseRequestMessage(ord, this.activityData, indCancelamento);
+
+                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Open BA Automatic Task", "Open BA Send Operation", "cwOnProcActBefore", request.toXML());
+                  var messageDoc = new Document("cwf_pm:messageLog");
+                  messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                  messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                  messageDoc.userData3 = this.process.processOrder.order.id;
+                  UserProfile.setMsgLogDoc(messageDoc);
+
+                  /*
+                  response = Global.invokeInterface("FTTHClickWorkForceManager:WorkForceManagerPortType", "externalCloseTask", request)[0];
+
+                  if (response) {
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, activityId, status);
+                      return response;
+                  }
+                  */
+
+                  return request;
+
+              } catch(e){
+                  var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+                  var LOG_ACTIVITY = "Encerramento externo de BA";
+                  var LOG_SCRIPT = "EquipmentExternalCloseSuccess";
+                  var ONT_OPERATION = "EquipmentExternalCloseSuccess";
+                  var LOG_MSG = "Erro ao executar script que invoca interface para encerramento externo de BA";
+
+                  FTTHCommon.log(null, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+
+                  return null;
+              }
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Cancel Jumper BA Automatic Task", "Cancel Jumper BA Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.operationReturn.code, Global.getConfigVariable("CLICK_SYSTEM"));
+              /*
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              */
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("REALIZAR_JUMPER"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   Global.getConfigVariable("CLICK_SYSTEM"),
+                                   Global.getConfigVariable("REALIZAR_JUMPER"),
+                                   status,
+                                   this.activityData.operationReturn.code,
+                                   this.activityData.operationReturn.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("SYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         Global.getConfigVariable("CLICK_SYSTEM"),
+                                                         Global.getConfigVariable("REALIZAR_JUMPER"));
+
+
+              var ordem = this.process.processOrder;
+              ordem.ManualActivityData[ordem.ManualActivityData.length -1].ManualActivityData.dataFechamento = new Date();
+              ordem.save();
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="end" type="completeActivity">
+        <guid>{329c68db-b850-47b1-9bdb-c70fafcc6f5e}</guid>
+        <label>End</label>
+        <x>251.39453</x>
+        <y>271.74493</y>
+      </child>
+      <child name="ClickCloseJumperBAParticipant" type="participantActivity">
+        <guid>{8865b471-44e7-4cb2-b886-f85e7e657c8c}</guid>
+        <label>ClickCloseJumperBAParticipant</label>
+        <participant>part_FTTHClickInterface.ClickCloseJumperBAParticipant</participant>
+        <x>30.0</x>
+        <y>271.74493</y>
+      </child>
+    </childList>
+  </activity>
+  <label>Cancel Jumper BA Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHClickInterface.CancelJumperBAAutomaticTask</process>
+  <type>User</type>
+</process__revision>

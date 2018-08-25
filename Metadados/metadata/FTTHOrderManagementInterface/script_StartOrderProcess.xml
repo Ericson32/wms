@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.StartOrderProcess">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Inicializa o processo para uma ordem
+    </p>
+  ]]></description>
+  <label>Start Order Process</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderHeader" type="rifp">
+      <type>doc_FTTHOrder.OrderHeader</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Start Order Process');
+
+    var ordem = Order.getOrderById(orderHeader.cwOrderId);
+    if(!ordem) {
+        Global.logError("Ordem nao encontrada com id " + orderHeader.cwOrderId);
+        return;
+    }
+
+    var qtPontosIPTV = 0;
+    var qtPontosIPTVOriginal = 0;
+    var qtPontosRFTV = 0;
+    var isTipoModEndereco = false;
+    var isTipoModNumero = false;
+    var isTipoModPacote = false;
+    var needUpdateFranchise = false;
+    var needRemoveFranchise = false;
+    var isTipoRetirada = false;
+    var needInsertFranchise = false;
+    var isTipoInstalacao = false;
+    var needBlockVoip = false;
+    var needDigitalService = false;
+    var isTipoModPlano = false;
+
+    //PRJ 21262 CR Troca Titularidade - Giovanna Dias - 21/06/2018 RQF005
+    var isTrocaPerfil = false;
+
+    //MS - marcossouza@br.ibm.com - PRJ17683 - 26/07/2017
+    var isReparo = false;
+    //end MS
+
+    //MS - marcossouza@br.ibm.com - PRJ14008#261 - 18/10/2017
+    var isRemanejamento = false;
+    //end MS
+
+
+    var removerIPTV = false;
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = ordem.OrderHeader.cwOrderId;
+
+    var nomeProcesso;
+
+    var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+
+    if (orderRequest.size > 0) {
+
+        for (var i = 0; i < orderRequest.size; i++) {
+
+            var solicitacao = orderRequest[i];
+
+            nomeProcesso = solicitacao.nomeProcesso;
+
+            //MS - marcossouza@br.ibm.com - PRJ17683 - 26/07/2017
+            if(solicitacao.tipoOrdemServico == "TIPO_ORDEM_REPARO"){
+                isReparo = true;
+            }
+            //end MS
+
+
+
+            //MS - marcossouza@br.ibm.com - PRJ14008#261 - 18/10/2017
+            if(solicitacao.idSolicitacao == "REMANEJAMENTO"){
+                isRemanejamento = true;
+            }
+            //end MS
+
+            if(solicitacao.idSolicitacao == "MUDANCA_PLANO"){
+                isTipoModPlano = true;
+            }
+
+
+            if(solicitacao.tipoOrdemServico == 'TIPO_ORDEM_RETIRADA')
+                isTipoRetirada = true;
+            if(solicitacao.tipoOrdemServico == 'TIPO_ORDEM_INSTALACAO')
+                isTipoInstalacao = true;
+
+            if(solicitacao.tipoOrdemServico == 'TIPO_ORDEM_INSTALACAO' || solicitacao.tipoOrdemServico == 'TIPO_ORDEM_MODIFICACAO') {
+                //Fase 2 - identificacao de mudanca de endereco
+                if(orderRequest[i].nomeSolicitacao == 'Mudança de Endereço')
+                    isTipoModEndereco = true;
+                if(orderRequest[i].nomeSolicitacao == 'Mudança de Número')
+                    isTipoModNumero = true;
+                if(orderRequest[i].nomeSolicitacao == 'Mudança de Pacote')
+                    isTipoModPacote = true;
+
+                //PRJ 21262 CR Troca Titularidade - Giovanna Dias - 21/06/2018 RQF005
+                if(orderRequest[i].nomeSolicitacao == 'Troca Perfil')
+                    isTrocaPerfil = true;
+                //end RQF005
+
+                qtPontosIPTV = ordem.ProductData.quantidadePontosIPTV;
+                qtPontosRFTV = ordem.ProductData.quantidadePontosRFTV;
+
+                if(solicitacao.tipoOrdemServico == 'TIPO_ORDEM_MODIFICACAO') {
+                    if(ordem.OriginalData != null && qtPontosIPTV == null && qtPontosRFTV == null) { // nesse caso, está removendo o IPTV, por isso preciso da informação original
+                        qtPontosIPTV = ordem.OriginalData[0].ProductData.quantidadePontosIPTV;
+                        qtPontosRFTV = ordem.OriginalData[0].ProductData.quantidadePontosRFTV;
+                        removerIPTV = true;
+                    }
+
+                    qtPontosIPTVOriginal = ordem.OriginalData[0].ProductData.quantidadePontosIPTV;
+                }
+            } else if(solicitacao.tipoOrdemServico == 'TIPO_ORDEM_RETIRADA' || solicitacao.tipoOrdemServico == 'TIPO_ORDEM_BLOQUEIO_DESBLOQUEIO' || solicitacao.tipoOrdemServico == 'TIPO_ORDEM_BLOQUEIO' || solicitacao.tipoOrdemServico == 'TIPO_ORDEM_DESBLOQUEIO') {
+                qtPontosIPTV = ordem.OriginalData[0].ProductData.quantidadePontosIPTV;
+                qtPontosRFTV = ordem.OriginalData[0].ProductData.quantidadePontosRFTV;
+            }
+
+            if(ordem.OrderHeader.listaSolicitacoes == null)
+                ordem.OrderHeader.listaSolicitacoes = solicitacao.nomeSolicitacao;
+            else
+            ordem.OrderHeader.listaSolicitacoes = ordem.OrderHeader.listaSolicitacoes + "\n" + solicitacao.nomeSolicitacao;
+
+            ordem.OrderHeader.tipoOS = solicitacao.tipoOrdemServico;
+
+            if(!ordem.OrderHeader.permiteCancelamento){
+                ordem.OrderHeader.permiteCancelamento = solicitacao.permiteCancelamento;
+            }
+
+            var docSolicitacao = new Document("FTTHCommon:Request");
+            docSolicitacao.orderId = solicitacao.cwOrderId;
+            docSolicitacao.requestId = Global.getConfigVariable(solicitacao.idSolicitacao);
+
+            docSolicitacao.save();
+        }
+
+        ordem.save();
+
+    } else {
+        var ds = FTTHOrderManagementInterface.CreateDSErro(ordem.OrderHeader.numeroOS, ordem.OrderHeader.numeroPedido, 'Não existem solicitações para a ordem');
+        Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+        ordem.deleteOrder();//elimina a ordem que foi criada porque é inválida e a próxima mensagem vai falhar porque o OMR vai assumir que se trata de uma pendência
+        return;
+    }
+    //=========================================================================================================================
+
+    //PKE 31789
+    if(isTipoModNumero && (ordem.OriginalData[0].ProductData.portabilidadeInternaComTrocaDeTecnologia == 'Y' ||
+                           ordem.OriginalData[0].ProductData.portabilidadeInternaComTrocaDeTecnologia == 'N')){
+        //Adicionando DESBLOQUEIO_VAGO_VMP plano de execução
+	var docAtividade = new Document("FTTHCommon:Activity");        
+        docAtividade.clearData();
+        docAtividade.orderId = ordem.OrderHeader.cwOrderId;
+        docAtividade.activityId = 'DESBLOQUEIO_VAGO_VMP';
+        docAtividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+        docAtividade.indCancelamento = false;
+        docAtividade.save();
+    }
+    //=========================================================================================================================
+
+    var orderActivities = Finder.runSearch('FTTHOrderManagementInterface:OrderActivitiesFinder', ops);
+
+    var hasManualActivity = false;
+    var needManualActivity = false;
+    var needTwoClientVisit = false;
+    var needUpdateEquipment = false;
+    var needUpdateCable = false;
+    var needDissociate = false;
+
+    if (orderActivities.size > 0) {
+        for (var i = 0; i < orderActivities.size; i++) {
+            var atividade = orderActivities[i];
+
+            //MS - marcossouza@br.ibm.com - PRJ17683 - 26/07/2017
+            if(isReparo){//executa script diferenciado se for reparo
+                if(atividade.codAtividade == 'CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL')
+                    if(ordem.ProductData.identificadorIPTV == null && ordem.ProductData.identificadorVoIP == null)
+                    continue;
+
+            } else{//Fluxo de ordem normal
+
+
+                /* accd@br.ibm.com - PRJ14579 - Oi Total v2 - Pacote adicional apenas com OS Oi Total */
+                if(atividade.codAtividade == 'INSERIR_PACOTE_ADICIONAL' || atividade.codAtividade == 'REMOVER_PACOTE_ADICIONAL'){
+                    //MS - marcossouza@br.ibm.com - correção do defeito PRJ21262#509 + refactoring - 09/01/2018
+                    //MS - marcossouza@br.ibm.com - correção PRJ21262#184 - 24/10/2017 - tratamento trocaPlanoFTTH
+                    var additionalPackageDoc =  new Document('FTTHOrder:AdditionalPackage');
+                    additionalPackageDoc.cwOrderId = ordem.OrderHeader.cwOrderId;
+
+                    if(atividade.codAtividade == 'INSERIR_PACOTE_ADICIONAL'){
+                        if(ordem.AdditionalPackages.length == 0){
+                            continue;
+                        }
+
+                        additionalPackageDoc.acao = 'adicionar';
+                    }
+
+                    if(atividade.codAtividade == 'REMOVER_PACOTE_ADICIONAL'){
+                        if((ordem.OriginalData[0].AdditionalPackages && ordem.OriginalData[0].AdditionalPackages.length == 0) ||
+                            (!ordem.OriginalData[0].AdditionalPackages)  ){
+                            continue;
+                        }
+
+                        additionalPackageDoc.acao = 'remover';
+                    }
+
+                    var additionalPackageFinder = Finder.runSearch('FTTHActivationInterface.AdditionalPackageFinder', additionalPackageDoc);
+
+                    if(!additionalPackageFinder || additionalPackageFinder.length < 1){
+                        continue;
+                    }
+                }
+
+                //MS - marcossouza@br.ibm.com - correção defeito PRJ21262#509 - Conforme solicitado pelo Rodrigo Lupareli (OI) - 09/01/2018
+                //AC - accd@br.ibm.com - PKE33630 - se Pacote de Canal Linear trocado, entao nao exclui a atividade RECONFIGURAR_IPTV_IESF do plano de execucao  - 05/07/2018
+                if(atividade.codAtividade == "RECONFIGURAR_IPTV_IESF" && isTipoModPacote && !isTipoModPlano && ('AdditionalPackages' in ordem) && !isChangingLinearChannelPacket(ordem)){
+                    continue;
+                }
+                //end MS
+
+                //PRJ1427
+                if(isTipoInstalacao && atividade.codAtividade == 'INSERIR_FRANQUIA_IN'){
+                    if(ordem.ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO"))
+                        needInsertFranchise = true;
+                    if(!needInsertFranchise)
+                        continue;
+                }
+                if(isTipoRetirada && atividade.codAtividade == 'REMOVER_FRANQUIA_IN'){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO"))
+                        needRemoveFranchise = true;
+                    if(!needRemoveFranchise)
+                        continue;
+                }
+
+                if(isTipoModNumero && atividade.codAtividade == 'RECONFIGURAR_VOIP_IN'){
+                    if(!(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO") || ordem.ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO"))){
+                        continue;
+                    }
+                }
+
+                if((isTipoModPacote || isTipoModPlano) && (atividade.codAtividade == 'INSERIR_FRANQUIA_IN'||atividade.codAtividade == 'REMOVER_FRANQUIA_IN'||atividade.codAtividade == 'ALTERAR_FRANQUIA_IN')){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("POS_PAGO") && ordem.ProductData.tipoPlano == Global.getConfigVariable("POS_PAGO"))
+                        continue;
+                }
+                if((isTipoModPacote || isTipoModPlano) && atividade.codAtividade == 'INSERIR_FRANQUIA_IN'){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("POS_PAGO") && ordem.ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO"))
+                        needInsertFranchise = true;
+                    //  if(!needInsertFranchise)
+                    //    continue;
+                }
+                if(isTipoModPacote && atividade.codAtividade == 'REMOVER_FRANQUIA_IN'){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO") && ordem.ProductData.tipoPlano == Global.getConfigVariable("POS_PAGO"))
+                        needRemoveFranchise = true;
+                    //  if(!needRemoveFranchise)
+                    //     continue;
+                }
+                if(isTipoModPacote && atividade.codAtividade == 'ALTERAR_FRANQUIA_IN'){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO") && ordem.ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO"))
+                        needUpdateFranchise = true;
+                    //  if(!needUpdateFranchise)
+                    //     continue;
+                }
+                if((isTipoModPacote || isTipoModPlano) && atividade.codAtividade == 'REMOVER_FRANQUIA_IN'){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO") && ordem.ProductData.tipoPlano == null)
+                        needRemoveFranchise = true;
+                    //  if(!needRemoveFranchise)
+                    //     continue;
+                }
+                if((isTipoModPacote || isTipoModPlano) && (atividade.codAtividade == 'INSERIR_FRANQUIA_IN'|| atividade.codAtividade == 'REMOVER_FRANQUIA_IN'|| atividade.codAtividade == 'ALTERAR_FRANQUIA_IN')){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == Global.getConfigVariable("POS_PAGO") && ordem.ProductData.tipoPlano == null)
+                        continue;
+                }
+                if((isTipoModPacote || isTipoModPlano) && (atividade.codAtividade == 'INSERIR_FRANQUIA_IN'|| atividade.codAtividade == 'REMOVER_FRANQUIA_IN'|| atividade.codAtividade == 'ALTERAR_FRANQUIA_IN')){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == null && ordem.ProductData.tipoPlano == Global.getConfigVariable("POS_PAGO"))
+                        continue;
+                }
+                if((isTipoModPacote || isTipoModPlano) && atividade.codAtividade == 'INSERIR_FRANQUIA_IN'){
+                    if(ordem.OriginalData[0].ProductData.tipoPlano == null && ordem.ProductData.tipoPlano == Global.getConfigVariable("PRE_PAGO"))
+                        needInsertFranchise = true;
+                    //   if(!needInsertFranchise)
+                    //       continue;
+                }
+                if((isTipoModPacote || isTipoModPlano) && atividade.codAtividade == 'REMOVER_FRANQUIA_IN' && !needRemoveFranchise)
+                    continue;
+                if((isTipoModPacote || isTipoModPlano) && atividade.codAtividade == 'INSERIR_FRANQUIA_IN' && !needInsertFranchise)
+                    continue;
+                if((isTipoModPacote || isTipoModPlano) && atividade.codAtividade == 'ALTERAR_FRANQUIA_IN' && !needUpdateFranchise)
+                    continue;
+                if(atividade.codAtividade == 'BLOQUEAR_VOIP_VMP_SERVICO'||atividade.codAtividade == 'BLOQUEAR_VOIP_IMS_SERVICO'){
+                    if ((ordem.BlocksData.length > 0)){
+                        needBlockVoip = true;
+                    }
+                    try{
+                        if ((ordem.OriginalData[0].BlocksData.length > 0)){
+                            needBlockVoip = true;
+                        }
+                    } catch(e){
+                    }
+                    if(!needBlockVoip)
+                        continue;
+                }
+                if(atividade.codAtividade == 'CONFIGURAR_SERVICO_DIGITAL'){
+                    if (checkDigitalService()){
+                        needDigitalService = true;
+                    }
+                    if(!needDigitalService)
+                        continue;
+                }
+                //PRJ1427
+
+                //correcao a configuracoes desnecessarias de IPTV, VOIP e INTERNET
+                if(!doubleCheckNecessity(atividade))
+                    continue;
+
+                // Alteracao para o PRJ21262 CR Troca Titularidade - Matheus Mello - 24/06/2018
+                // Para no caso de ser uma operacao trocaPerfil ele inserir na tabela TBI_ORDEM_ATIVIDADE a atividade de CONF_PERFIL_CLIENTE_IPTV_IESF
+                if(atividade.codAtividade == 'CONF_PERFIL_CLIENTE_IPTV_IESF' && removerIPTV && !isTrocaPerfil)
+                    continue;
+
+                if(isTipoModEndereco && atividade.codAtividade.startsWith('RECONFIGURAR_'))
+                    continue;
+
+                if(qtPontosIPTV == 0 && atividade.codAtividade.endsWith('OTT'))
+                    continue;
+
+                if(qtPontosIPTVOriginal > 0 && atividade.codAtividade == 'CONFIGURAR_OTT') // ordem de modificação, dados originais já possuem IPTV, não deve realizar a configuração do OTT
+                continue;
+
+                //PRJ12591
+                if(ordem.ProductData){
+                    if(ordem.ProductData.identificadorOTT == null && atividade.codAtividade == 'CONFIGURAR_OTT_IESF')
+                        continue;
+                }
+                if(ordem.OriginalData){
+                    if(ordem.OriginalData[0].ProductData.identificadorOTT == null && atividade.codAtividade == 'DESCONFIGURAR_OTT_IESF')
+                        continue;
+                }
+                //
+
+                //20121106 EPC INICIO
+                if((atividade.codAtividade == "REDESIGNAR_FACILIDADE") || (atividade.codAtividade == "CONFIRMAR_DESIGNACAO") || (atividade.codAtividade == "CONSULTAR_FACILIDADE_LOGICA_2_NOVA")){
+                    var orderParameter = new Document("FTTHOrderManagementInterface:OrderParameters");
+                    orderParameter.cwDocId = null;
+                    orderParameter.orderId = ordem.OrderHeader.cwOrderId;
+                    orderParameter.operacao = "manterRestricaoFTTH";
+
+                    //Se operacoes > 1, existe a operação "manterRestricaoFTTH". Neste caso, não deverá ser executado as atividades abaixo
+                    var operacoes = Finder.runSearch("FTTHOrderManagementInterface.orderParamDocFind", orderParameter);
+
+                    orderParameter.operacao = null;
+                    var operacoesOS = Finder.runSearch("FTTHOrderManagementInterface.orderParamDocFind", orderParameter);
+
+                    //se operacoes e operacoesOS forem iguais, então temos apenas a operação "manterRestricaoFTTH", então não executamos as atividades acima
+                    if (operacoesOS.length == operacoes.length){
+                        continue;
+                    }
+
+                    /*
+                    if(operacoes.length > 0){
+                        continue;
+    } /* else {
+        orderParameter.operacao = "removerRestricaoFTTH";
+        operacoes = Finder.runSearch("FTTHOrderManagementInterface.orderParamDocFind", orderParameter);
+    }*/
+                }
+                if(atividade.codAtividade == 'CONSULTAR_FACILIDADE_LOGICA_2_NOVA')
+                    if(ordem.ProductData.identificadorIPTV == null && ordem.ProductData.identificadorVoIP == null)
+                    continue;
+
+                    if(atividade.codAtividade == 'CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL')
+                        if(ordem.OriginalData[0].ProductData.identificadorIPTV == null && ordem.OriginalData[0].ProductData.identificadorVoIP == null)
+                        continue;
+                        //20121106 EPC FIM
+
+            }
+            //end MS
+
+
+
+
+            //20121027 EPC INICIO
+            var docAtividade = new Document("FTTHCommon:Activity");
+            docAtividade.orderId = atividade.cwOrderId;
+
+            if ( ordem.OrderHeader.tipoOS == 'TIPO_ORDEM_MODIFICACAO' ) {
+
+                //MS - marcossouza@br.ibm.com - PRJ14008#261 - 18/10/2017
+                if(isRemanejamento && atividade.codAtividade == 'ATUALIZAR_EQUIPAMENTO_CLIENTE'){
+                    docAtividade.activityId = 'ALTERAR_EQUIPAMENTO_CLIENTE';//atividade.codAtividade;//'ALTERAR_EQUIPAMENTO_CLIENTE';
+                    hasManualActivity = true;
+                } else {
+                //end MS
+
+                    //fluxo antes do remanejamento
+                    if ( !hasManualActivity && (atividade.codAtividade == 'INSTALAR_EQUIPAMENTO_CLIENTE' || atividade.codAtividade == 'RETIRAR_EQUIPAMENTO_CLIENTE') ) {
+
+                        /*
+                        * regra para criar atividade manual em caso de ordem de modificacao
+                        * - existe ponto RFTV ou IPTV para Instalar ou Remover ou/e
+                        * - existe HomeGateway para Instalar ou Remover (mudanca de pacote)
+                        */
+
+                        needManualActivity =
+                        // possui dados originais
+                        (ordem.OriginalData != null) && (ordem.OriginalData[0] != null) &&
+                        (
+                        // existe ponto RFTV para Instalar ou Remover
+                        (ordem.ProductData.quantidadePontosRFTV != ordem.OriginalData[0].ProductData.quantidadePontosRFTV) ||
+                        // existe ponto IPTV para Instalar
+                        ((ordem.EquipmentData != null) && (ordem.EquipmentData[0] != null) && (ordem.EquipmentData[0].AddPointsEquipmentData != null) && (ordem.EquipmentData[0].AddPointsEquipmentData.length > 0)) ||
+                        // existe ponto IPTV para Remover
+                        ((ordem.OriginalData[0].EquipmentData != null) && (ordem.OriginalData[0].EquipmentData[0] != null) && (ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData != null) && (ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length > 0)) ||
+                        // existe HomeGateway para Instalar
+                        ((ordem.EquipmentData != null) && (ordem.EquipmentData[0] != null) && (ordem.EquipmentData[0].BaseEquipmentData != null)) ||
+                        // existe HomeGateway para Remover
+                        ((ordem.OriginalData[0].EquipmentData != null) && (ordem.OriginalData[0].EquipmentData[0] != null) && (ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData != null))
+                        );
+
+                        /*
+                        * regra para ida unica na casa do cliente
+                        * - nao possui solicitacao de mudanca de endereco na lista de solicitacoes
+                        */
+                        //Fase 2 - duas visitas, uma para instalação e outra para retirada de equipamento
+                        if(isTipoModEndereco == true){
+                            //MS - marcossouza@br.ibm.com - Correção defeito PRJ14008#318 - 30/10/2017
+                            //needTwoClientVisit = true;
+                            //end MS
+                            needManualActivity = true;
+                        }
+                        else
+                        needTwoClientVisit = false;
+
+                        //verifica necessidade de atividade manual
+                        if ( needManualActivity ) {
+                            // verifica necessidade de duas atividades manuais
+                            if ( needTwoClientVisit ) {
+                                docAtividade.activityId = atividade.codAtividade;
+                                hasManualActivity = false; // TODO implementar para fase 2
+                            } else {
+                                docAtividade.activityId = 'ALTERAR_EQUIPAMENTO_CLIENTE';
+                                hasManualActivity = true;
+                            }
+                        }
+
+                    } else if ( atividade.codAtividade == 'ATUALIZAR_EQUIPAMENTO_CLIENTE' ) {
+
+                        /*
+                        * regra para criar a atividade automatica para atualizacao de dados de equipemento
+                        * - existe atividade manual de instalacao ou retirada de equipamento cliente
+                        */
+
+
+                        needUpdateEquipment =
+                        // possui dados originais
+                        (ordem.OriginalData != null) && (ordem.OriginalData[0] != null) &&
+                        (
+                        // existe ponto IPTV para Instalar
+                        ((ordem.EquipmentData != null) && (ordem.EquipmentData[0] != null) && (ordem.EquipmentData[0].AddPointsEquipmentData != null) && (ordem.EquipmentData[0].AddPointsEquipmentData.length > 0)) ||
+                        // existe ponto IPTV para Remover
+                        ((ordem.OriginalData[0].EquipmentData != null) && (ordem.OriginalData[0].EquipmentData[0] != null) && (ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData != null) && (ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length > 0)) ||
+                        // existe HomeGateway para Instalar
+                        ((ordem.EquipmentData != null) && (ordem.EquipmentData[0] != null) && (ordem.EquipmentData[0].BaseEquipmentData != null)) ||
+                        // existe HomeGateway para Remover
+                        ((ordem.OriginalData[0].EquipmentData != null) && (ordem.OriginalData[0].EquipmentData[0] != null) && (ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData != null))
+                        );
+
+
+
+
+                        if ( needUpdateEquipment ) {
+                            docAtividade.activityId = atividade.codAtividade;
+                        }
+
+                    } else if ( atividade.codAtividade == 'ATUALIZAR_CABEAMENTO_INTERNO' ) {
+
+                        /*
+                        * regra para criar a atividade automatica para atualizacao de dados de cabeamento
+                        * - existe novo cabeamento no cliente (mudanca de endereco)
+                        */
+
+                        needUpdateCable = false; // TODO implementar para fase 2
+
+                        if ( needUpdateCable ) {
+                            docAtividade.activityId = atividade.codAtividade;
+                        }
+
+                    } else if ( atividade.codAtividade == 'DISSOCIAR_STB' ) {
+
+                        needDissociate =
+                        // possui dados originais
+                        (ordem.OriginalData != null) && (ordem.OriginalData[0] != null) &&
+                        (
+                        // existe ponto IPTV para Remover
+                        ((ordem.OriginalData[0].EquipmentData != null) && (ordem.OriginalData[0].EquipmentData[0] != null) && (ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData != null) && (ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length > 0))
+                        );
+
+                        if ( needDissociate ) {
+                            docAtividade.activityId = atividade.codAtividade;
+                        }
+
+                    } else {
+                        if ( hasManualActivity && (atividade.codAtividade == 'INSTALAR_EQUIPAMENTO_CLIENTE' || atividade.codAtividade == 'RETIRAR_EQUIPAMENTO_CLIENTE') )
+                            docAtividade.activityId = null;
+                        else
+                        docAtividade.activityId = atividade.codAtividade;
+                    }
+
+
+
+                //Fim fluxo antes remanejamento
+            }
+            //end MS
+
+            } else {
+                docAtividade.activityId = atividade.codAtividade;
+            }
+            //============================================================================================================================
+
+
+
+            docAtividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+            docAtividade.indCancelamento = false;
+
+           /*
+           //MS
+            if(isRemanejamento && atividade.codAtividade == 'ATUALIZAR_EQUIPAMENTO_CLIENTE'){
+                docAtividade.activityId = 'ALTERAR_EQUIPAMENTO_CLIENTE';
+                docAtividade.save();
+            } else{
+    */
+                if(docAtividade.activityId != null) {
+
+                    docAtividade.save();
+
+                    // cria os formulários de atividade automática
+                    //FTTHOrderManagementInterface.CreateAutomaticActivityDoc(atividade, ordem); // CR das Melhorias OMR
+
+                }
+           // }
+            //20121027 EPC FIM
+        }
+
+    } else {
+        var ds = FTTHOrderManagementInterface.CreateDSErro(ordem.OrderHeader.numeroOS, ordem.OrderHeader.numeroPedido, 'Não existem atividades para a ordem');
+        Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+        ordem.deleteOrder();//elimina a ordem que foi criada porque é inválida e a próxima mensagem vai falhar porque o OMR vai assumir que se trata de uma pendência
+        return;
+    }
+
+    //===================================================================================================================================
+
+    var isBloqueio = false;
+    var orderActions = Finder.runSearch("FTTHOrderManagementInterface.OrderActionFinder", ops);
+
+    if (orderActions.size > 0) {
+        for (var i = 0; i < orderActions.size; i++) {
+
+            //MS - marcossouza@br.ibm.com - PRJ17683 - 26/07/2017
+            isBloqueio = false;
+
+            if(isReparo){
+                var actionResult = orderActions[i];
+
+                var orderAction = new Document("FTTHOrderManagementInterface:OrderAction");
+                orderAction.cwOrderId = actionResult.idOrdemServico;
+                orderAction.indCancelamento = false;
+                orderAction.acao = Global.getConfigVariable("REPARO");
+            } else{
+                //skips no-action accesses
+                if(orderActions[i].acao == '-') continue;
+
+                var actionResult = orderActions[i];
+
+                var orderAction = new Document("FTTHOrderManagementInterface:OrderAction");
+                orderAction.cwOrderId = actionResult.idOrdemServico;
+                orderAction.indCancelamento = false;
+
+
+                if(actionResult.acao == 'adicionar')
+                    orderAction.acao = 'DESIGNAR_';
+                else if(actionResult.acao == 'remover')
+                    orderAction.acao = 'LIBERAR_';
+                else if(actionResult.acao == 'modificar')
+                    orderAction.acao = 'ALTERAR_';
+
+                //        isBloqueio = false;
+                isBloqueio = false;
+                if(actionResult.idCatalogo == 'OI_IPTV') {
+
+                    //20121127 EPC INICIO
+                    /*
+                    if(qtPontosIPTV > 0 && qtPontosRFTV == 0) {
+                        orderAction.acao = orderAction.acao + 'IPTV';
+
+    } else if(qtPontosIPTV == 0 && qtPontosRFTV > 0) {
+        orderAction.acao = orderAction.acao + 'RFTV';
+
+    } else if(qtPontosIPTV > 0 && qtPontosRFTV > 0) {
+
+        var orderActionRFTV = new Document("FTTHOrderManagementInterface:OrderAction");
+        orderActionRFTV.cwOrderId = actionResult.idOrdemServico;
+        orderActionRFTV.acao = orderAction.acao + 'RFTV';
+        orderActionRFTV.save();
+
+        orderAction.acao = orderAction.acao + 'IPTV';
+    }
+    */
+
+    var orderActionRFTV = new Document("FTTHOrderManagementInterface:OrderAction");
+    orderActionRFTV.cwOrderId = actionResult.idOrdemServico;
+    orderActionRFTV.indCancelamento = false;
+    orderActionRFTV.acao = orderAction.acao + 'RFTV';
+    orderActionRFTV.save();
+
+    orderAction.acao = orderAction.acao + 'IPTV';
+    //20121127 EPC FIM
+
+                } else if(actionResult.idCatalogo == 'OI_INTERNET') {
+                    orderAction.acao = orderAction.acao + 'HSI';
+
+                } else if(actionResult.idCatalogo == 'OI_VOIP') {
+                    orderAction.acao = orderAction.acao + 'VOIP';
+                } else {
+                    isBloqueio = true;
+                }
+            }
+            //end MS
+
+            if(!isBloqueio)
+                orderAction.save();
+        }
+    } else {
+        var ds = FTTHOrderManagementInterface.CreateDSErro(ordem.OrderHeader.numeroOS, ordem.OrderHeader.numeroPedido, 'Não existem ações para a ordem');
+        Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+        ordem.deleteOrder();//elimina a ordem que foi criada porque é inválida e a próxima mensagem vai falhar porque o OMR vai assumir que se trata de uma pendência
+        return;
+    }
+
+    //set order status
+    FTTHCommon.setStatusExecution(ordem.id, Global.getConfigVariable("ACTIVITY_STATUS_NEW"));
+
+    Process.startProcess(nomeProcesso, ordem.id);
+
+    function doubleCheckNecessity(atividade) {
+        //Verifica a necessidade de execucao das atividades configurar e desconfigurar
+
+        switch(atividade.codAtividade) {
+            //Se os dados novos da ordem nao tem os identificadores, nao se configura os acessos
+            case 'CONFIGURAR_HSI'  : if (ordem.ProductData.identificadorHSI) return true; else return false;
+            case 'CONFIGURAR_IPTV' : if (ordem.ProductData.identificadorIPTV) return true; else return false;
+            case 'CONFIGURAR_VOIP' : if (ordem.ProductData.identificadorVoIP) return true; else return false;
+            //Se os dados originais da ordem nao tem os identificadores, nao se desconfigura os acessos
+            case 'DESCONFIGURAR_HSI'  : if (ordem.OriginalData && ordem.OriginalData[0].ProductData.identificadorHSI) return true; else return false;
+            case 'DESCONFIGURAR_IPTV' : if (ordem.OriginalData && ordem.OriginalData[0].ProductData.identificadorIPTV) return true; else return false;
+            case 'DESCONFIGURAR_VOIP' : if (ordem.OriginalData && ordem.OriginalData[0].ProductData.identificadorVoIP) return true; else return false;
+            default : return true;
+        }
+
+    }
+
+    function checkDigitalService(){
+        if (ordem.ProductData.isBina == 1){
+            return true;
+        }else if(ordem.ProductData.isCaixaPostal == 1){
+            return true;
+        }else if(ordem.ProductData.isChamadaEspera == 1){
+            return true;
+        }else if (ordem.ProductData.isConferencia == 1){
+            return true;
+        }else if (ordem.ProductData.isSigame == 1){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    function isChangingLinearChannelPacket(order){
+        var originalIptvPlan;
+        var newIptvPlan;
+
+        try{
+            newIptvPlan = order.ProductData.planoIPTV;
+            originalIptvPlan = order.OriginalData[0].ProductData.planoIPTV;
+        }catch(err){
+            Global.logError("isChangingLinearChannelPacket :" + err);
+            return false;
+        }
+
+        return newIptvPlan != originalIptvPlan;
+    }
+  ]]></script>
+</script>

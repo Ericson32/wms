@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHServiceRequest.createSRProcess">
+  
+  <label>Create Service Request Process</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="serviceRequest" type="rifp">
+      <type>dstruct_FTTHServiceRequest.serviceRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     * AUTHOR:      Marcos Souza - marcossouza@br.ibm.com - 19/07/2017 - PRJ17683
+     * DESCRIPTION: Script reponsável pelas validações e pela criação da estrutura de um Service Request (Ordem de reparo)
+     */
+     Global.logInfo('Create SR Process');
+
+     var isTipoOrdemValida = true;
+     var errorMsg = new Array();
+     var docAssoc = FTTHCommon.getValueAttributeFromAttributeList("docAssoc", serviceRequest.atributos);
+
+     Global.logInfo('Create Order Process - Valida Requisicao');
+
+     var qtOperacoes = serviceRequest.operacoes.operacao.length;
+     var revisao = 0;
+
+     if(qtOperacoes == 0) {
+         errorMsg[errorMsg.length] = 'Ordem não possui operação';
+         isTipoOrdemValida = false;
+     }
+
+     if (qtOperacoes > 1){
+         errorMsg[errorMsg.length] = "Solicitação de Reparo não pode ter mais de uma operação";
+         isTipoOrdemValida = false;
+     }
+
+     var tipoOrdem = serviceRequest.operacoes.operacao[0].operacao;
+     //Marcos Souza - marcossouza@ - 20/07/2017 - PRJ 17683
+     if(tipoOrdem != Global.getConfigVariable("REPAIR_OPERATION")){
+         isTipoOrdemValida = false;
+         //errorMsg[errorMsg.length] = "Service Request recebida com operação inválida, operação esperada: '" +  Global.getConfigVariable("REPAIR_OPERATION") + "'";
+         var messageDescription = "Service Request recebida com operação inválida, operação esperada: '" +  Global.getConfigVariable("REPAIR_OPERATION") + "'";
+         var ds = FTTHOrderManagementInterface.CreateDSErro(serviceRequest.correlationId, docAssoc, messageDescription);
+         Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+         return;
+     }
+
+     //Verifica se ja existe uma ordem
+     var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+     Global.logInfo("FTTHServiceRequest::createServiceInterfaceScript - Busca OSs do idPedido: " + docAssoc);
+     ohs.numeroPedido = docAssoc;
+     var result = Finder.runSearch('FTTHOrderManagementInterface:OSFinderByRequest', ohs);
+     //Iniício da validaçao para verificar se existe mais de um SR no sistema,
+     //Caso exista incrementar +1 na versao TODO://
+     if(result && result.length > 0){
+         var max_i = 0; //guarda o index da maior rev
+         for (var i = 0; i < result.length; i++){
+             if (result[i].revisao > revisao) {
+                 revisao = result[i].revisao;
+                 max_i = i;
+             }
+         }
+
+         var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+         searchDoc.OrderId = result[max_i].cwOrderId;
+         var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+         var hasWorklist = (worklist && worklist.length > 0);
+
+
+         if (result[max_i].estadoOS == "Em processamento" && hasWorklist) {
+             var messageDescription = "Erro na criação da ordem: Já existe solicitação aberta com o número de reparo" + docAssoc;
+             var ds = FTTHOrderManagementInterface.CreateDSErro(serviceRequest.correlationId, docAssoc, messageDescription);
+             Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+             return;
+         } else{// if (result[max_i].estadoOS == "Concluída"){
+             revisao = result[max_i].revisao + 1;
+         }
+     }
+
+     var header             = FTTHServiceRequest.createSRHeader(serviceRequest);
+     var addressData        = FTTHServiceRequest.createSRAddressData(serviceRequest);
+     var rollout            = FTTHCommon.checkRolloutRepair(header.flagBSIM, addressData);
+     var clientData         = FTTHServiceRequest.createSRClientData(serviceRequest);
+     var facilityData       = FTTHServiceRequest.createSRFacilityData(serviceRequest);
+     var productData        = FTTHServiceRequest.createSRProductData(serviceRequest,rollout);
+     var ticketActivityData = FTTHServiceRequest.createSRTicketActivityData(serviceRequest);
+
+     var ServiceRequest = new Order("FTTHOrder:FTTHOrder");
+
+     header.revisao = revisao;
+     ServiceRequest.OrderHeader        = header;
+     ServiceRequest.ClientData         = clientData;
+
+     var od = ServiceRequest.addItem("OriginalData");
+     var item = od.newInstance();
+     item.AddressData = FTTHServiceRequest.createSRAddressData(serviceRequest);
+     item.ProductData = FTTHServiceRequest.createSRProductData(serviceRequest,rollout);
+     item.FacilityData = FTTHServiceRequest.createSRFacilityData(serviceRequest);
+     item.InstallationData = new Document("FTTHOrder:InstallationData");
+
+     var equipmentData = ServiceRequest.OriginalData[0].addItem('EquipmentData');
+     var equipmentDataInstance = equipmentData.newInstance();
+     equipmentDataInstance.BaseEquipmentData = new Document('FTTHOrder.BaseEquipmentData');
+
+     var at = ServiceRequest.addItem("SRTicketActivityData");
+     var item = at.newInstance();
+     item.SRTicketActivityData = ticketActivityData;
+
+     ServiceRequest.FacilityData       = facilityData;
+     ServiceRequest.ProductData        = productData;
+     ServiceRequest.AddressData        = addressData;
+     //ServiceRequest.OriginalData[0].FacilityData.acessoGPON = facilityData.acessoGPON;
+
+
+
+    //MS - marcossouza@br.ibm.com - 11/12/2017 - mapeando a lista de atributos para a ordem
+    var atributoList = new Array();
+
+    atributoList = FTTHServiceRequest.createSRAttributeList(serviceRequest);
+
+    if (ServiceRequest.AttributeList == null){
+        ServiceRequest.addItem("AttributeList");
+    }
+
+    for (var i = 0; i < atributoList.length; i++) {
+        ServiceRequest.AttributeList.newInstance();
+        ServiceRequest.AttributeList[ServiceRequest.AttributeList.length - 1].Attribute.name = atributoList[i].nome;
+        ServiceRequest.AttributeList[ServiceRequest.AttributeList.length - 1].Attribute.value = atributoList[i].valor;
+        ServiceRequest.save();
+    }
+
+    //end MS
+
+
+
+
+     Global.logInfo('Create Service Request Process - Valida SR');
+
+     var messageDescription = "Erro na criação da ordem: numeroOS (correlationID): " + serviceRequest.correlationId + " docAssoc (idPedido): " + docAssoc;
+     var errors = ServiceRequest.validate(20, true, true);
+
+     if (errors) {
+         Global.logInfo('Create Service Request Process - SR invalida');
+         isTipoOrdemValida = false;
+         for (var i = 0; i < errors.length; i++) {
+             messageDescription += ', ' + errors[i];
+         }
+     }
+
+     if(!isTipoOrdemValida) {
+         var ds = FTTHOrderManagementInterface.CreateDSErro(serviceRequest.correlationId, docAssoc, messageDescription);
+         Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+         return;
+     }
+
+     Global.logInfo('Create Service Request Process - Salva SR');
+
+     ServiceRequest.save();
+
+     //-------------------------------------------------------------------------------------------
+     Global.logInfo('Save Request Parameters');
+
+     var operacao;
+     var idCatalogo;
+     var acao;
+
+     for (var i = 0; i < serviceRequest.operacoes.operacao.length; i++) {
+
+         operacao = serviceRequest.operacoes.operacao[i].operacao;
+
+         idCatalogo =  Global.getConfigVariable("REPARO");//Reparo
+
+         acao = "-";
+
+         var docParameter = new Document('FTTHOrderManagementInterface.OrderParameters');
+
+         docParameter.orderId = ServiceRequest.OrderHeader.cwOrderId;
+         docParameter.operacao = operacao;
+         docParameter.idCatalogo = idCatalogo;
+         docParameter.acao = acao;
+         docParameter.indCancelamento = false;
+
+         docParameter.save();
+     }
+     //----------------------------------------------------------------------------------------------
+
+     Global.logInfo('Create Service Request Process - Envia para a fila de inicializacao do processo');
+     Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Initiate', ServiceRequest.OrderHeader);
+
+     return;
+  ]]></script>
+</script>

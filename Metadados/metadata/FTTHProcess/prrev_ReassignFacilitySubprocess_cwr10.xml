@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ReassignFacilitySubprocess_cwr10">
+  <activity name="ReassignFacilityStart" type="seqActivity">
+    <guid>{4e2a2082-4617-44d5-8464-20195311b9b7}</guid>
+    <label>Reassign Facility Start</label>
+    <x>29.004297</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ReassignFacilityAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.ReassignFacilityAutomaticTask</element>
+        <guid>{2d5ced49-4e9e-462d-8c20-2faedab67d9c}</guid>
+        <label>Reassign Facility Automatic Task</label>
+        <syc>true</syc>
+        <x>29.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{4e57e1af-9d14-4772-8d08-a2882fa96289}</guid>
+        <label>Check Task Result</label>
+        <x>68.31787</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{9d867897-89d1-4501-abbc-c22f9e0f7f40}</guid>
+            <label>Success</label>
+            <x>36.39966</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{a0e19acb-6a55-4212-8ed1-b77a0e805aad}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{a113ef0d-1a1a-4ef2-8203-4fb5918504c3}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06997</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="ReassignFacilityHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ReassignFacilityHandleErrorTask_cwr6</element>
+                    <guid>{e6a55aa1-64d3-4a5a-92fc-c50ee09d69eb}</guid>
+                    <label>Reassign Facility Handle Error Task</label>
+                    <x>160.5758</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{96380902-082b-40a1-aac4-4645d2d4e3df}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.816734</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{594520af-bb32-433e-a761-eb36acda27b4}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{1733d522-d3b8-4326-b858-bd9e83adabd6}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.11191</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ReassignFacilitySolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ReassignFacilityHandleIssueSubprocess_cwr13</element>
+                                <guid>{6e930b44-f298-4969-b4c0-7ad8ce7ed723}</guid>
+                                <label>Reassign Facility Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ReassignFacilitySubprocess_cwr10/seqActivity_ReassignFacilityStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{5d9ad5df-a960-4c0d-95cc-cb0bc043fb89}</guid>
+                                <label>Repeat</label>
+                                <x>154.33154</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{dc4d8a55-4770-413b-a8fc-52ae8cd52bc7}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ReassignFacilitySubprocess_cwr10/seqActivity_ReassignFacilityStart</element>
+                            <guid>{014bc22f-044e-4bb0-969b-fcc295accc69}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica &quot;Designar
+      Facilidades&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio
+      sistema envia para o sistema de Invent&#225;rio a solicita&#231;&#227;o de designa&#231;&#227;o
+      de facilidades. Caso o Invent&#225;rio retorne algum erro ou o WMS n&#227;o receba
+      a resposta da solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de designa&#231;&#227;o de facilidades autom&#225;tica para o
+      sistema de Invent&#225;rio. Ou poder&#225; finalizar a atividade com pend&#234;ncia e
+      ent&#227;o o subprocesso de Designar Facilidade - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Reassign Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ReassignFacilitySubprocess</process>
+  <revision>10</revision>
+  <type>Sub-flow</type>
+</process__revision>

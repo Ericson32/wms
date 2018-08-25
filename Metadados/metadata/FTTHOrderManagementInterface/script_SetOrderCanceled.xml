@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.SetOrderCanceled">
+  <label>Set Order Canceled</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <mandatory>true</mandatory>
+      <type>doc_FTTHOrder.OrderHeader</type>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo("Script Set Order Canceled")
+
+    if(status == Global.getConfigVariable("ACTIVITY_RETURN_ORDER_CANCELED"))
+        order.OrderHeader.permiteCancelamento = true;
+    else
+        order.OrderHeader.permiteCancelamento = false;
+
+    order.save();
+  ]]></script>
+</script>

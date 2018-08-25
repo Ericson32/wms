@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHProcess.updateStock">
+  <label>Update Stock ?</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    if(FTTHCommon.parseBoolean(Global.getConfigVariable('IS_BYPASS_SAP_ON'))){
+        return false;
+    }
+
+    //10/04/2018 - Verificação pelo historico de transação, se existe equip para updateStock
+    var searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentTransactionsHistory");
+    searchDoc.statusStock = "pendente";
+    searchDoc.cwOrderId   = cwOrderId;
+    var equips = Finder.runSearch("FTTHOrder:EquipmentTransactionsFinder", searchDoc);
+    var nEquips = (equips) ? equips.length : 0;
+
+    if(nEquips > 0){
+        var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+        var status = "NEW";
+        FTTHCommon.createOrUpdateActivity(cwOrderId, activityId);
+        return true;
+    }
+
+    return false;
+    //end 10/04/2018
+  ]]></script>
+</script>

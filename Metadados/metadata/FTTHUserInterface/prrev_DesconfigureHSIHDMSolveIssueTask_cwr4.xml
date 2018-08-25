@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DesconfigureHSIHDMSolveIssueTask_cwr4">
+  <activity name="startDesconfigureHSIHDMSolveIssue" type="seqActivity">
+    <guid>{5eb54d5b-2d75-4349-abde-65d287301ffc}</guid>
+    <label>Start Desconfigure HSI HDM Solve Issue</label>
+    <x>32.747658</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureHSIHDMSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureHSIHDMSolveIssue</element>
+        <guid>{174ecac7-c892-4f50-9151-a0da78e1cb70}</guid>
+        <label>Desconfigure HSI HDM Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>31.14746</x>
+        <y>130.6414</y>
+      </child>
+      <child name="DesconfigureHSIHDMSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureHSIHDMSolveIssueSuccess</element>
+        <guid>{f79b6128-404c-4a2f-99e5-cef8769902ca}</guid>
+        <label>Desconfigure HSI HDM Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>382.84845</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var ord = process.processOrder;
+              var orderId = ord.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI_HDM");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{46d854e6-0cd1-4d2a-89e0-35d0bb37f3d0}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_HSI_HDM");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Desconfigurar HSI - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Desconfigure HSI HDM Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DesconfigureHSIHDMSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

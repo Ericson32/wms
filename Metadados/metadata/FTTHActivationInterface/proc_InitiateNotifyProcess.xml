@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHActivationInterface.InitiateNotifyProcess">
+  <activity name="Start" type="seqActivity">
+    <guid>{26c76cdd-f907-4224-89ab-007a26450268}</guid>
+    <label>Start</label>
+    <x>42.68457</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InitiateNotify" type="opActivity">
+        <element>iface_FTTHInventoryInterface.ProcessInventoryNotification/oper_InitiateNotify</element>
+        <guid>{768ccafe-2fca-4696-af31-aad26c61610b}</guid>
+        <label>InitiateNotify</label>
+        <x>62.177246</x>
+        <y>125.0</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              /*
+              * accd@br.ibm.com - Reformulacao do tratamento das mensagens oriundas do SIS
+              */
+
+              Global.logInfo("Metodo after do InitiateNotify - Ativação - ProcessNotification");
+              try {
+                  FTTHActivationInterface.ProcessNotification(this.activityData);
+              } catch(e) {
+                  Global.logError('Excecao em FTTHActivationInterface.ProcessNotification: ' + e);
+                  throw e;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="RepeatNotify" type="repeatActivity">
+        <element>proc_FTTHActivationInterface.InitiateNotifyProcess/seqActivity_Start</element>
+        <guid>{8d5e130c-6996-48b5-9acd-2d4fde566e3e}</guid>
+        <label>RepeatNotify</label>
+        <x>30.0</x>
+        <y>218.70117</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{75a853ca-2d9c-41c9-8008-62a2c33f38cf}</guid>
+  <interface>iface_FTTHInventoryInterface.ProcessInventoryNotification</interface>
+  <label>Initiate Notify Process</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>5</revision>
+  <type>Global</type>
+</process>

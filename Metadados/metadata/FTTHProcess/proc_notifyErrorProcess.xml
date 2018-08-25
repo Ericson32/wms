@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.notifyErrorProcess">
+  <activity name="NotifyErrorStart" type="seqActivity">
+    <guid>{5a2cfcdf-d43f-454a-87ff-24c612540261}</guid>
+    <label>Notify Error Start</label>
+    <x>49.114647</x>
+    <y>30.0</y>
+    <childList>
+      <child name="notifyErrorAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.NotifyErrorAutomaticTask</element>
+        <guid>{b55b5c1a-5d6f-4418-958f-785948af11fc}</guid>
+        <label>Notify Error Automatic Task</label>
+        <syc>true</syc>
+        <x>103.84717</x>
+        <y>122.0</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{e314894d-1e20-4709-9bfd-c6604da23a34}</guid>
+        <label>Check Task Result</label>
+        <x>117.18506</x>
+        <y>246.10352</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{df50486a-1fd4-4214-887e-de84ed538d07}</guid>
+            <label>Success</label>
+            <x>159.854</x>
+            <y>372.20703</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  //var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  //var activityId = Global.getConfigVariable("NOTIFICAR_ERRO");
+                  //var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(this.process.children[0].processDocument.erroNotificado)
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{48b1702a-3788-47d8-ba12-064977d69a8a}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{4981c80b-35c3-48f0-a409-36ed33a80f36}</guid>
+                <label>Handle Error Start</label>
+                <x>55.172752</x>
+                <y>374.55762</y>
+                <childList>
+                  <child name="NotifyErrorHandleErrorTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.NotifyErrorHandleErrorTask</element>
+                    <guid>{04ddf5c1-6c2d-4575-9f82-0cf0d63419a5}</guid>
+                    <label>Notify Error Handle Error Task</label>
+                    <x>59.51709</x>
+                    <y>468.9082</y>
+                  </child>
+                  <child name="sendToAutomaticActivity" type="repeatActivity">
+                    <element>proc_FTTHProcess.notifyErrorProcess/seqActivity_NotifyErrorStart</element>
+                    <guid>{0bc10f11-abaf-48aa-b86a-255b0250bc2e}</guid>
+                    <label>send To Automatic Activity</label>
+                    <x>30.0</x>
+                    <y>595.0117</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <document>doc_FTTHOrderManagementInterface.ErrorNotification</document>
+  <guid>{79775c71-cd3d-40bc-a7ad-913563e0f72d}</guid>
+  <label>Notify Error Process</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <type>User</type>
+</process>

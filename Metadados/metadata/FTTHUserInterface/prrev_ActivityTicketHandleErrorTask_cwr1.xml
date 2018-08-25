@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ActivityTicketHandleErrorTask_cwr1">
+  <activity name="ActivityTicketHandleErrorTaskStart" type="seqActivity">
+    <guid>{83fdc464-ba65-43b3-bb1c-0118e2df9d40}</guid>
+    <label>Activity Ticket Handle Error Task Start</label>
+    <x>79.56963</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ActivityTicketHandleErrorTask" type="opActivity">
+        <element>iface_FTTHSGFTInterface.SGFTHandleErrorInterface/oper_ActivityTicketOpeningError</element>
+        <guid>{20d07073-bbbf-4373-976a-f3b7406bcd09}</guid>
+        <label>Activity Ticket Handle Error Task</label>
+        <participant>part_FTTHSGFTInterface.SGFTHandleError</participant>
+        <x>86.51221</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{ca1d195d-af36-49a9-911c-b3c7ba5776f4}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="ActivityTicketHandleErrorResend" type="opActivity">
+                <element>iface_FTTHSGFTInterface.SGFTHandleErrorInterface/oper_ActivityTicketOpeningErrorResend</element>
+                <guid>{d2e3efee-b973-4443-ba66-14d1381a5a86}</guid>
+                <label>Activity Ticket Handle Error - Resend</label>
+                <participant>part_FTTHSGFTInterface.SGFTHandleError</participant>
+                <x>161.23698</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="ActivityTicketHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHSGFTInterface.SGFTHandleErrorInterface/oper_ActivityTicketOpeningErrorIssue</element>
+                <guid>{2809af0a-4b5e-4819-bfc3-631778e8c5f6}</guid>
+                <label>Activity Ticket Handle Error - Issue</label>
+                <participant>part_FTTHSGFTInterface.SGFTHandleError</participant>
+                <x>49.645508</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="SGFTHandleError" type="participantActivity">
+        <guid>{cdc8e320-e73a-455e-8572-470138a48e76}</guid>
+        <label>SGFT Handle Error</label>
+        <participant>part_FTTHSGFTInterface.SGFTHandleError</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESIGNAR_FACILIDADE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <label>Activity Ticket Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ActivityTicketHandleErrorTask</process>
+  <type>Sub-flow</type>
+</process__revision>

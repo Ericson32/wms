@@ -1,0 +1,716 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHClickInterface.closeBAMessageHandler">
+  <label>closeBAMessageHandler</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="message" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    AUTHOR: Marcos Souza - marcossouza@br.ibm.com
+    DESCRIPTION: Script Responsável pelo processamento da mensagem recebida de fechamento de BA enviada pelo CLICK
+
+    Changelog:
+
+    22/11/2017 - EquipmentList agora é ignorada - luanm@br.ibm.com
+    25/11/2017 - EquipmentList agora é considerada - luanm@br.ibm.com
+    */
+
+    var orderId = message.Header.cwOrderId;
+    try{
+        var ordem = Order.getOrderById(orderId);
+    }
+    catch(e){
+        var output = new DataStructure("FTTHClickInterface:closingBAWFMResponse");
+        output.code = "0001";
+        output.reason = "Requisição Inválida - OrderId incorreto";
+        return output;
+    }
+
+    var searchDoc = new Document("FTTHOrder:ManualActivityData");
+    searchDoc.cwOrderId = orderId;
+    searchDoc.statusAtividade = 0;
+    var result = Finder.runSearch("FTTHOrder:ManualActivityDataFinder", searchDoc);
+    var errorMessage = "";
+
+    var msgLogDoc = UserProfile.getMsgLogDoc();
+    if(msgLogDoc != null){
+        msgLogDoc.userData1 = ordem.OrderHeader.numeroPedido;
+        msgLogDoc.userData3 = orderId;
+        msgLogDoc.userData2 = message.Header.correlationId;
+        msgLogDoc.save();
+    }
+
+    var validarAssociacaoEquipamento =  FTTHCommon.parseBoolean(Global.getConfigVariable('VALIDAR_ASSOCIACAO_EQUIPAMENTO'));
+
+    if(validarAssociacaoEquipamento){
+        // INICIO PKE 31940
+        var codEncerramento =  message.serviceOrderResponse.codEncerramento;
+
+        try{
+            codEncerramento = Number(codEncerramento);
+        } catch(e){
+            errorMessage = "Código inválido. Não é um número.";
+        }
+
+        if(codEncerramento == 0){
+            var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+            ops.cwOrderId = ordem.OrderHeader.cwOrderId;
+            var isMudancaEndereco = false;
+            var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+
+            if (orderRequest.size > 0) {
+                for (var i = 0; i < orderRequest.size; i++) {
+                    var solicitacao = orderRequest[i];
+                    if(solicitacao.idSolicitacao == "MUDANCA_ENDERECO"){
+                        isMudancaEndereco = true;
+                    }
+                }
+            }
+
+            var mensagem = 'Existem Equipamentos Que Não Foram Associados\n';
+            var equipamentosBaseValidados = true;
+            var equipamentosPontaValidados = true;
+            var isBAJumperOpen = FTTHCommon.verifyWorklistOperation(orderId, "FTTHUserInterface.ClickManualActivityInterface/BAJumperOpeningOperation");
+
+            if(!isBAJumperOpen){
+                var equipamentosBase = buscaEquipamentoBase();
+
+                if(isMudancaEndereco){
+                    for(var j = 0; j < equipamentosBase.length; j++) {
+                        if(equipamentosBase[j].atividade == 'INSTALAR_EQUIPAMENTO_CLIENTE'){
+                            var fndONTActivation = new FTTHOrder.ONTActivationStatusFinder;
+                            fndONTActivation.searchDocument.cwOrderId = orderId;
+                            var rs = fndONTActivation.search();
+
+                            if(rs && rs.length != 0){
+                                if(rs[0].statusONT != "SUCESSO"){
+                                    mensagem +="Numero de serie ONT: "+equipamentosBase[j].numeroSerieONT+" - Codigo de equipamento: "+equipamentosBase[j].codEquipamento+"\n";
+                                    equipamentosBaseValidados = false;
+                                }
+                            }
+                            else{
+                                mensagem +="Numero de serie ONT: "+equipamentosBase[j].numeroSerieONT+" - Codigo de equipamento: "+equipamentosBase[j].codEquipamento+"\n";
+                                equipamentosBaseValidados = false;
+                            }
+                        }
+                    }
+                }
+                else{
+                    for(var j = 0; j < equipamentosBase.length; j++) {
+                        if(equipamentosBase[j].atividade == 'INSTALAR_EQUIPAMENTO_CLIENTE'){
+                            if(equipamentosBase[j].nomeCPE_ONT_Original != 'ONT Integrada' && !equipamentosBase[j].isNETWINHGW){
+                                if(equipamentosBase[j].numeroSerieHomeGateway){
+                                    mensagem +="Numero de serie HGW: "+equipamentosBase[j].numeroSerieHomeGateway+" - Codigo de equipamento: "+equipamentosBase[j].codEquipamentoHGW+"\n";
+                                }
+                                equipamentosBaseValidados = false;
+                            }
+                            if(!equipamentosBase[j].isNETWIN){
+                                if(equipamentosBase[j].numeroSerieONT){
+                                    mensagem +="Numero de serie ONT: "+equipamentosBase[j].numeroSerieONT+" - Codigo de equipamento: "+equipamentosBase[j].codEquipamento+"\n";
+                                }
+                                equipamentosBaseValidados = false;
+                            }
+                        }
+                    }
+                    var ponta = buscaEquipamentoPonta(null);
+
+                    for(var a = 0; a < ponta.length; a++) {
+                        if(ponta[a].atividade == 'INSTALAR_EQUIPAMENTO_CLIENTE' && !ponta[a].isNETWIN && equipamentoNaoAssociado(ponta[a].idAtivo,ponta[a].numeroSerieSetTopBox)){
+                            if(ponta[a].numeroSerieSetTopBox){
+                                mensagem +="Numero de serie STB: "+ponta[a].numeroSerieSetTopBox+" - Codigo de equipamento: "+ponta[a].codEquipamento+"\n";
+                            }
+                            equipamentosPontaValidados = false;
+                        }
+                    }
+                }
+                if(!equipamentosPontaValidados || !equipamentosBaseValidados){
+                    errorMessage += mensagem;
+                }
+            }
+        }
+        // FIM PKE 31940
+    }
+
+    //código dos equipamentos HGW e ONT
+    var searchDoc = new Document("FTTHReportApplication:registerCPE");
+    searchDoc.cwDocId = null;
+    searchDoc.isTV = false;
+    var baseEquipments = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+
+    var codONT;
+    var codHGW;
+    var codONTIntegrado;
+
+    for(var k = 0; k < baseEquipments.length; k++){
+        switch(baseEquipments[k].nomeCPE){
+            case "ONT":
+            codONT = baseEquipments[k].codigoMaterial;
+            break;
+
+            case "ONT Integrado":
+            codONTIntegrado = baseEquipments[k].codigoMaterial;
+            break;
+
+            case "Home Gateway":
+            codHGW = baseEquipments[k].codigoMaterial;
+            break;
+        }
+    }
+    // Inicio CR7248 - Tratamento de Reenvio de ClosingBA para um BA já fechado
+    var baEquipAberto = true;
+    var baJumperAberto = true;
+
+    var searchBa = new Document("FTTHOrder:ManualActivityData");
+    searchBa.cwOrderId = orderId;
+    searchBa.operationWorklist='FTTHProcess.InstallRemoveEquipmentManualTaskInterface/InstallRemoveEquipmentTask';
+    var resultBaEquip = Finder.runSearch("FTTHClickInterface:GetManualActivity", searchBa);
+
+    searchBa.clearData();
+    searchBa.cwOrderId = orderId;
+    searchBa.operationWorklist='FTTHUserInterface.ClickManualActivityInterface/BAJumperOpeningOperation';
+    var resultBaJumper = Finder.runSearch("FTTHClickInterface:GetManualActivity", searchBa);
+
+    if(!resultBaEquip.length > 0){
+        baEquipAberto = false;
+    }
+    if(!resultBaJumper.length > 0){
+        baJumperAberto = false;
+    }
+    // Fim CR7248 - Tratamento de Reenvio de ClosingBA para um BA já fechado
+    var isExternalActivityOpen = (FTTHCommon.verifyWorklistOperation(orderId, "FTTHUserInterface.ClickManualActivityInterface/BAOpenningOperation")
+    ||  FTTHCommon.verifyWorklistOperation(orderId, "FTTHUserInterface.ClickManualActivityInterface/BAJumperOpeningOperation"));
+
+    // Inicio CR7248 - Tratamento de Reenvio de ClosingBA para um BA já fechado
+    if(!baEquipAberto && !baJumperAberto && !isExternalActivityOpen){
+        var output = new DataStructure("FTTHClickInterface:closingBAWFMResponse");
+        output.code = '0';
+        output.reason = 'Mensagem Recebida com Sucesso';
+        return output;
+    }
+    // Fim CR7248 - Tratamento de Reenvio de ClosingBA para um BA já fechado
+    if(!isExternalActivityOpen){
+        errorMessage += "Não existe BA aberto no OM\n";
+
+        var output = new DataStructure("FTTHClickInterface:closingBAWFMResponse");
+        output.code = '-22';
+        output.reason = errorMessage;
+
+        return output;
+    }
+
+    if(!message.serviceOrderResponse.codEncerramento){
+        errorMessage += " A informação do codEncerramento no request recebido pelo OM é nula ou não foi enviada";
+    }
+    var codEncerramento =  message.serviceOrderResponse.codEncerramento;
+    ordem.ManualActivityData[ordem.ManualActivityData.length - 1].ManualActivityData.codEncerramento = codEncerramento;
+
+    if(ordem.SRTicketActivityData && ordem.SRTicketActivityData.length > 0 && ordem.SRTicketActivityData[0].SRTicketActivityData){
+        ordem.SRTicketActivityData[0].SRTicketActivityData.codEncerramento = codEncerramento;
+        ordem.SRTicketActivityData[0].SRTicketActivityData.Observacao = message.executionData.observacao;
+
+        /*Fazendo parse da data/hora de encerramento do BA */
+        var dataHoraEncerramentoStr = message.executionData.dataHoraFim;
+
+        var dataEncerramentoArr = dataHoraEncerramentoStr.split("T");
+        var dataEncerramentoArr1 = dataEncerramentoArr[0].split("-");
+        var dataEncerramento = dataEncerramentoArr1[0]+ dataEncerramentoArr1[1]+ dataEncerramentoArr1[2];
+
+        var horaEncerramentoArr = dataEncerramentoArr[1].split(":");
+        var horaEncerramento = horaEncerramentoArr[0]+horaEncerramentoArr[1];
+
+        ordem.SRTicketActivityData[0].SRTicketActivityData.dataEncerramento = dataEncerramento;
+        ordem.SRTicketActivityData[0].SRTicketActivityData.horaEncerramento = horaEncerramento;
+
+        ordem.save();
+    }
+
+    //convertendo string para number
+    try{
+        //    var aux = codErro;
+        codEncerramento = Number(codEncerramento);
+    } catch(e){
+        errorMessage = "Código inválido. Não é um número.";
+    }
+
+
+    var encerramentoSucesso = false;
+    var codPendenciaClick = [
+    7022,    7024,    7010,    7012,
+    7013,    7014,    7015,    7016,
+    7017,    7008,    7003,    7009,
+    7018,    7019,    7020,    7004,
+    7006,    7033,    7035,    7036,
+    7037
+    ];
+
+    var pendenciaClick = false;
+    for (var k = 0; k < codPendenciaClick.length; k++){
+        if(codEncerramento == codPendenciaClick[k]){
+            pendenciaClick = true;
+            break;
+        }
+    }
+
+    if(codEncerramento == 0){
+        encerramentoSucesso = true;
+    }
+
+    //pegar a worklist
+    var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+    searchDoc.OrderId = orderId;
+    searchDoc.Participant = "FTTHUserInterface.ClickManualActivity";
+
+    var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+    if (!worklist || worklist.length < 1) {
+             errorMessage += "Não existe Atividade Manual do Click na Lista de Tarefas (WorkList)\n";
+    } else if (worklist.length > 1) {
+        errorMessage += "Dados inconsistentes na Lista de Tarefas (WorkList)\n";
+    }
+
+    //validacao dos equips é obrigatoria no fluxo de equip, o jumper pode pular isso
+    if(result && isExternalActivityOpen){
+
+        //get last fieldActivity Document from a Order
+        var fieldActivity = result[result.length -1];
+
+        if(fieldActivity.numeroBA != message.Header.numeroBA){
+            errorMessage += "Número do BA recebido no encerramento difere do numeroBA recebido na abertura do BA desta ordem\n";
+        }
+
+        fieldActivity.codigoPSR         = message.executionData.codigoPSR;
+        fieldActivity.nomePSR           = message.executionData.nomePSR;
+
+        //valida se o codigo e o nome da PSR são válidos
+        var psrDoc = new Document("FTTHReportApplication:PSR");
+        psrDoc.cwDocId = null;
+        psrDoc.nomePSR = message.executionData.nomePSR;
+        psrDoc.codigoPSR = message.executionData.codigoPSR;
+
+        var psrResult = Finder.runSearch("FTTHReportApplication:PSRFinder", psrDoc);
+
+        if(!(psrResult && psrResult.length > 0)){
+            errorMessage += "Dados da PSR inválidos ou não encontrado!\n";
+        }
+
+        if(message.executionData.matriculaAuxiliarLista && message.executionData.matriculaAuxiliarLista.length > 3){
+            errorMessage += "Campo 'matriculaAuxiliarLista' excedeu o tamanho máximo permitido (3)";
+        }
+
+        if(errorMessage == ""){
+            fieldActivity.matriculaTecnicoClick  = message.executionData.matriculaTecnicoClick;
+            fieldActivity.matriculaTecnico  = message.executionData.matriculaTecnico;
+            fieldActivity.nomeTecnico       = message.executionData.nomeTecnico;
+            fieldActivity.observacao        = message.executionData.observacao;
+            if (message.executionData.dataHoraInicio && message.executionData.dataHoraInicio != "")
+                fieldActivity.dataHoraInicio = new Date(stringToTimeStamp(message.executionData.dataHoraInicio));
+            if (message.executionData.dataHoraFim && message.executionData.dataHoraFim != "")
+                fieldActivity.dataHoraFim = new Date(stringToTimeStamp(message.executionData.dataHoraFim));
+
+            if (message.executionData.matriculaAuxiliarLista){
+                var auxCount = message.executionData.matriculaAuxiliarLista.matriculaAuxiliar.length;
+                for (var i = 0; i < auxCount; i += 1) {
+                    var auxDoc = new Document("FTTHOrder:TecnicoAuxiliar");
+                    auxDoc.fk_manualActivity = fieldActivity.cwDocId;
+                    auxDoc.cwOrderId = orderId;
+                    auxDoc.matriculaTecnico = message.executionData.matriculaAuxiliarLista.matriculaAuxiliar[i];
+                    auxDoc.nomeTecnico = null; //DI da interface não contempla o nome
+                    auxDoc.save();
+                }
+            }
+            /* if(encerramentoSucesso && message.equipmentList && message.equipmentList.length > 0 && message.equipmentList.equipmentData[0] && message.equipmentList.equipmentData[0].codMaterial){
+                var equipmentList = message.equipmentList;
+                errorMessage += removePontoAdd(equipmentList, ordem);
+    }*/
+
+
+    if(encerramentoSucesso && message.equipmentList && message.equipmentList.length > 0){
+        errorMessage += checkEquipAction();
+    }
+
+    //var installationData = ordem.InstallationData;
+    var installationData;
+    if (ordem.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")) {
+        installationData = ordem.OriginalData[0].InstallationData;
+    } else {
+        installationData = ordem.InstallationData;
+    }
+    if(ordem.OrderHeader.tipoOS != "TIPO_ORDEM_REPARO"){
+        installationData.caboRiser = message.installationData.caboRaiser;
+        installationData.caboDrop   = message.installationData.caboDrop;
+        installationData.CDOIA      = message.installationData.CDOIA;
+    }
+        }
+    }
+
+
+
+    FTTHCommon.createBreakpoint();
+
+    if(errorMessage != ""){
+        // criar mensagem de retorno para o CLICK de erro, sendo o errorMessagem a descrição do erro
+        var output = new DataStructure("FTTHClickInterface:closingBAWFMResponse");
+        output.code = '-22';
+        output.reason = errorMessage;
+        return output;
+    } else if((errorMessage == "" && codEncerramento == 0) || ordem.OrderHeader.tipoOS == "TIPO_ORDEM_REPARO"){
+        fieldActivity.save();
+        if(installationData)
+        {
+            installationData.save();
+        }
+
+        //MS - marcossouza@br.ibm.com - 24/11/2017
+        //adiciona os equipamentos originais para pendente, para a atualizaÇão destes no estoque(SAP)
+        checkEquipmentListToUpdateStock(ordem);
+        //end MS
+
+        //cria mensagem de retorno de sucesso para o CLICK
+        var output = new DataStructure("FTTHClickInterface:closingBAWFMResponse");
+        output.code = '0';
+        output.reason = 'Mensagem Recebida com Sucesso';
+
+        Process.performWorklistAction(worklist[0], null, "BAAutomaticClosingSuccess", true, ordem, message);
+
+        Process.sendMessageToProcess(message.Header.correlationId, null, "FTTHUserInterface:ClickManualActivityInterface/BAAutomaticClosingSuccess", message);
+
+        return output;
+    } else if(pendenciaClick){
+
+        fieldActivity.save(); // mesmo com pendencia salva?
+        if(installationData)
+        {
+            installationData.save(); // mesmo com pendencia salva?
+        }
+
+        //cria mensagem de retorno de sucesso para o CLICK
+        var output = new DataStructure("FTTHClickInterface:closingBAWFMResponse");
+        output.code = '0';
+        output.reason = 'Mensagem Recebida com Sucesso';
+        //output.detail = "detail";
+
+        Process.performWorklistAction(worklist[0], null, "BAAutomaticClosingIssue", true, ordem, message);
+
+        return output;
+    } else{
+
+        var output = new DataStructure("FTTHClickInterface:closingBAWFMResponse");
+        output.code = '-1';
+        output.reason = 'Código de Encerramento Inválido';
+        //output.detail = "";
+
+        return output;
+    }
+
+    //==================================== MÉTODOS ================================================================
+
+    function checkEquipmentListToUpdateStock(order){
+        var size;
+        if(order.OriginalData && order.OriginalData[0] && order.OriginalData[0].EquipmentData && order.OriginalData[0].EquipmentData && order.OriginalData[0].EquipmentData[0] && order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData){
+            size = order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length;
+        }
+
+        if(!size){
+            return;
+        }
+
+        if(order.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+            for (var i = 0; i < size; i++){
+                var equip = order.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData;
+                addEquipmentToUpdateStock(order.id, equip.cwDocId, "STB");
+            }
+        }
+    }
+
+
+    function addEquipmentToUpdateStock(orderId, cwDocId, equipmentType){
+        var statusSucesso  = Global.getCodeDescription("FTTHOrder:statusCPE", "SUC"); // Status SUCESSO in statusCPE enumeration
+
+        FTTHOrder.addValidateCPEStatus("EQUIPAMENTO SENDO RETIRADO DO CLIENTE", orderId, new Date(), statusSucesso, cwDocId, equipmentType, 'pendente');
+    }
+
+
+    function removePontoAdd(equipmentList, ord){
+        var errorMessage = "";
+        for (var i = 0; i < equipmentList.equipmentData.length; i++){
+            var messageEquipment = equipmentList.equipmentData[i];
+            if(messageEquipment.instalado == 0){
+                if(messageEquipment.idAtivo)
+                {
+                    if(verificaExclusão(ord,messageEquipment) && messageEquipment.acao == 'remover'){
+                        var searchDoc = new Document("FTTHOrder:EquipmentData");
+                        searchDoc.clearData();
+                        searchDoc.idAtivo = messageEquipment.idAtivo;
+                        searchDoc.cwOrderId = orderId;
+                        searchDoc.numeroSerieSetTopBox = messageEquipment.numeroSerieEquipamento;
+
+                        var result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder",searchDoc);
+                        if(result && result.length > 0)
+                        {
+                            var equipRemovido = new Document("FTTHOrder:EquipmentDataBATime");
+                            equipRemovido.idAtivo = result.start.idAtivo;
+                            equipRemovido.numeroSerieSetTopBox = result.start.numeroSerieSetTopBox;
+                            equipRemovido.codEquipamento = result.start.codEquipamento;
+
+                            equipRemovido.cwOrderId = orderId;
+                            equipRemovido.atividade = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+                            equipRemovido.foiDevolvidoSetTopBox = true;
+                            equipRemovido.statusAcao = 'A Remover';
+                            equipRemovido.save();
+                            result.start.instalado = 0;
+                            result.start.save();
+                        }
+                    }else{
+                        errorMessage =  'O equipamento não pode  ser removido!';
+                        return errorMessage;
+                    }
+                }else{
+                    errorMessage =  'Não é possível remover o equipamento sem um idAtivo!';
+                }
+            }
+        }
+        return errorMessage;
+    }
+
+    function verificaExclusão(ord,messageEquipment){
+        var orderSolicitacoes = new Finder('FTTHCommon.RequestFinder');
+        orderSolicitacoes.searchDocument.cwOrderId = orderId;
+        var orderSolicitacoesResult = orderSolicitacoes.search();
+        for (var x=0; x<orderSolicitacoesResult.length; x++) {
+            switch(orderSolicitacoesResult[x].requestId) {
+                case ('EXCLUSAO_PONTO_ADICIONAL') :
+                return true;
+            }
+        }
+
+        if(ordem.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+            return false;
+        }
+
+        return true;
+    }
+
+    function checkEquipAction() {
+
+        //15/05/2018 - Correção defeito PRJ14008#1081 - Removendo os equipamentos sem ação para não processá-los incorretamente
+        var size = message.equipmentList.equipmentData.length;
+        for (var i = 0; i < size; i++){
+            if(!message.equipmentList.equipmentData[i].acao || (message.equipmentList.equipmentData[i].acao != "adicionar" && message.equipmentList.equipmentData[i].acao != "remover")){
+                delete(message.equipmentList.equipmentData[i]);
+            }
+        }
+        //end 15/05/2018
+        //PRJ14008 #461 - alinhado com Leon
+        for ( var i = 0; i < message.equipmentList.equipmentData.length; i++) {
+            if (message.equipmentList.equipmentData[i].acao == "adicionar") { //define o que fazer dependento da acao do equipamento
+                if (message.equipmentList.equipmentData[i].instalado) { //checa se o campo instalado existe e se é igual ao que temos
+                    //se o equipamento foi enviado ao click como adicionar e foi instalado, OM não possui ação
+
+
+                    if (message.equipmentList.equipmentData[i].idAtivo) {
+                        var ponta = buscaEquipamentoPonta(message.equipmentList.equipmentData[i].idAtivo);
+                        for (var j = 0; j < ponta.length; j++) {
+                            //if (message.equipmentList.equipmentData[i].idAtivo ==  ponta[j].idAtivo) {
+                                if (message.equipmentList.equipmentData[i].instalado == 0) {
+                                    return "Informação de equipamento divergente em equipmentList.equipmentData[" + i + "]";
+                                }else{
+                                    ponta[0].deviceGUID = message.equipmentList.equipmentData[i].deviceGUID;
+                                    ponta[0].deviceGUID_Original = message.equipmentList.equipmentData[i].deviceGUID;
+                                    ponta[0].instalado = 1;
+                                    ponta[0].save();
+                                }
+                        }
+                    }
+
+
+
+                } else {
+                    if(message.equipmentList.equipmentData[i].instalado == null){
+                        return "Campo 'instalado' sem valor válido em equipmentList.equipmentData[" + i + "]";
+                    } else{//instalado = false
+                        if (message.equipmentList.equipmentData[i].idAtivo) {
+                            var ponta = buscaEquipamentoPonta(message.equipmentList.equipmentData[i].idAtivo);
+
+                            if(ponta && ponta.length > 0){
+                                //ponto adicionado e não instalado
+                                var equipRemovido = new Document("FTTHOrder:EquipmentDataBATime");
+                                equipRemovido.idAtivo = ponta[0].idAtivo;
+                                equipRemovido.numeroSerieSetTopBox = ponta[0].numeroSerieSetTopBox;
+                                equipRemovido.codEquipamento = ponta[0].codEquipamento;
+                                //equipRemovido.nomeCPE = doc.nomeCPE; // TODO colocar o nome do CPE
+                                equipRemovido.cwOrderId = orderId;
+                                equipRemovido.atividade = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+                                equipRemovido.foiDevolvidoSetTopBox = true;//message.equipmentList.equipmentData[i].foiDevolvidoEquipamento;
+                                equipRemovido.statusAcao = 'A Remover';
+                                equipRemovido.save();
+                                //alterando o equipamento não instalado para realizar a pendência 7023
+                                ponta[0].instalado = 0;
+                                ponta[0].save();
+                            } else{
+                                return "Equipamento com o idAtivo '" + message.equipmentList.equipmentData[i].idAtivo + "' não foi encontrado";
+                            }
+                        } else{
+                            //caso de pontos adicionais em tempo de execução
+                            //A VERIFICAR COM LEON - 05/12/2017
+                        }
+                    }
+
+                }
+            } else if (message.equipmentList.equipmentData[i].acao == "remover") {
+
+                var ponta = buscaEquipamentoPonta(message.equipmentList.equipmentData[i].idAtivo);
+                var isTrocaEquip = false;
+                var equipRemover = message.equipmentList.equipmentData[i];
+
+                //15/05/2018 - Adicionando a verificaÇão se existe idAtivo - Defeito PRJ14008#1081
+                if(ponta && ponta.length > 0 && message.equipmentList.equipmentData[i].idAtivo){
+                    ponta[0].foiDevolvidoSetTopBox_Original = message.equipmentList.equipmentData[i].foiDevolvidoEquipamento;
+                    ponta[0].save();
+                }
+                for ( var j = 0; j < message.equipmentList.equipmentData.length; j++) {
+                    if (message.equipmentList.equipmentData[j].acao == "adicionar") {
+
+                        var equipAdicionar = message.equipmentList.equipmentData[j];
+
+                        if (equipAdicionar.idAtivo && equipRemover.idAtivo == equipAdicionar.idAtivo) {
+                            isTrocaEquip = true;
+
+                            // Regras do fechamento do BA (regra 5/6) - Retornar erro se o equipamento inserido na troca não for instalado
+                            if (!equipAdicionar.instalado) {
+                                return "O equipamento com o idAtivo '"  + equipAdicionar.idAtivo + "' inserido na TROCA nao foi instalado";
+                            }
+
+                        }
+                    }
+                }
+
+                //PRJ14008 - #658 - validacao equipRemocaoAgendada apenas para equipamento ponta
+                var isBaseEqp = false;
+                var equipamentosBase = buscaEquipamentoBase();
+                for ( var j = 0; j < equipamentosBase.length; j++) {
+                    isBaseEqp = equipamentosBase[0].numeroSerieONT == equipRemover.numeroSerieEquipamento
+                    || equipamentosBase[0].numeroSerieONT_Original == equipRemover.numeroSerieEquipamento
+                    || equipamentosBase[0].numeroSerieHomeGateway == equipRemover.numeroSerieEquipamento
+                    || equipamentosBase[0].numeroSerieHGW_Original == equipRemover.numeroSerieEquipamento;
+
+                    if(isBaseEqp){
+                        if(equipamentosBase[0].numeroSerieONT_Original == equipRemover.numeroSerieEquipamento)
+                        {
+                            equipamentosBase[0].foiDevolvidoONT_Original = equipRemover.foiDevolvidoEquipamento;
+                            equipamentosBase[0].save();
+                        }
+                        else if(equipamentosBase[0].numeroSerieHGW_Original == equipRemover.numeroSerieEquipamento)
+                        {
+                            equipamentosBase[0].foiDevolvidoHGW_Original = equipRemover.foiDevolvidoEquipamento;
+                            equipamentosBase[0].save();
+                        }
+                        break;
+                    }
+                }
+
+                if (!isBaseEqp) {
+                    // Regras do fechamento do BA (regra 3/6) - Uma Exclusão de ponto adicional em tempo de execução de BA não existe
+                    var equipRemocaoAgendada = equipRemover.idAtivo ? buscaEquipamentoPonta(equipRemover.idAtivo) : false;
+                    if (!isTrocaEquip && (!equipRemocaoAgendada || equipRemocaoAgendada.length < 1 || equipRemocaoAgendada[0].acao != "remover")) {
+                        if(!equipRemover.idAtivo || equipRemover.idAtivo == null){
+                            continue;
+                        } else{
+                            return "Operação de exclusão não permitida em tempo de BA para o equipamento com o idAtivo '"  + equipRemover.idAtivo + "'";
+                        }
+                        //end 28/04/2018
+                    }
+
+                    if (message.equipmentList.equipmentData[i].foiDevolvidoEquipamento == true || message.equipmentList.equipmentData[i].foiDevolvidoEquipamento == false) { //checa se o campo foiDevolvidoEquipamento existe e se é igual ao que temos
+
+                        if (message.equipmentList.equipmentData[i].idAtivo) {
+                            var ponta = buscaEquipamentoPonta(message.equipmentList.equipmentData[i].idAtivo);
+
+                            if(ponta && ponta.length > 0){
+                                var equipRemovido = new Document("FTTHOrder:EquipmentDataBATime");
+                                equipRemovido.idAtivo = ponta[0].idAtivo;
+                                equipRemovido.numeroSerieSetTopBox = ponta[0].numeroSerieSetTopBox;
+                                equipRemovido.codEquipamento = ponta[0].codEquipamento;
+                                equipRemovido.cwOrderId = orderId;
+                                equipRemovido.atividade = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+                                equipRemovido.foiDevolvidoSetTopBox = message.equipmentList.equipmentData[i].foiDevolvidoEquipamento;
+                                equipRemovido.statusAcao = 'A Remover';
+                                equipRemovido.save();
+
+
+                                ponta[0].instalado = 0;
+                                ponta[0].foiDevolvidoSetTopBox = 1;
+                                ponta[0].save();
+                            }
+                        } else{
+                            return "Equipamento com o idAtivo '" + message.equipmentList.equipmentData[i].idAtivo + "' não foi encontrado";
+                        }
+                    } else {
+                        return "Campo 'foiDevolvidoEquipamento' sem valor válido em equipmentList.equipmentData[" + i + "]";
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
+    function buscaEquipamentoPonta(idAtivo) { //retorna todos os equipamento ponta da ordem
+        var searchDoc = new Document("FTTHOrder:EquipmentData");
+        searchDoc.clearData();
+        searchDoc.cwOrderId = orderId;
+
+        if(idAtivo){
+            searchDoc.idAtivo = idAtivo;
+        }
+
+        return Finder.runSearch("FTTHOrder:equipamentoPontaFinder",searchDoc);
+    }
+
+    function buscaEquipamentoBase() { //retorna todos os equipamento base da ordem
+        var searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+        searchDoc.clearData();
+        searchDoc.cwOrderId = orderId;
+        return Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+    }
+
+    function stringToTimeStamp(StringData) {
+        var ano = StringData.substring(0, 4);
+        var mes = StringData.substring(5, 7);
+        var dia = StringData.substring(8, 10);
+        var hora = StringData.substring(11, 13);
+        var min = StringData.substring(14, 16);
+        var segundos = StringData.substring(17, 19);
+        return ano + "/" + mes + "/" + dia + " " + hora + ":" + min + ":" + segundos
+    }
+
+    function equipamentoNaoAssociado(idAtivoBD, numSerieBD){
+        for(var i = 0; i < message.equipmentList.equipmentData.length; i++){
+
+            var idAtivo = message.equipmentList.equipmentData[i].idAtivo;
+            var numSerieClosing = message.equipmentList.equipmentData[i].numeroSerieEquipamento;
+            var acao = message.equipmentList.equipmentData[i].acao;
+
+            if(message.equipmentList.equipmentData[i].instalado == '0' && acao ==  "adicionar"){
+                if((idAtivo && idAtivo != "adicionar") && (idAtivo == idAtivoBD)){
+                    return false;
+                }
+                else if(numSerieClosing && (numSerieClosing == numSerieBD)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
+
+    function isInstalado(idAtivo){
+        for(var i = 0; i < message.equipmentList.equipmentData.length; i++){
+            if(message.equipmentList.equipmentData[i].instalado == '0' && (message.equipmentList.equipmentData[i].idAtivo == idAtivo)){
+                return false;
+            }
+        }
+        return true;
+    }
+  ]]></script>
+</script>

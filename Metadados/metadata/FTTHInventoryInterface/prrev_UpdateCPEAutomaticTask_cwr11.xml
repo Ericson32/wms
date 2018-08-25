@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHInventoryInterface.UpdateCPEAutomaticTask_cwr11">
+  <activity name="UpdateCPEAutomaticTaskStart" type="seqActivity">
+    <guid>{14663790-4c77-498b-b051-88acab181cff}</guid>
+    <label>Update CPE Automatic Task Start</label>
+    <x>84.95156</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateCPESendOperation" type="opActivity">
+        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_UpdateEquipmentSendOperation</element>
+        <guid>{235732b3-4afb-4cbe-9faf-379d58cc0dbd}</guid>
+        <label>Update CPE Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>196.39258</x>
+        <y>145.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              //*************** CONSTANTES ****************//
+              var STB = 'STB';
+              var ONT = 'ONT';
+              var TROCAR_CPE = 'Trocar CPE';
+              var ACTIVAR = 'ACTIVAR';
+              var CESSAR = 'CESSAR';
+              var ADICIONAR = 'adicionar';
+
+              //*************** FIM CONSTANTES ****************//
+              var msg = null;
+              var equipamento = null;
+              var isSTB = false;
+              var isONT = null; //Se isONT false então o equipamento é HGW ::: Se não é STB então verifica se é ONT  ::: Se não é ONT é HGW;
+              var equipmentType;
+              var cworderId = this.process.id;
+              var orderId = this.process.processOrder.order.id;
+              var codMaterial;
+              var numeroSerie;
+              var idAtivo;
+              var equipAction;
+              var isOriginal;
+              var validateEquipmentDoc = this.process.processDocument;
+              var ord = Order.getOrderById(orderId);
+
+              var searchDoc = new Document('FTTHCommon:ActivityClick');
+              searchDoc.cwOrderId = orderId;
+              searchDoc.activityClickId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+              searchDoc.operacao = validateEquipmentDoc.operacao;
+
+              var result = Finder.runSearch("FTTHCommon.activityClickFinder", searchDoc);
+
+              //verifica se existe equipamento removido para ser atualizado no NETWIN
+              //Retorna o 1o equipamento da lista de equipamentos removidos a serem atualizados
+              //ou #####NULL##### caso contrário
+              var removedEquipment = FTTHProcess.checkNeedToUpdateSystems(this.process.processOrder.id, 'wait');
+
+              if(removedEquipment){
+                  //apenas inicializando o validateDoc para evitar nullPoints
+                  var validateEquipmentDoc = new Document("FTTHClickInterface:ValidateEquipmentDoc");
+
+                  var isOriginal = true;
+                  isSTB          = true;
+                  isONT          = false;
+                  equipmentType  = "STB";
+                  codMaterial    = removedEquipment.codEquipamento;
+                  numeroSerie    = removedEquipment.numeroSerieSetTopBox;
+                  idAtivo        = removedEquipment.idAtivo;
+                  equipAction = "CESSAR";
+
+              } else{
+                  if(result && result.length > 0 && result[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")) {
+                          isSTB = validateEquipmentDoc.tipoEquipamentoNovo == "STB";
+                          isONT = validateEquipmentDoc.tipoEquipamentoNovo == "ONT";
+
+                      equipmentType = validateEquipmentDoc.tipoEquipamentoNovo;
+                      codMaterial = validateEquipmentDoc.codMaterialOriginal;
+                      numeroSerie = validateEquipmentDoc.numeroSerieEquipamentoOriginal;
+                      idAtivo = validateEquipmentDoc.idAtivoOriginal;
+                      equipAction = "CESSAR";
+                  } else {
+                          isSTB = validateEquipmentDoc.tipoEquipamentoNovo == "STB";
+                          isONT = validateEquipmentDoc.tipoEquipamentoNovo == "ONT";
+                      equipmentType = validateEquipmentDoc.tipoEquipamentoNovo;
+                      codMaterial = validateEquipmentDoc.codMaterialNovo;
+                      numeroSerie = validateEquipmentDoc.numeroSerieEquipamentoNovo;
+                      idAtivo = validateEquipmentDoc.idAtivoNovo;
+                      equipAction = "ACTIVAR";
+                  }
+              }
+
+              //var equipAction = (validateEquipmentDoc.acaoNovo == "adicionar") ? "ACTIVAR" : "CESSAR";
+              var ord = Order.getOrderById(orderId);
+              msg = FTTHInventoryInterface.CreateInventoryMessage(ord, cworderId,"ATUALIZAR_EQUIPAMENTO_CLIENTE", this.activityData, null, equipmentType, numeroSerie, idAtivo, codMaterial, equipAction);
+
+
+              for (var i = 0; i < msg.attributeList.attribute.length; i++) {
+                  if (msg.attributeList.attribute[i].name.indexOf('numeroSerie') > -1 ){
+                      msg.attributeList.attribute[i].value = numeroSerie;
+                      msg.attributeList.attribute[i].action = equipAction;
+                  }
+
+                  if(msg.attributeList.attribute[i].name.indexOf('codMaterial') > -1 ){
+                      msg.attributeList.attribute[i].action = equipAction;
+                  }
+              }
+
+
+              //MS - marcossouza@br.ibm.com - 30/11/2017 - Não atualizar o equipamento removido pois ele já não
+              //pertence mais a ordem
+              if(!removedEquipment){
+                  //verificar o tipo de equipamento para salvar a validação;
+                  equipamento = recuperarEquipamento(validateEquipmentDoc, isOriginal, isSTB, isONT, orderId);
+                  if(isSTB && !idAtivo) {
+                      var pontoADD = true;
+                  }                       //Se for um ponto adicional, não salvar na ordem o ponto ainda!
+                  if(equipamento.length > 0 && !pontoADD){
+                      equipamento[0].save();
+                  }
+              }
+
+
+              //FTTHCommon.log(this.process.processOrder, this.process.id , "Update CPE Automatic Task", "Update CPE Send Operation", operation, msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.OrderHeader.cwOrderId;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+              //------ FIM DO SCRIPT
+
+
+                  function recuperarEquipamento(documentoT, isOriginal, isSTB, isONT, orderId){
+                      var equipamento;
+                      var searchDoc;
+
+                      if(isOriginal){
+                          if(isSTB){
+                              searchDoc = new Document("FTTHOrder:EquipmentData");
+                              searchDoc.cwOrderId = orderId;
+                              searchDoc.idAtivo = documentoT.idAtivoOriginal;
+                              equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                              if(equipamento.length > 0)
+                                  equipamento[0].isNETWIN = true;
+
+                          } else{
+                              searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                              searchDoc.cwOrderId = orderId;
+                              searchDoc.idAtivo = documentoT.idAtivoOriginal;
+                              equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                              if(equipamento.length > 0){
+                                  if(isONT){
+                                      equipamento[0].isNETWIN = true;
+                                  }else{
+                                      equipamento[0].isNETWINHGW = true;
+                                  }
+                              }
+                          }
+
+                      }else{
+
+                          if(isSTB){
+                              searchDoc = new Document("FTTHOrder:EquipmentData");
+                              searchDoc.cwOrderId = orderId;
+                              searchDoc.idAtivo = documentoT.idAtivoNovo;
+                              equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                              if(equipamento.length > 0)
+                                  equipamento[0].isNETWIN = true;
+
+                          } else{
+                              searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                              searchDoc.clearData();
+                              searchDoc.cwOrderId = orderId;
+                              equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                              if(equipamento.length > 0){
+                                  if(isONT){
+                                      equipamento[0].isNETWIN = true;
+                                  }else{
+                                      equipamento[0].isNETWINHGW = true;
+                                  }
+                              }
+                          }
+                      }
+                      return equipamento;
+                  }
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update CPE Automatic Task", "Update CPE Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+              var equipamento;
+              var description = "";
+              var status = "";
+              var codOperacao = "Consulta";
+              var descriptionSuc  = "Equipamento Atualizado no NETWIN com sucesso";
+              var descriptionIns  = "Erro ao atualizar o NETWIN - ";
+              var statusSucesso  = Global.getCodeDescription("FTTHOrder:statusCPE", "SUC");
+              var statusInsucesso = Global.getCodeDescription("FTTHOrder:statusCPE", "INS");
+              var ord = this.process.processOrder;
+              var result;
+              var searchDoc;
+              var searchDocCPE;
+              var ValidateEquipmentDoc = this.process.processDocument;
+
+              //verificando se existe equipamento removido a ser atualizado
+              var removedEquipment = FTTHProcess.checkNeedToUpdateSystems(this.process.processOrder.id);
+
+              var flagDadoOriginal = false;
+
+              if(!removedEquipment){
+                  var documentoT = this.process.processDocument;
+
+                  var request = {
+                      isSAP : null,
+                      codOperacao : null,
+                      nSerieEquip : null,
+                      nomeCPE : null,
+                      motivoEquipamento : null,
+                      acao : null,
+                      idAtivo : null,
+                      tipoEquipamento : null,
+                      codMaterial : null };
+
+                      switch(this.activityData.code){
+                          case '0':
+                          //isSAP = true;
+                          description = descriptionSuc;
+                          status = statusSucesso;
+                          break;
+                          case '1':
+                          //erro da mensagem do OM
+                          description = descriptionIns + "Erro na informação originada do Sistema OM";
+                          status = statusInsucesso;
+                          break;
+                          case '2':
+                          //Erro de processamento SAP
+                          description = descriptionIns + "Erro de processamento NETWIN";
+                          status = statusInsucesso;
+                          break;
+                          default:
+                          //codigo de retorno invalido
+                          //mensagem = "Código de retorno do SAP não é válido";
+                          break;
+                      }
+
+                      var searchDocCPE = new Document("FTTHReportApplication:registerCPE");
+                      searchDocCPE.cwDocId = null;
+                      searchDocCPE.isTV = null;
+                      searchDocCPE.codigoMaterial = documentoT.codMaterialOriginal;
+
+                      var pointEquipment = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+                      if(pointEquipment.length > 0){
+                          request.nomeCPE = pointEquipment[0].nomeCPE;
+                      }
+
+                      if(documentoT.numeroSerieEquipamentoOriginal){
+                          request.nSerieEquip = documentoT.numeroSerieEquipamentoOriginal;
+                          request.isSAP = '';
+                          request.codOperacao = '';
+                          request.acao = documentoT.acaoOriginal;
+                          request.idAtivo = documentoT.idAtivoOriginal;
+                          request.tipoEquipamento = documentoT.tipoEquipamentoOriginal;
+                          request.codMaterial = documentoT.codMaterialOriginal;
+                      }else{
+                          request.nSerieEquip = documentoT.numeroSerieEquipamentoNovo;
+                          request.isSAP = '' ;
+                          request.codOperacao = '' ;
+                          request.acao = documentoT.acaoNovo;
+                          request.idAtivo = documentoT.idAtivoNovo;
+                          request.tipoEquipamento = documentoT.tipoEquipamentoNovo;
+                          request.codMaterial = documentoT.codMaterialNovo
+                      }
+
+                      var isSTB = (request.tipoEquipamento == "STB") ? true : false;
+
+                      if(isSTB){
+                          searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentData");
+                          searchDoc.cwOrderId = ord.id;
+                          searchDoc.idAtivo = request.idAtivo;
+
+                          result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                      } else{
+                          searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:BaseEquipmentData");
+                          searchDoc.cwOrderId = ord.id;
+                          searchDoc.idAtivo = request.idAtivo;
+
+                          result = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                      }
+
+                      if(isSTB && !request.idAtivo){
+                          var pontoADD = true;
+                      }
+
+                      if(!pontoADD){
+                          if(result && result.length > 0){
+                              equipamento = result[0];
+                          } else{
+                              return null;
+                          }
+                      }
+
+
+                      //adicionando na grid de troca cpe de reparo no SGFT
+                      var statusCPE = this.activityData.code == 0 ? "Sucesso" : "Erro";
+                      var validateDoc = this.process.processDocument;
+                      var serialOld = (validateDoc.numeroSerieEquipamentoOriginal && validateDoc.numeroSerieEquipamentoOriginal != "") ? validateDoc.numeroSerieEquipamentoOriginal : "-";
+
+                      //07/05/2018 - Adicionando verificação pela pk do equipamento, para cenarios de adição de ponto adicional em tempo de BA
+                      var equipResult = FTTHProcess.getProcessingEquipment(this.process.processOrder, validateDoc);
+                      //25/04/2018 - removendo verificação para logar na grid mesmo se processo startado pelo click
+                      //if(validateDoc.userId){
+                          FTTHOrder.insertIntoChangeCPEGrid(validateDoc.orderId,
+                              validateDoc.tipoEquipamentoNovo,
+                              validateDoc.idAtivoNovo,
+                              validateDoc.numeroSerieEquipamentoNovo,
+                          serialOld,
+                              "Atualização de Inventário",
+                              new Date(),
+                              "Sucesso",
+                              new Date(),
+                              statusCPE,
+                              this.activityData.code,
+                              this.activityData.description,
+                          validateDoc.userId,
+                          equipResult.cwDocId);
+                      //}
+                      //end adiÇão na grid
+
+                      var equipamento = equipResult;
+
+                      if(this.activityData.code==0){
+                          //Se não tem idAtivo, é uma adição de ponto adicional.
+                          if(isSTB && !request.idAtivo && request.acao == 'adicionar'){
+                              
+                              if(validateDoc.userId && validateDoc.userId != ""){
+                                  //searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentData");
+                                  //searchDoc.cwOrderId = ord.id;
+                                  //searchDoc.numeroSerieSetTopBox = request.nSerieEquip;
+
+                                  //result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+
+                                  equipResult.isSAP = true;
+                                  equipResult.isNETWIN = true;
+                                  equipResult.flgValidado = true;
+                                  equipResult.save();
+
+                                  equipamento = equipResult; //result[0];
+                              } else{
+                                  equipamento = addPontoAdicional(request,ord);
+                              }
+                          }
+                          description = description + " - Código: " + this.activityData.code + " Descrição: " + this.activityData.description;
+                          var statusStock = "pendente";
+                          codOperacao = "Ativo";
+
+                          result = Finder.runSearch("FTTHCommon.activityClickFinder", searchDoc);
+                          /*  Correção para a realização do updateStock - 19/04/2018 */
+                          var isInstallation = (ord.OrderHeader.tipoOS == "TIPO_ORDEM_INSTALACAO") ? true : false;
+                          /*  end 19/04/2018  */
+
+
+                          if(documentoT && documentoT.operacao == "Trocar CPE"){
+                              //Ajustes para o rollback e para o updateStock
+                              //Se for retirar equipamento cliente, está removendo equipamento.
+                              var searchDoc = new Document('FTTHCommon:ActivityClick');
+                              searchDoc.cwOrderId = ord.id;
+                              searchDoc.operacao = "Trocar CPE";
+                              searchDoc.activityClickId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+
+                              var result = Finder.runSearch("FTTHCommon.activityClickFinder", searchDoc);
+
+                              //Se a atividade que está sendo executada é a de remover equipamento faça:
+                              if(result && result.length > 0 && result[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                                  var equip = FTTHProcess.getProcessingEquipment(ord, validateDoc);
+                                  var searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:CPEValidationStatus");
+                                  searchDoc.equipmentType = documentoT.tipoEquipamentoNovo;
+                                  searchDoc.fkEquipment = equip.cwDocId;
+                                  searchDoc.statusStock = "pendente";
+                                  //searchDoc.isOriginal = true;
+                                  var result1 = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+
+                                  //se eu já tenho uma linha na tabela para este equipamento, então esta acão é um rollback
+                                  if(result1 && result1.length > 0){
+                                      result1[0].statusStock = "alterado";
+                                      result1[0].isOriginal = true;
+                                      result1[0].save();
+
+                                      if(!isInstallation){
+                                          FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equipamento.cwDocId, request.tipoEquipamento, statusStock, true);
+                                      }
+
+
+
+                                  }  else if((result && result.length == 0) || !result){
+                                      var flagDadoOriginal = true;
+                                      FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equipamento.cwDocId, request.tipoEquipamento, statusStock, flagDadoOriginal);
+                                  }
+                              } else {
+                                  var searchDocActivityClick = new Document("FTTHCommon:ActivityClick");
+                                  searchDocActivityClick.cwOrderId = ord.id;
+                                  searchDocActivityClick.operacao = "Trocar CPE";
+                                  searchDocActivityClick.activityClickId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+
+                                  var result = Finder.runSearch('FTTHCommon:activityClickFinder', searchDocActivityClick);
+
+                                  //Se a atividade que está sendo executada é a de adicionar equipamento faça:
+                                  if(result && result.length > 0 && result[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                                      var equip = FTTHProcess.getProcessingEquipment(ord, validateDoc);
+                                      var searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:CPEValidationStatus");
+                                      searchDoc.equipmentType = documentoT.tipoEquipamentoNovo;
+                                      searchDoc.fkEquipment = equip.cwDocId;
+                                      searchDoc.statusStock = "pendente";
+                                      //searchDoc.isOriginal = false;
+                                      var result1 = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+                                      //já existe um equipe associado
+                                      if(result && result1.length > 1){
+                                          result1[0].statusStock = "alterado";
+                                          result1[0].isOriginal = false;
+                                          result1[0].save();
+
+                                          FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equipamento.cwDocId, request.tipoEquipamento, statusStock, false);
+                                      } else{
+                                          var flagDadoOriginal = false;
+                                          FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equipamento.cwDocId, request.tipoEquipamento, statusStock, flagDadoOriginal);
+                                      }
+                                      //end
+                                  } else{
+                                      //a atividade executada recebeu erro do inventário e portanto, não será gravada na tabela
+                                  }
+                              }
+                          } else{
+                              var flagDadoOriginal = false;
+                              FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equipamento.cwDocId, request.tipoEquipamento, statusStock,flagDadoOriginal);
+                          }
+                      } else if(this.activityData.code != 0){
+                          if(isSTB && !request.idAtivo){
+                              rollBackPontoAdicional(request,ord);
+                              return null;
+                          }
+                          if(equipamento){
+                              if(request.tipoEquipamento == "ONT" || request.tipoEquipamento == "STB" ){
+                                  equipamento.isNETWIN = false;
+
+                                  if(request.tipoEquipamento == "ONT") {
+                                    equipamento.numeroSerieONT =  equipamento.numeroSerieONT_Original;
+                                  }
+
+                              }
+                              else if(request.tipoEquipamento == "HGW"){
+                                  equipamento.isNETWINHGW = false;
+                                  equipamento.numeroSerieHomeGateway = equipamento.numeroSerieHGW_Original;
+                              }
+                              equipamento.save();
+                              description = description + " - Código: " + this.activityData.code + " Descrição: " + this.activityData.description;
+                              var statusStock = "-";
+                              FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equipamento.cwDocId, request.tipoEquipamento, statusStock, false);
+                          }
+                      }
+
+
+
+              }
+
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), status);
+
+              var searchDoc = new Document('FTTHCommon:ActivityClick');
+              searchDoc.cwOrderId = ord.id;
+              searchDoc.operacao = "Associar CPE";
+              searchDoc.activityClickId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+
+              result = Finder.runSearch("FTTHCommon.activityClickFinder", searchDoc);
+
+              if(result && result.length > 0 && result[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                  result[0].endDate =  new Date();
+                  result[0].status = status;
+                  result[0].save();
+              } else {
+                  var searchDoc = new Document('FTTHCommon:ActivityClick');
+                  searchDoc.cwOrderId = ord.id;
+                  searchDoc.operacao = "Trocar CPE";
+                  searchDoc.activityClickId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+
+                  var result = Finder.runSearch("FTTHCommon.activityClickFinder", searchDoc);
+
+                  if(result && result.length > 0 && result[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      result[0].endDate =  new Date();
+                      result[0].status = status;
+                      result[0].save();
+                  } else {
+                      var searchDocActivityClick = new Document("FTTHCommon:ActivityClick");
+                      searchDocActivityClick.cwOrderId = ord.id;
+                      searchDocActivityClick.operacao = "Trocar CPE";
+                      searchDocActivityClick.activityClickId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+
+                      var result = Finder.runSearch('FTTHCommon:activityClickFinder', searchDocActivityClick);
+                      if(result && result.length > 0 && result[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                          result[0].endDate =  new Date();
+                          result[0].status = status;
+                          result[0].save();
+                      }
+                  }
+              }
+
+
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"));
+
+
+              //=================================FUNCTIONS==============================================
+
+                  function addPontoAdicional(request,ord){
+                      if (ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")) {
+                          var productData = ord.OriginalData[0].ProductData;
+                      } else {
+                          var productData = ord.ProductData;
+                      }
+                      var qtdPontosHDPagoExtra     = (productData.qtdPontosHDPagoExtra == null)    ? 0 :  productData.qtdPontosHDPagoExtra;
+                      if (ord.EquipmentData == null){
+                          ord.addItem("EquipmentData");
+                          ord.EquipmentData.newInstance();
+                      }
+
+                      if (ord.EquipmentData[0].AddPointsEquipmentData == null){
+                          ord.EquipmentData[0].addItem("AddPointsEquipmentData");
+                      }
+                      searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentData");
+                      searchDoc.cwOrderId = ord.id;
+                      searchDoc.numeroSerieSetTopBox = request.nSerieEquip;
+                      result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                      if(result && result.length > 0 && result.start.isSAP == true){
+                          //doc.numeroSerieSetTopBox = messageEquipment.numeroSerieEquipamento;
+                          //doc.nomeCPE = messageEquipment.descricaoMaterial;
+                          result.start.codEquipamento = request.codMaterial;
+                          result.start.foiDevolvidoSetTopBox = 0;
+                          result.start.instalado = 1;
+                          //doc.deviceGUID = messageEquipment.deviceGUID;
+
+                          result.start.acao = request.acao;
+                          result.start.atividade = "INSTALAR_EQUIPAMENTO_CLIENTE";
+                          result.start.flagDadoOriginal = "N";
+                          result.start.isSAP = true;
+                          result.start.isNETWIN = true;
+                          result.start.flgValidado = true;
+
+                          if(result.start.codEquipamento){
+                              //código dos equipamentos HGW e ONT
+                          var searchDoc = FTTHCommon.createEmptyDoc("FTTHReportApplication:registerCPE");
+                              searchDoc.isTV = true;
+                              searchDoc.codigoMaterial = result.start.codEquipamento;
+
+                              var pointEquipment = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+                              result.start.nomeCPE = pointEquipment[0].nomeCPE;
+                              productData.qtdPontosHDPagoExtra++;
+                              ord.EquipmentData[0].AddPointsEquipmentData.EquipmentPointData = result.start;
+                              ord.save();
+                              return result.start;
+                          }
+                      }
+                  }
+
+
+              function rollBackPontoAdicional(request,ord){
+                  searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentData");
+                  searchDoc.cwOrderId = ord.id;
+                  searchDoc.idAtivo = request.nSerieEquip;
+                  result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                  if(result && result.length > 0){
+                      result.deleteItem();
+                  }
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{ab2f4c3a-6de0-47c1-82f0-71049b2c40cd}</guid>
+        <label>exceptionHandler</label>
+        <x>49.999996</x>
+        <y>160.34258</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend2" type="seqActivity">
+        <guid>{d9caad10-abff-4e9c-ace1-726f6533b22c}</guid>
+        <label>Check Resend</label>
+        <x>246.88765</x>
+        <y>311.14728</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>176.7222</x>
+            <y>427.54962</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHInventoryInterface.UpdateCPEAutomaticTask_cwr11/seqActivity_UpdateCPEAutomaticTaskStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "ATUALIZAR_EQUIPAMENTO_CLIENTE", "INVENTORY_SYSTEM");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>86.36957</x>
+                    <y>553.65314</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>197.06879</x>
+                <y>561.0037</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, "ATUALIZAR_EQUIPAMENTO_CLIENTE", "INVENTORY_SYSTEM"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="UpdateCPEAutomaticTaskComplete" type="completeActivity">
+            <guid>{94d94fa6-1fe5-4580-9faa-e7419b6e5ce7}</guid>
+            <label>Update CPE Automatic Task Complete</label>
+            <x>186.38324</x>
+            <y>665.0555</y>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{0e3afec0-40b9-4963-bfb6-6ac3336c3f48}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>86.37125</x>
+        <y>286.74493</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_STATUS_NEW"))
+              return true;
+          return false;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Atualizar
+      CPE. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de atualiza&#231;&#227;o dos equipamentos caso n&#227;o obtenha resposta em
+      um intervalo de tempo pr&#233; determinado, ser&#227;o feitas mais algumas
+      retentativas. A quantidade de retentativas e o tempo de espera ser&#227;o
+      configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <document>doc_FTTHClickInterface.ValidateEquipmentDoc</document>
+  <label>Update CPE Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryInterface.UpdateCPEAutomaticTask</process>
+  <revision>11</revision>
+  <type>User</type>
+</process__revision>

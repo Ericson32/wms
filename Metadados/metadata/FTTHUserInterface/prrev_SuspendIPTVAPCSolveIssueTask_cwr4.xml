@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.SuspendIPTVAPCSolveIssueTask_cwr4">
+  <activity name="SuspendIPTVAPCSolveIssueTaskStart" type="seqActivity">
+    <guid>{2719bd62-dbb3-46ac-b490-013e9f01d07c}</guid>
+    <label>Suspend IPTV APC Solve Issue Task Start</label>
+    <x>35.95156</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendIPTVAPCSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendIPTVAPCSolveIssue</element>
+        <guid>{6da4a5aa-27da-4a03-b48d-0697702e0f64}</guid>
+        <label>Suspend IPTV APC Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>38.48828</x>
+        <y>130.6414</y>
+      </child>
+      <child name="SuspendIPTVAPCSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendIPTVAPCSolveIssueSuccess</element>
+        <guid>{441b420d-8b7a-4cc1-af86-8a6d9771dc3c}</guid>
+        <label>Suspend IPTV APC Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>38.48828</x>
+        <y>368.14728</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("BLOQUEAR_IPTV_APC");
+              activityId = '%' + activityId;
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{11118d6c-d02c-4e57-b0ce-e433ca16c2a8}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>256.74493</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("BLOQUEAR_IPTV_APC");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual
+    </p>
+    <p style="margin-top: 0">
+      Bloquear IPTV - Erro tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio
+      WMS, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      sucesso.
+    </p>
+  ]]></description>
+  <label>Suspend IPTV APC Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.SuspendIPTVAPCSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

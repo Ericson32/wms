@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.saveNode">
+  <label>Save Node</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderItem" type="rifp"/>
+    <parameter name="startNode" type="rifp">
+      <type>tn_com.conceptwave.system.TreeNode</type>
+    </parameter>
+    <parameter name="validate" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="recursively" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var diffModelUI = startNode.modelUI != null && startNode.model != startNode.modelUI.model;
+    if (validate && !orderItem.validateTheNode()) {
+      return false;
+    }
+    if (recursively && startNode.loaded && startNode.childNodes != null) {
+      var len = startNode.childNodes.length;
+      for (var i = 0; i < len; i++) {
+        if(!orderItem.saveNode(startNode.childNodes[i], validate, true)) {
+          return false;
+        }
+      }
+    }
+    if (diffModelUI) {
+      startNode.modelUI.onAutoSave();
+    }
+    if (startNode.isModelSavable()) {
+        try{
+            startNode.model.save();
+        } catch(e){
+            Global.logError("Exceção ao salvar ordem.  -  " + e);
+        }
+    }
+    return true;
+  ]]></script>
+</script>

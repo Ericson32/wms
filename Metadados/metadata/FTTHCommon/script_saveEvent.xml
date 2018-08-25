@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.saveEvent">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script para salvar o evento.
+    </p>
+  ]]></description>
+  
+  <label>Save Event</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.orderId</type>
+    </parameter>
+    <parameter name="sistema" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.String64</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHCommon.atividade</type>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHCommon.statusAcao</type>
+    </parameter>
+    <parameter name="codigo" type="rifp">
+      <type>dtype_cwt_common.string32</type>
+    </parameter>
+    <parameter name="descricao" type="rifp">
+      <type>dtype_cwt_common.string1024</type>
+    </parameter>
+    <parameter name="correlationId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.String64</type>
+    </parameter>
+    <parameter name="direcao" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwt_common.string32</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var event = new Document('FTTHCommon:Event');
+
+    event.cwOrderId = orderId;
+    event.sistema = sistema;
+    event.atividade = atividade;
+    event.status = status;
+    event.codigo = codigo;
+    event.descricao = descricao;
+    event.correlationId = correlationId;
+    event.direcao = direcao;
+    event.dataExecucao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    event.indCancelamento = FTTHCommon.isCancelOrder(orderId);
+
+    event.save();
+
+    return event;
+  ]]></script>
+</script>

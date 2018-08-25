@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.oi.net.br/SID/CBE/Project/v1" elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.oi.net.br/SID/CBE/Project/v1" xmlns:TIM="http://www.oi.net.br/SID/CBE/Time/v1" xmlns:CST="http://www.oi.net.br/SID/CST/Customer/v1" xmlns:PAR="http://www.oi.net.br/SID/CBE/Party/v1" xmlns:LOC="http://www.oi.net.br/SID/CBE/Location/v1" xmlns:WFM="http://www.oi.net.br/SID/CBE/Workforce/v1" xmlns:pref="http://www.oi.net.br/SID/SVC/Service/v1">
+  <import namespace="http://www.oi.net.br/SID/CST/Customer/v1" schemaLocation="Customer.xsd"/>
+  <import namespace="http://www.oi.net.br/SID/CBE/Party/v1" schemaLocation="Contact.xsd"/>
+  <import namespace="http://www.oi.net.br/SID/CBE/Time/v1" schemaLocation="Appointment.xsd"/>
+  <import namespace="http://www.oi.net.br/SID/CBE/Workforce/v1" schemaLocation="Work.xsd"/>
+  <import schemaLocation="BrazilianAddress.xsd" namespace="http://www.oi.net.br/SID/CBE/Location/v1"/>
+  <import schemaLocation="Time.xsd" namespace="http://www.oi.net.br/SID/CBE/Time/v1"/>
+  <include schemaLocation="WorkOrder.xsd"/>
+  <import schemaLocation="ResourceFacingService.xsd" namespace="http://www.oi.net.br/SID/SVC/Service/v1"/>
+  <complexType name="WorkOrderItem">
+    <sequence>
+      <element name="accessHours" minOccurs="0">
+        <complexType>
+          <sequence>
+            <element name="accessHour" type="string" maxOccurs="unbounded" minOccurs="0"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="closingCodes" minOccurs="0">
+        <complexType>
+          <sequence>
+            <element name="closingCode" maxOccurs="unbounded" minOccurs="0" type="string"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="comments" minOccurs="0">
+        <complexType>
+          <sequence>
+            <element name="comment" minOccurs="0" maxOccurs="unbounded">
+              <complexType>
+                <sequence>
+                  <element name="type" minOccurs="0" type="string"/>
+                  <element name="DescriptionScheduling" minOccurs="0" type="string"/>
+                  <element name="description" minOccurs="0" type="string"/>
+                  <element name="creationDateTime" minOccurs="0" type="dateTime"/>
+                  <element name="authorId" minOccurs="0" type="string"/>
+                </sequence>
+              </complexType>
+            </element>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="descriptions" minOccurs="0" maxOccurs="1">
+        <complexType>
+          <sequence>
+            <element name="description" minOccurs="0" maxOccurs="unbounded">
+              <complexType>
+                <sequence>
+                  <element name="type" minOccurs="0" type="string"/>
+                  <element name="description" minOccurs="0" type="string"/>
+                  <element name="creationDateTime" minOccurs="0" type="dateTime"/>
+                  <element name="authorId" minOccurs="0" type="string"/>
+                </sequence>
+              </complexType>
+            </element>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="activityAddress" minOccurs="0" type="LOC:BrazilianAddress"/>
+      <element name="activityEndDateTime" minOccurs="0" type="dateTime"/>
+      <element name="activityInitialDateTime" minOccurs="0" type="dateTime"/>
+      <element name="targetSystem" minOccurs="0" type="string"/>
+      <element name="activityType" minOccurs="0" type="string"/>
+      <element name="alertCode" minOccurs="0" type="string"/>
+      <element name="alertMnemonic" minOccurs="0" type="string"/>
+      <element name="alertName" minOccurs="0" type="string"/>
+      <element name="appointment" minOccurs="0" type="TIM:Appointment"/>
+      <element name="assignmentDateTime" minOccurs="0" type="dateTime"/>
+      <element name="associatedDocument" minOccurs="0" maxOccurs="unbounded" type="string"/>
+      <element name="associatedDocumentCreationDateTime" minOccurs="0" type="dateTime"/>
+      <element name="attendanceType" minOccurs="0" type="string"/>
+      <element name="bbnRoute" minOccurs="0" type="string"/>
+      <element name="bundleId" minOccurs="0" type="string"/>
+      <element name="BundlePLan" minOccurs="0" type="string"/>
+      <element name="businessUnity" minOccurs="0" type="string"/>
+      <element name="callIdentification" minOccurs="0" type="string"/>
+      <element name="FirstRecord" minOccurs="0" type="string"/>
+      <element name="category" type="string" maxOccurs="1" minOccurs="0">
+        <annotation>
+          <documentation>Categoria, pode ser do TUP ex. Aldeia Indígena
+						Arquipelago Aeroporto Estadio Term Rodoviário
+						Igreja Centro
+						Comercial Comércio Supermercado
+						Farmácia Etc...</documentation>
+        </annotation>
+      </element>
+      <element name="circuitSpeed" minOccurs="0" type="string"/>
+      <element name="closeDateTime" minOccurs="0" type="dateTime"/>
+      <!--Inicio Inclusao de 6 novos campos PRJ8349 26/01/2017-->
+      <element name="Transponder" type="string" minOccurs="0"/>
+      <element name="potency" type="string" minOccurs="0"/>
+      <element name="Quality" type="string" minOccurs="0"/>
+      <element name="inFinalTest" type="string" minOccurs="0"/>
+      <!--Final Inclusao de 6 novos campos PRJ8349 26/01/2017-->
+      <element name="conditionIndicator" minOccurs="0" type="string"/>
+      <element name="creationDateTime" minOccurs="0" type="dateTime"/>
+      <element name="customer" minOccurs="0" type="CST:Customer"/>
+      <element name="dedicatedNetwork" minOccurs="0" type="string"/>
+      <element name="employeeId" minOccurs="0" type="string"/>
+      <element name="endSystem" minOccurs="0" type="string"/>
+      <element name="equipmentOwner" minOccurs="0" type="string"/>
+      <element name="errorCode" minOccurs="0" type="string"/>
+      <element name="executionUnityCode" minOccurs="0" type="string"/>
+      <element name="failDectionDate" minOccurs="0" type="dateTime"/>
+      <element name="failInformationSource" minOccurs="0" type="string"/>
+      <element name="failInformationSourceCode" minOccurs="0" type="string"/>
+      <element name="flagTargetSystem" minOccurs="0" type="string"/>
+      <element name="GRIMarint" minOccurs="0" type="string"/>
+      <element name="hasADSL" minOccurs="0" type="string"/>
+      <element name="hasDeadlineDate" minOccurs="0" type="string"/>
+      <element name="id" minOccurs="0" type="string"/>
+      <element name="installationDate" minOccurs="0" type="dateTime"/>
+      <element name="installationPoints" minOccurs="0" type="string"/>
+      <element name="IPTVInstallationPoints" minOccurs="0" type="string"/>
+      <element name="jointInstallation" minOccurs="0" type="string"/>
+      <element name="jointSelling" minOccurs="0" type="string"/>
+      <element name="normativeIndicatorDate" minOccurs="0" maxOccurs="unbounded" type="dateTime"/>
+      <element name="origin" minOccurs="0" type="string"/>
+      <element name="originSystem" minOccurs="0" type="string"/>
+      <element name="password" minOccurs="0" type="string"/>
+      <element name="portability" minOccurs="0" type="string"/>
+      <element name="possibleDeliveryDate" minOccurs="0" maxOccurs="unbounded" type="dateTime"/>
+      <element name="predictionSolutionDate" minOccurs="0" type="dateTime"/>
+      <element name="priority" minOccurs="0" type="string"/>
+      <element name="promotionName" minOccurs="0" type="string"/>
+      <element name="propensityAlert" minOccurs="0" type="string"/>
+      <element name="psup" minOccurs="0" type="string"/>
+      <element name="recidivism" minOccurs="0" type="string"/>
+      <!--add field region PRJ1149 2/2/2016-->
+      <element name="region" minOccurs="0" type="string"/>
+      <element name="relatedWorkOrder" minOccurs="0" maxOccurs="unbounded" type="tns:WorkOrder"/>
+      <element name="relatedWorkOrderItem" minOccurs="0" maxOccurs="unbounded" type="tns:WorkOrderItem"/>
+      <element name="repairInWarranty" minOccurs="0" type="string"/>
+      <element name="repairConfirmationContact" type="string" maxOccurs="1" minOccurs="0"/>
+      <element name="request" minOccurs="0" type="string"/>
+      <element name="requestPersonName" minOccurs="0" type="string"/>
+      <element name="requestPersonPhoneNumber" minOccurs="0" type="string"/>
+      <element name="RFOverlayInstallationPoints" minOccurs="0" type="string"/>
+      <element name="routingCode" minOccurs="0" type="string"/>
+      <element name="rsr" minOccurs="0" type="string"/>
+      <element name="SchedulingReasonCode" minOccurs="0" type="string"/>
+      <element name="schedulingReasonCode" minOccurs="0" maxOccurs="unbounded" type="string"/>
+      <element name="serviceInterruption" minOccurs="0" type="string"/>
+      <element name="status" minOccurs="0" type="string"/>
+      <element name="statusUpdateDateTime" minOccurs="0" type="dateTime"/>
+      <element name="TargetBundleSystem" minOccurs="0" type="string"/>
+      <element name="technicianAuthorizedId" minOccurs="0" type="string"/>
+      <element name="technicianCompany" minOccurs="0" type="string"/>
+      <element name="technicianContact" minOccurs="0" type="string"/>
+      <element name="technicianId" minOccurs="0" type="string"/>
+      <!--Inicio PRJ00014008 - Fibra Alone-->
+      <element name="technicianAuxList" minOccurs="0">
+        <complexType>
+          <sequence>
+            <element name="technicianAux" minOccurs="0" type="string" maxOccurs="unbounded"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="acessoGPON" minOccurs="0" type="string"/>
+      <element name="OLTGALC" minOccurs="0" type="string"/>
+      <element name="OLTRACK" minOccurs="0" type="string"/>
+      <element name="OLTSHELF" minOccurs="0" type="string"/>
+      <element name="OLTSLOT" minOccurs="0" type="string"/>
+      <element name="OLTPORT" minOccurs="0" type="string"/>
+      <element name="ICX" minOccurs="0" type="string"/>
+      <element name="DGO" minOccurs="0" type="string"/>
+      <element name="CDO" minOccurs="0" type="string"/>
+      <element name="caminhoDaFibra" minOccurs="0">
+        <complexType>
+          <sequence>
+            <element name="enderecoCDO" minOccurs="0" type="string"/>
+            <element name="GrupoCDOs" minOccurs="0">
+              <complexType>
+                <sequence>
+                  <element name="CDO" minOccurs="0" type="string" maxOccurs="unbounded"/>
+                </sequence>
+              </complexType>
+            </element>
+            <element name="GrupoCEOs" minOccurs="0">
+              <complexType>
+                <sequence>
+                  <element name="CEO" minOccurs="0" type="string" maxOccurs="unbounded"/>
+                </sequence>
+              </complexType>
+            </element>
+            <element name="GrupoCEOSs" minOccurs="0">
+              <complexType>
+                <sequence>
+                  <element name="CEOS" minOccurs="0" type="string" maxOccurs="unbounded"/>
+                </sequence>
+              </complexType>
+            </element>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="BSP" minOccurs="0" type="string"/>
+      <element name="ARDO" minOccurs="0" type="string"/>
+      <element name="LINEID1" minOccurs="0" type="string"/>
+      <element name="LINEID2" minOccurs="0" type="string"/>
+      <element name="splitterPort" minOccurs="0" type="string"/>
+      <element name="nomePlanoHSI" minOccurs="0" type="string"/>
+      <element name="velocidadeUpload" minOccurs="0" type="string"/>
+      <element name="velocidadeDownload" minOccurs="0" type="string"/>
+      <element name="nomePlanoIPTV" minOccurs="0" type="string"/>
+      <element name="quantidadePontosIPTV" minOccurs="0" type="string"/>
+      <element name="nomePlanoRFTV" minOccurs="0" type="string"/>
+      <element name="quantidadePontosRFTV" minOccurs="0" type="string"/>
+      <element name="nomePlanoOTT" minOccurs="0" type="string"/>
+      <element name="nomePlanoVoIP" minOccurs="0" type="string"/>
+      <element name="isCaixaPostal" minOccurs="0" type="boolean"/>
+      <element name="isBina" minOccurs="0" type="boolean"/>
+      <element name="isChamadaEspera" minOccurs="0" type="boolean"/>
+      <element name="isConferencia" minOccurs="0" type="boolean"/>
+      <element name="isSigame" minOccurs="0" type="boolean"/>
+      <element name="qtdPontosDVRGratis" minOccurs="0" type="string"/>
+      <element name="qtdPontosHDGratis" minOccurs="0" type="string"/>
+      <element name="qtdPontosHDPago" minOccurs="0" type="string"/>
+      <element name="qtdPontosRFOverlay" minOccurs="0" type="string"/>
+      <element name="portabilidadeReceptora" minOccurs="0" type="string"/>
+      <element name="portabilidadeInterna" minOccurs="0" type="string"/>
+      <element name="portabilidadeInternaComTrocaDeTecnologia" minOccurs="0" type="string"/>
+      <element name="alertaPropensao" minOccurs="0" type="string"/>
+      <element name="CVLAN1" minOccurs="0" type="string"/>
+      <element name="CVLAN2" minOccurs="0" type="string"/>
+      <element name="SVLAN1" minOccurs="0" type="string"/>
+      <element name="SVLAN2" minOccurs="0" type="string"/>
+      <element name="ocorrencia" minOccurs="0" type="string"/>
+      <element name="tipoSplitter" minOccurs="0" type="string"/>
+      <element name="modeloSplitter" minOccurs="0" type="string"/>
+      <element name="precisaSpliter" minOccurs="0" type="boolean"/>
+      <element name="idHSI" minOccurs="0" type="string"/>
+      <element name="idIPTV" minOccurs="0" type="string"/>
+      <element name="idRFTV" minOccurs="0" type="string"/>
+      <element name="idOTT" minOccurs="0" type="string"/>
+      <element name="idVoIP" minOccurs="0" type="string"/>
+      <!--Fim PRJ00014008 - Fibra Alone-->
+      <element name="technology" minOccurs="0" type="string"/>
+      <element name="terminalType" type="string" minOccurs="0" maxOccurs="1"/>
+      <element name="tokenNumber" type="string" minOccurs="0"/>
+      <element name="trafficInterrupted" minOccurs="0" type="boolean"/>
+      <element name="usage" minOccurs="0" type="string"/>
+      <element name="works" maxOccurs="1" minOccurs="0">
+        <complexType>
+          <sequence>
+            <element name="flagTargetSystem" minOccurs="0" type="string"/>
+            <element name="IdUnitTransaction" minOccurs="0" type="string"/>
+            <element name="DescriptionActivity" minOccurs="0" type="string"/>
+            <element name="work" type="WFM:Work" maxOccurs="unbounded" minOccurs="0"/>
+          </sequence>
+        </complexType>
+      </element>
+      <!--add group WorkOrder and field ProductTypeId,comments, id 2/2/2016 
+				PRJ1149-->
+      <element name="WorkOrder" maxOccurs="unbounded" minOccurs="0">
+        <complexType>
+          <sequence>
+            <element name="ProductType" minOccurs="0" type="string"/>
+            <element name="id" minOccurs="0" type="string"/>
+            <element name="comments" minOccurs="0" type="string"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="resourceFacingService" maxOccurs="1" minOccurs="0">
+        <complexType>
+          <sequence>
+            <element name="item" type="pref:ResourceFacingService" maxOccurs="unbounded" minOccurs="0"/>
+            <!--Criação do atributo qualifiedSpeed - Demanda 83324 em 01/08/2014-->
+            <!--Alteração - Demanda 83324 em 05/08/2014-->
+            <element name="qualifiedSpeed" type="string" maxOccurs="1" minOccurs="0"/>
+          </sequence>
+        </complexType>
+      </element>
+    </sequence>
+  </complexType>
+</schema>

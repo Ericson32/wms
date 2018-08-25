@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.updateFlagValidado">
+  
+  <label>Update Flag Validado</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp"/>
+    <parameter name="tipoEquipamento" type="rifp"/>
+    <parameter name="idAtivo" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc;
+    var equipamento;
+
+    switch(tipoEquipamento){
+        case "ONT":
+        case "HGW":
+        searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+        searchDoc.clearData();
+        searchDoc.cwOrderId = cwOrderId;
+
+        equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+        break;
+        case "STB":
+        searchDoc = new Document("FTTHOrder:EquipmentData");
+        searchDoc.clearData();
+        searchDoc.cwOrderId = cwOrderId;
+
+        searchDoc.idAtivo = idAtivo;
+        equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+        break;
+    }
+
+    if(equipamento && equipamento.start){
+        var equip = equipamento.start;
+        equip.flgValidado = true;
+
+        equip.save();
+    }
+  ]]></script>
+</script>

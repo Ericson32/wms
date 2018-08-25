@@ -1,0 +1,891 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHReportApplication.reportPSRFinder">
+  <dbSchema>ORDER</dbSchema>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Finder respons&#225;vel pelo relat&#243;rio de PSR
+    </p>
+  ]]></description>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHReportApplication.reportPSRSearch</input>
+  <label>Relatório de PSR</label>
+  <metaVersion>3</metaVersion>
+  <output>doc_FTTHReportApplication.reportPSRResult</output>
+  <type>SQL</type>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        SELECT
+          tos.NUM_ORDEM_SERVICO,
+          tos.TP_ORDEM_SERVICO,
+          tos.AGREG_SOLICITACAO,
+          tp.NOME_PACOTE,
+          tp.QTD_PONTOS_IPTV,
+          tp.QTD_PONTOS_RFTV,
+          tos.DT_ABERTURA,
+          DECODE (toa.COD_STATUS, 'AUTOMATIC_ACTIVITY', 'Atividade automática em execução', 'FUNCTIONAL_ERROR', 'Atividade em erro funcional', 'ISSUE', 'Atividade com pendência aberta', 'MANUAL_ACTIVITY', 'Atividade manual a espera de execução', 'RESEND', 'Atividade manual reenviada', 'SUCCESS', 'Atividade finalizada com sucesso', 'TECHNICAL_ERROR', 'Atividade em Erro Técnico') as COD,
+          'PSR' as Operation,
+          tam.nome_atividade,
+          tos.DESC_ESTADO_ORDEM_SERVICO,
+          tam.DT_ABERTURA,
+          tam.DT_FECHAMENTO,
+          ( NVL(tam.DT_FECHAMENTO, sysdate) - tam.DT_ABERTURA ) AS TEMPO_TAREFA_ABERTA,
+          tc.NOME_CLIENTE,
+          tc.NUM_TELEFONE1,
+          te.TP_LOGRADOURO,
+          te.NOME_LOGRADOURO,
+          te.NUM_LOGRADOURO,
+          ( te.DESC_COMPLEMENTO1
+          || ' '
+          || te.DESC_COMPLEMENTO2
+          || ' '
+          || te.DESC_COMPLEMENTO3 ) AS DESC_COMPLEMENTO,
+          te.NOME_BAIRRO,
+          te.NOME_ESTADO,
+          te.COD_LOCALIDADE,
+          tf.ID_ACESSO_GPON,
+          tf.SIGLA_ESTACAO,
+          tf.COD_OLT_GALC,
+          tf.NUM_OLT_RACK,
+          tf.NUM_OLT_SHELF,
+          tf.NUM_OLT_SLOT,
+          tf.NUM_OLT_PORT,
+          tf.NUM_ONT,
+          tf.NUM_ONT_CARD,
+          tf.NUM_UNI,
+          tf.NUM_ICX,
+          tf.NUM_DGO,
+          tf.CAMINHO_FIBRA,
+          tf.NUM_CEOS,
+          tf.NUM_ARDO,
+          tam.COD_PSR,
+          tam.NOME_PSR,
+          tam.MATR_TECNICO,
+          tam.NOME_TECNICO
+        FROM TBI_ORDEM_SERVICO tos,
+          TBI_PRODUTO tp,
+          TBI_ORDEM_ATIVIDADE toa,
+          TBI_CLIENTE tc,
+          TBI_ENDERECO te,
+          TBI_FACILIDADE tf,
+          TBI_ATIVIDADE_MANUAL tam
+        WHERE
+         tam.CWORDERID          = tf.CWORDERID AND
+         tam.CWORDERID          = te.CWORDERID AND
+         tam.CWORDERID          = tc.CWORDERID AND
+         tam.CWORDERID          = toa.ID_ORDEM_SERVICO AND
+         tam.CWORDERID          = tp.CWORDERID AND
+         tam.CWORDERID          = tos.CWORDERID AND
+         toa.cod_atividade = 'INSTALAR_EQUIPAMENTO_CLIENTE' AND
+         tf.flagisoriginal = 'N' AND
+         tam.nome_atividade in ('Instalar Equipamento','Instalar/Remover Equipamento') AND
+         tf.flagisoriginal = te.flagisoriginal AND
+         tf.flagisoriginal = tp.flagisoriginal
+         {[0] and tos.TP_ORDEM_SERVICO = ?}
+         {[2] and te.NOME_ESTADO = ?}
+         {[3] and te.COD_LOCALIDADE = ?}
+         {[4] and tam.COD_PSR = ?}
+         {[5] and tam.NOME_PSR = ?}
+         {[6] and tam.MATR_TECNICO = ?}
+         {[7] and tam.nome_atividade = ?}
+         {[8] and toa.COD_STATUS = ?}
+         {[9] and to_char(tam.dt_abertura, 'yyyymmdd')  >= to_char(?, 'yyyymmdd')}
+         {[10]and to_char(tam.dt_abertura, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[11] and to_char(tam.dt_fechamento, 'yyyymmdd') >= to_char(?,  'yyyymmdd')}
+         {[12] and  to_char(tam.dt_fechamento, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[13] and tam.IND_ORDEM_DESPACHADA = ?}
+         {[14] and tos.AGREG_SOLICITACAO = ?}
+         union all
+         SELECT
+          tos.NUM_ORDEM_SERVICO,
+          tos.TP_ORDEM_SERVICO,
+          tos.AGREG_SOLICITACAO,
+          tp.NOME_PACOTE,
+          tp.QTD_PONTOS_IPTV,
+          tp.QTD_PONTOS_RFTV,
+          tos.DT_ABERTURA,
+          DECODE (toa.COD_STATUS, 'AUTOMATIC_ACTIVITY', 'Atividade automática em execução', 'FUNCTIONAL_ERROR', 'Atividade em erro funcional', 'ISSUE', 'Atividade com pendência aberta', 'MANUAL_ACTIVITY', 'Atividade manual a espera de execução', 'RESEND', 'Atividade manual reenviada', 'SUCCESS', 'Atividade finalizada com sucesso', 'TECHNICAL_ERROR', 'Atividade em Erro Técnico') as COD,
+          'PSR' as Operation,
+          tam.nome_atividade,
+          tos.DESC_ESTADO_ORDEM_SERVICO,
+          tam.DT_ABERTURA,
+          tam.DT_FECHAMENTO,
+          ( NVL(tam.DT_FECHAMENTO, sysdate) - tam.DT_ABERTURA ) AS TEMPO_TAREFA_ABERTA,
+          tc.NOME_CLIENTE,
+          tc.NUM_TELEFONE1,
+          te.TP_LOGRADOURO,
+          te.NOME_LOGRADOURO,
+          te.NUM_LOGRADOURO,
+          ( te.DESC_COMPLEMENTO1
+          || ' '
+          || te.DESC_COMPLEMENTO2
+          || ' '
+          || te.DESC_COMPLEMENTO3 ) AS DESC_COMPLEMENTO,
+          te.NOME_BAIRRO,
+          te.NOME_ESTADO,
+          te.COD_LOCALIDADE,
+          tf.ID_ACESSO_GPON,
+          tf.SIGLA_ESTACAO,
+          tf.COD_OLT_GALC,
+          tf.NUM_OLT_RACK,
+          tf.NUM_OLT_SHELF,
+          tf.NUM_OLT_SLOT,
+          tf.NUM_OLT_PORT,
+          tf.NUM_ONT,
+          tf.NUM_ONT_CARD,
+          tf.NUM_UNI,
+          tf.NUM_ICX,
+          tf.NUM_DGO,
+          tf.CAMINHO_FIBRA,
+          tf.NUM_CEOS,
+          tf.NUM_ARDO,
+          tam.COD_PSR,
+          tam.NOME_PSR,
+          tam.MATR_TECNICO,
+          tam.NOME_TECNICO
+        FROM TBI_ORDEM_SERVICO tos,
+          TBI_PRODUTO tp,
+          TBI_ORDEM_ATIVIDADE toa,
+          TBI_CLIENTE tc,
+          TBI_ENDERECO te,
+          TBI_FACILIDADE tf,
+          TBI_ATIVIDADE_MANUAL tam
+        WHERE
+         tam.CWORDERID          = tf.CWORDERID AND
+         tam.CWORDERID          = te.CWORDERID AND
+         tam.CWORDERID          = tc.CWORDERID AND
+         tam.CWORDERID          = toa.ID_ORDEM_SERVICO AND
+         tam.CWORDERID          = tp.CWORDERID AND
+         tam.CWORDERID          = tos.CWORDERID AND
+         toa.cod_atividade = 'RETIRAR_EQUIPAMENTO_CLIENTE' AND
+         tf.flagisoriginal = 'O' AND
+         tam.nome_atividade in ('Remover Equipamento','Instalar/Remover Equipamento') AND
+         tf.flagisoriginal = te.flagisoriginal AND
+         tf.flagisoriginal = tp.flagisoriginal
+         {[0] and tos.TP_ORDEM_SERVICO = ?}
+         {[2] and te.NOME_ESTADO = ?}
+         {[3] and te.COD_LOCALIDADE = ?}
+         {[4] and tam.COD_PSR = ?}
+         {[5] and tam.NOME_PSR = ?}
+         {[6] and tam.MATR_TECNICO = ?}
+         {[7] and tam.nome_atividade = ?}
+         {[8] and toa.COD_STATUS = ?}
+         {[9] and to_char(tam.dt_abertura, 'yyyymmdd')  >= to_char(?, 'yyyymmdd')}
+         {[10]and to_char(tam.dt_abertura, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[11] and to_char(tam.dt_fechamento, 'yyyymmdd') >= to_char(?,  'yyyymmdd')}
+         {[12] and  to_char(tam.dt_fechamento, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[13] and tam.IND_ORDEM_DESPACHADA = ?}
+         {[14] and tos.AGREG_SOLICITACAO = ?}
+         union all
+         SELECT
+          tos.NUM_ORDEM_SERVICO,
+          tos.TP_ORDEM_SERVICO,
+          tos.AGREG_SOLICITACAO,
+          tp.NOME_PACOTE,
+          tp.QTD_PONTOS_IPTV,
+          tp.QTD_PONTOS_RFTV,
+          tos.DT_ABERTURA,
+          DECODE (toa.COD_STATUS, 'AUTOMATIC_ACTIVITY', 'Atividade automática em execução', 'FUNCTIONAL_ERROR', 'Atividade em erro funcional', 'ISSUE', 'Atividade com pendência aberta', 'MANUAL_ACTIVITY', 'Atividade manual a espera de execução', 'RESEND', 'Atividade manual reenviada', 'SUCCESS', 'Atividade finalizada com sucesso', 'TECHNICAL_ERROR', 'Atividade em Erro Técnico') as COD,
+          'PSR' as Operation,
+          tam.nome_atividade,
+          tos.DESC_ESTADO_ORDEM_SERVICO,
+          tam.DT_ABERTURA,
+          tam.DT_FECHAMENTO,
+          ( NVL(tam.DT_FECHAMENTO, sysdate) - tam.DT_ABERTURA ) AS TEMPO_TAREFA_ABERTA,
+          tc.NOME_CLIENTE,
+          tc.NUM_TELEFONE1,
+          te.TP_LOGRADOURO,
+          te.NOME_LOGRADOURO,
+          te.NUM_LOGRADOURO,
+          ( te.DESC_COMPLEMENTO1
+          || ' '
+          || te.DESC_COMPLEMENTO2
+          || ' '
+          || te.DESC_COMPLEMENTO3 ) AS DESC_COMPLEMENTO,
+          te.NOME_BAIRRO,
+          te.NOME_ESTADO,
+          te.COD_LOCALIDADE,
+          tf.ID_ACESSO_GPON,
+          tf.SIGLA_ESTACAO,
+          tf.COD_OLT_GALC,
+          tf.NUM_OLT_RACK,
+          tf.NUM_OLT_SHELF,
+          tf.NUM_OLT_SLOT,
+          tf.NUM_OLT_PORT,
+          tf.NUM_ONT,
+          tf.NUM_ONT_CARD,
+          tf.NUM_UNI,
+          tf.NUM_ICX,
+          tf.NUM_DGO,
+          tf.CAMINHO_FIBRA,
+          tf.NUM_CEOS,
+          tf.NUM_ARDO,
+          tam.COD_PSR,
+          tam.NOME_PSR,
+          tam.MATR_TECNICO,
+          tam.NOME_TECNICO
+        FROM TBI_ORDEM_SERVICO tos,
+          TBI_PRODUTO tp,
+          TBI_ORDEM_ATIVIDADE toa,
+          TBI_CLIENTE tc,
+          TBI_ENDERECO te,
+          TBI_FACILIDADE tf,
+          TBI_ATIVIDADE_MANUAL tam
+        WHERE
+         tam.CWORDERID          = tf.CWORDERID AND
+         tam.CWORDERID          = te.CWORDERID AND
+         tam.CWORDERID          = tc.CWORDERID AND
+         tam.CWORDERID          = toa.ID_ORDEM_SERVICO AND
+         tam.CWORDERID          = tp.CWORDERID AND
+         tam.CWORDERID          = tos.CWORDERID AND
+         toa.cod_atividade = 'REALIZAR_JUMPER' AND
+         tf.flagisoriginal = 'N' AND
+         tam.nome_atividade = 'Instalar Jumper' AND
+         tf.flagisoriginal = te.flagisoriginal AND
+         tf.flagisoriginal = tp.flagisoriginal
+         {[0] and tos.TP_ORDEM_SERVICO = ?}
+         {[2] and te.NOME_ESTADO = ?}
+         {[3] and te.COD_LOCALIDADE = ?}
+         {[4] and tam.COD_PSR = ?}
+         {[5] and tam.NOME_PSR = ?}
+         {[6] and tam.MATR_TECNICO = ?}
+         {[7] and tam.nome_atividade = ?}
+         {[8] and toa.COD_STATUS = ?}
+         {[9] and to_char(tam.dt_abertura, 'yyyymmdd')  >= to_char(?, 'yyyymmdd')}
+         {[10]and to_char(tam.dt_abertura, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[11] and to_char(tam.dt_fechamento, 'yyyymmdd') >= to_char(?,  'yyyymmdd')}
+         {[12] and  to_char(tam.dt_fechamento, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[13] and tam.IND_ORDEM_DESPACHADA = ?}
+         {[14] and tos.AGREG_SOLICITACAO = ?}
+         union all
+         SELECT
+          tos.NUM_ORDEM_SERVICO,
+          tos.TP_ORDEM_SERVICO,
+          tos.AGREG_SOLICITACAO,
+          tp.NOME_PACOTE,
+          tp.QTD_PONTOS_IPTV,
+          tp.QTD_PONTOS_RFTV,
+          tos.DT_ABERTURA,
+          DECODE (toa.COD_STATUS, 'AUTOMATIC_ACTIVITY', 'Atividade automática em execução', 'FUNCTIONAL_ERROR', 'Atividade em erro funcional', 'ISSUE', 'Atividade com pendência aberta', 'MANUAL_ACTIVITY', 'Atividade manual a espera de execução', 'RESEND', 'Atividade manual reenviada', 'SUCCESS', 'Atividade finalizada com sucesso', 'TECHNICAL_ERROR', 'Atividade em Erro Técnico') as COD,
+          'PSR' as Operation,
+          tam.nome_atividade,
+          tos.DESC_ESTADO_ORDEM_SERVICO,
+          tam.DT_ABERTURA,
+          tam.DT_FECHAMENTO,
+          ( NVL(tam.DT_FECHAMENTO, sysdate) - tam.DT_ABERTURA ) AS TEMPO_TAREFA_ABERTA,
+          tc.NOME_CLIENTE,
+          tc.NUM_TELEFONE1,
+          te.TP_LOGRADOURO,
+          te.NOME_LOGRADOURO,
+          te.NUM_LOGRADOURO,
+          ( te.DESC_COMPLEMENTO1
+          || ' '
+          || te.DESC_COMPLEMENTO2
+          || ' '
+          || te.DESC_COMPLEMENTO3 ) AS DESC_COMPLEMENTO,
+          te.NOME_BAIRRO,
+          te.NOME_ESTADO,
+          te.COD_LOCALIDADE,
+          tf.ID_ACESSO_GPON,
+          tf.SIGLA_ESTACAO,
+          tf.COD_OLT_GALC,
+          tf.NUM_OLT_RACK,
+          tf.NUM_OLT_SHELF,
+          tf.NUM_OLT_SLOT,
+          tf.NUM_OLT_PORT,
+          tf.NUM_ONT,
+          tf.NUM_ONT_CARD,
+          tf.NUM_UNI,
+          tf.NUM_ICX,
+          tf.NUM_DGO,
+          tf.CAMINHO_FIBRA,
+          tf.NUM_CEOS,
+          tf.NUM_ARDO,
+          tam.COD_PSR,
+          tam.NOME_PSR,
+          tam.MATR_TECNICO,
+          tam.NOME_TECNICO
+        FROM TBI_ORDEM_SERVICO tos,
+          TBI_PRODUTO tp,
+          TBI_ORDEM_ATIVIDADE toa,
+          TBI_CLIENTE tc,
+          TBI_ENDERECO te,
+          TBI_FACILIDADE tf,
+          TBI_ATIVIDADE_MANUAL tam
+        WHERE
+         tam.CWORDERID          = tf.CWORDERID AND
+         tam.CWORDERID          = te.CWORDERID AND
+         tam.CWORDERID          = tc.CWORDERID AND
+         tam.CWORDERID          = toa.ID_ORDEM_SERVICO AND
+         tam.CWORDERID          = tp.CWORDERID AND
+         tam.CWORDERID          = tos.CWORDERID AND
+         toa.cod_atividade = 'ALTERAR_EQUIPAMENTO_CLIENTE' AND
+         tf.flagisoriginal = 'N' AND
+         tam.nome_atividade in ('Instalar Equipamento','Instalar/Remover Equipamento') AND
+         tf.flagisoriginal = te.flagisoriginal AND
+         tf.flagisoriginal = tp.flagisoriginal
+         {[0] and tos.TP_ORDEM_SERVICO = ?}
+         {[2] and te.NOME_ESTADO = ?}
+         {[3] and te.COD_LOCALIDADE = ?}
+         {[4] and tam.COD_PSR = ?}
+         {[5] and tam.NOME_PSR = ?}
+         {[6] and tam.MATR_TECNICO = ?}
+         {[7] and tam.nome_atividade = ?}
+         {[8] and toa.COD_STATUS = ?}
+         {[9] and to_char(tam.dt_abertura, 'yyyymmdd')  >= to_char(?, 'yyyymmdd')}
+         {[10]and to_char(tam.dt_abertura, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[11] and to_char(tam.dt_fechamento, 'yyyymmdd') >= to_char(?,  'yyyymmdd')}
+         {[12] and  to_char(tam.dt_fechamento, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[13] and tam.IND_ORDEM_DESPACHADA = ?}
+         {[14] and tos.AGREG_SOLICITACAO = ?}
+         union all
+         SELECT
+          tos.NUM_ORDEM_SERVICO,
+          tos.TP_ORDEM_SERVICO,
+          tos.AGREG_SOLICITACAO,
+          tp.NOME_PACOTE,
+          tp.QTD_PONTOS_IPTV,
+          tp.QTD_PONTOS_RFTV,
+          tos.DT_ABERTURA,
+          DECODE (toa.COD_STATUS, 'AUTOMATIC_ACTIVITY', 'Atividade automática em execução', 'FUNCTIONAL_ERROR', 'Atividade em erro funcional', 'ISSUE', 'Atividade com pendência aberta', 'MANUAL_ACTIVITY', 'Atividade manual a espera de execução', 'RESEND', 'Atividade manual reenviada', 'SUCCESS', 'Atividade finalizada com sucesso', 'TECHNICAL_ERROR', 'Atividade em Erro Técnico') as COD,
+          'PSR' as Operation,
+          tam.nome_atividade,
+          tos.DESC_ESTADO_ORDEM_SERVICO,
+          tam.DT_ABERTURA,
+          tam.DT_FECHAMENTO,
+          ( NVL(tam.DT_FECHAMENTO, sysdate) - tam.DT_ABERTURA ) AS TEMPO_TAREFA_ABERTA,
+          tc.NOME_CLIENTE,
+          tc.NUM_TELEFONE1,
+          te.TP_LOGRADOURO,
+          te.NOME_LOGRADOURO,
+          te.NUM_LOGRADOURO,
+          ( te.DESC_COMPLEMENTO1
+          || ' '
+          || te.DESC_COMPLEMENTO2
+          || ' '
+          || te.DESC_COMPLEMENTO3 ) AS DESC_COMPLEMENTO,
+          te.NOME_BAIRRO,
+          te.NOME_ESTADO,
+          te.COD_LOCALIDADE,
+          tf.ID_ACESSO_GPON,
+          tf.SIGLA_ESTACAO,
+          tf.COD_OLT_GALC,
+          tf.NUM_OLT_RACK,
+          tf.NUM_OLT_SHELF,
+          tf.NUM_OLT_SLOT,
+          tf.NUM_OLT_PORT,
+          tf.NUM_ONT,
+          tf.NUM_ONT_CARD,
+          tf.NUM_UNI,
+          tf.NUM_ICX,
+          tf.NUM_DGO,
+          tf.CAMINHO_FIBRA,
+          tf.NUM_CEOS,
+          tf.NUM_ARDO,
+          tam.COD_PSR,
+          tam.NOME_PSR,
+          tam.MATR_TECNICO,
+          tam.NOME_TECNICO
+        FROM
+          TBI_ORDEM_SERVICO tos,
+          TBI_PRODUTO tp,
+          TBI_ORDEM_ATIVIDADE toa,
+          TBI_CLIENTE tc,
+          TBI_ENDERECO te,
+          TBI_FACILIDADE tf,
+          TBI_ATIVIDADE_MANUAL tam
+        WHERE
+         tam.CWORDERID          = tf.CWORDERID AND
+         tam.CWORDERID          = te.CWORDERID AND
+         tam.CWORDERID          = tc.CWORDERID AND
+         tam.CWORDERID          = toa.ID_ORDEM_SERVICO AND
+         tam.CWORDERID          = tp.CWORDERID AND
+         tam.CWORDERID          = tos.CWORDERID AND
+         toa.cod_atividade = 'ALTERAR_EQUIPAMENTO_CLIENTE' AND
+         tf.flagisoriginal = 'O' AND
+         tam.nome_atividade in ('Remover Equipamento','Instalar/Remover Equipamento') AND
+         tf.flagisoriginal = te.flagisoriginal AND
+         tf.flagisoriginal = tp.flagisoriginal
+         {[0] and tos.TP_ORDEM_SERVICO = ?}
+         {[2] and te.NOME_ESTADO = ?}
+         {[3] and te.COD_LOCALIDADE = ?}
+         {[4] and tam.COD_PSR = ?}
+         {[5] and tam.NOME_PSR = ?}
+         {[6] and tam.MATR_TECNICO = ?}
+         {[7] and tam.nome_atividade = ?}
+         {[8] and toa.COD_STATUS = ?}
+         {[9] and to_char(tam.dt_abertura, 'yyyymmdd')  >= to_char(?, 'yyyymmdd')}
+         {[10]and to_char(tam.dt_abertura, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[11] and to_char(tam.dt_fechamento, 'yyyymmdd') >= to_char(?,  'yyyymmdd')}
+         {[12] and  to_char(tam.dt_fechamento, 'yyyymmdd') <= to_char(?,  'yyyymmdd')}
+         {[13] and tam.IND_ORDEM_DESPACHADA = ?}
+         {[14] and tos.AGREG_SOLICITACAO = ?}
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>reportPSRResult</label>
+        <valueType>doc_FTTHReportApplication.reportPSRResult</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHReportApplication.reportPSRSearch/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHReportApplication.reportPSRResult/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="reportPSRFinderResultTable1" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="numOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_numOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tipoOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_tipoOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="subtipoOS" type="elfld">
+                        <label>Solicitação</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_subtipoOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="descCombo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_descCombo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="quantidadePontosIPTV" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_quantidadePontosIPTV</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="quantidadePontosRF" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_quantidadePontosRF</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataAbertura" type="eldate">
+                        <displayFormat>dd/MM/yyyy</displayFormat>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_dataAbertura</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="statusOrdem" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_statusOrdem</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="participante" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_participante</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="atividade" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_atividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="statusAtividade" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_statusAtividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataAbertura1" type="eldate">
+                        <displayFormat>dd/MM/yyyy</displayFormat>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_dataAbertura1</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataFechamento" type="eldate">
+                        <displayFormat>dd/MM/yyyy</displayFormat>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_dataFechamento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="tempoTarefaAberta" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_tempoTarefaAberta</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nome" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_nome</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="telFixo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_telFixo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codLogradouro" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_codLogradouro</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="endereco" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_endereco</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numlogradouro" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_numlogradouro</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="complemento" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_complemento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="bairro" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_bairro</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="uf" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_uf</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="localidade" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_localidade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="acessoGPON" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_acessoGPON</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="estacao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_estacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="OLTGALC" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_OLTGALC</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="OLTRACK" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_OLTRACK</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="OLTSHELF" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_OLTSHELF</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="OLTSLOT" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_OLTSLOT</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="OLTPORT" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_OLTPORT</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="ONT" type="elfld">
+                        <label>ONT</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_ONT</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="ONTCARD" type="elfld">
+                        <label>ONT CARD</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_ONTCARD</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="UNI" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_UNI</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="ICX" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_ICX</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="DGO" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_DGO</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="BSP" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_BSP</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="ARDO" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_ARDO</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codPSR" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_codPSR</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomePSR" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_nomePSR</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="matriculaTecnico" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_matriculaTecnico</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomeTecnico" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.reportPSRResult/leaf_nomeTecnico</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <onEnter type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/action_searchAction</variablePath>
+                  </variablePathList>
+                </onEnter>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</base>
+            <extends>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfAdd" type="eldel"/>
+              <override name="cwfCopy" type="eldel"/>
+              <override name="cwfDelete" type="eldel"/>
+              <override name="cwfUpdate" type="eldel"/>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="searchAction" type="action">
+        <parameterList>
+          <parameter name="doValidate" type="rifp">
+            <type>dtype_com.conceptwave.system.Boolean</type>
+          </parameter>
+        </parameterList>
+        <script><![CDATA[
+          doValidate = true;
+          this.cw$super_searchAction(doValidate);
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+  <viewList>
+    <view name="reportPSRFinderView" type="findVView">
+      <inputOverlay>doc_FTTHReportApplication.reportPSRSearch/ui_UserInterface/frmui_Forms/exov_Default</inputOverlay>
+      <label>Relatório PSR</label>
+      <outputOverlay>findSql_FTTHReportApplication.reportPSRFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+      <showSearchForm>true</showSearchForm>
+    </view>
+  </viewList>
+</findSql>

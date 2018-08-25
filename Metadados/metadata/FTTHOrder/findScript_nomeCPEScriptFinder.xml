@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findScript name="FTTHOrder.nomeCPEScriptFinder">
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <label>nomeCPEScriptFinder</label>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHReportApplication.registerCPE</output>
+  <type>script</type>
+  <vDetailForm>doc_FTTHReportApplication.registerCPE/ui_UserInterface/frmui_Forms/exov_Default</vDetailForm>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        
+
+        var searchDoc = new Document ("FTTHReportApplication:registerCPE");
+        var count;
+        var i;
+        var nomeCPEResult;
+        var enumDoc;
+
+        Global.logInfo(UserProfile.getUserTask());
+
+        //28/05/2018 - PKE000000032818
+        if(this.parent.metadataType == "FTTHOrder:BaseEquipmentData"){
+            if(this.parent && this.parent.tabname && this.parent.tabname != ""){
+                searchDoc.equipmentType = this.parent.tabname;
+            } else{
+                searchDoc.equipmentType = "ONT";
+            }
+        }
+        //end 28/05/2018
+
+        nomeCPEResult  = Finder.runSearch ("FTTHOrder.nomeCPEFinder", searchDoc);
+
+        var list = [];
+
+        for (i = 0; i < nomeCPEResult.length; i++){
+            objectList.addLast(nomeCPEResult[i]);
+        }
+
+        return objectList;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>Issues</label>
+        <valueType>doc_FTTHReportApplication.registerCPE</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHReportApplication.registerCPE/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="nomeCPEScriptFinderResultTable1" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findScript_FTTHOrder.nomeCPEScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="cwDocId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHOrder.nomeCPEScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codigoMaterial" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHOrder.nomeCPEScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_codigoMaterial</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomeCPE" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHOrder.nomeCPEScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_nomeCPE</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="descricaoMaterial" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHOrder.nomeCPEScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_descricaoMaterial</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="isTV" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHOrder.nomeCPEScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_isTV</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_FTTHOrder.nomeCPEScriptFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+  <viewList>
+    <view name="nomeCPEScriptFinderView" type="findVView">
+      <outputOverlay>findScript_FTTHOrder.nomeCPEScriptFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+    </view>
+  </viewList>
+</findScript>

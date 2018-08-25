@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.enableFiberNetworkPlanningManualTask">
+  <activity name="enableFiberNetworkPlanningManualTaskStart" type="seqActivity">
+    <guid>{a4168e15-fbcd-4fa4-afdf-dd8977b616d0}</guid>
+    <label>Enable Fiber Network Planning Manual Task Start</label>
+    <x>98.55499</x>
+    <y>30.0</y>
+    <childList>
+      <child name="enableFiberNetworkPlanningManualTask" type="opActivity">
+        <element>iface_FTTHUserInterface.enableFiberNetworkManualTaskInterface/oper_enableFiberNetworkPlanning</element>
+        <guid>{54717401-4a5c-4971-990d-80d8c4e57b7b}</guid>
+        <label>Enable Fiber Network Manual Task - Planning</label>
+        <participant>part_FTTHUserInterface.enableFiberNetworkManualTaskParticipant</participant>
+        <x>109.15088</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="waitActivity" type="choiceActivity">
+            <guid>{6d9b6c30-8887-4839-a611-e1823f7900bf}</guid>
+            <label>Wait Activity</label>
+            <x>30.0</x>
+            <y>337.60138</y>
+            <childList>
+              <child name="enableFiberNetworkManualTaskSuccess" type="opActivity">
+                <element>iface_FTTHUserInterface.enableFiberNetworkManualTaskInterface/oper_enableFiberNetworkPlanningSuccess</element>
+                <guid>{8aa57156-c236-4143-bff6-6ac657c517ec}</guid>
+                <label>Success</label>
+                <participant>part_FTTHUserInterface.enableFiberNetworkManualTaskParticipant</participant>
+                <x>155.2207</x>
+                <y>501.05548</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      FTTHCommon.updateEnableFiberExecutionPlan(process.processOrder.id, Global.getConfigVariable('VIABILIZAR_REDE_PLANEJAMENTO'), Global.getConfigVariable("SUCCESS"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="enableFiberNetworkManualTaskIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.enableFiberNetworkManualTaskInterface/oper_enableFiberNetworkPlanningIssue</element>
+                <guid>{df70ffdf-2eb5-4111-8609-ff284a14998d}</guid>
+                <label>Issue</label>
+                <participant>part_FTTHUserInterface.enableFiberNetworkManualTaskParticipant</participant>
+                <x>72.16553</x>
+                <y>501.05548</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      FTTHCommon.updateEnableFiberExecutionPlan(process.processOrder.id, Global.getConfigVariable('VIABILIZAR_REDE_PLANEJAMENTO'), Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.updateEnableFiberExecutionPlan(process.processOrder.id, Global.getConfigVariable('VIABILIZAR_REDE_PLANEJAMENTO'), Global.getConfigVariable("ACTIVITY_MANUAL"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="enableFiberNetworkManualTaskParticipant" type="participantActivity">
+        <guid>{c8e9419e-3bdf-4f87-988b-7f9d4ce6a615}</guid>
+        <label>Enable Fiber Network Manual Task Participant</label>
+        <participant>part_FTTHUserInterface.enableFiberNetworkManualTaskParticipant</participant>
+        <x>147.33789</x>
+        <y>300.84845</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{6522883e-9601-4902-ba00-301e7877c57f}</guid>
+  <label>Enable Fiber Network Planning Manual Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

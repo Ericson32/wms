@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConsultEquipmentInventory_cwr2">
+  <activity name="ConsultEquipmentInventoryStart" type="seqActivity">
+    <guid>{ad598f15-e5d8-4d62-9f84-a26eb864a5f5}</guid>
+    <label>Consult Equipment Inventory Start</label>
+    <x>28.336525</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConsultEquipmentInventoryAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryConsultEquipment.ConsultEquipmentInventoryAutomaticTask</element>
+        <guid>{674a58bc-56d1-499d-9537-9e12bc63033e}</guid>
+        <label>Consult Equipment Inventory Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>369.4461</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{f189ea6c-30f4-4f1d-b47a-92820ebca927}</guid>
+        <label>Check Task Result</label>
+        <x>74.20215</x>
+        <y>523.95197</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{41163a95-c680-4d95-8925-5622fdf73b2c}</guid>
+            <label>Success</label>
+            <x>42.283936</x>
+            <y>650.0555</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                  var activityIdFisicaNova = Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO");
+                  var resultFisicaOriginal = FTTHCommon.getStatusActivity(orderId, activityIdFisicaNova);
+
+                  if( (resultFisicaOriginal == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")) )
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{a83e1f63-f917-42ab-b06e-3b6bdda9a842}</guid>
+            <label>Error</label>
+            <x>86.0</x>
+            <y>422.0</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{e16a5c2f-4261-4349-b07b-281e40680529}</guid>
+                <label>Handle Error Start</label>
+                <x>126.95425</x>
+                <y>652.40607</y>
+                <childList>
+                  <child name="ConsultEquipmentInventoryHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConsultEquipmentInventoryHandleErrorTask_cwr1</element>
+                    <guid>{f1fd81af-4515-4021-af4d-66143d7a0434}</guid>
+                    <label>Consult Equipment Inventory Handle Error Task</label>
+                    <x>162.82068</x>
+                    <y>746.75665</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{e2b8a9dd-b03c-4994-a208-37e9a07e7090}</guid>
+                    <label>Check Error Handling</label>
+                    <x>127.31478</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Repeat" type="caseActivity">
+                        <guid>{3e9cac6f-c0ac-4777-8df4-49f1a23cb976}</guid>
+                        <label>Repeat</label>
+                        <x>32.0</x>
+                        <y>-281.0</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConsultEquipmentInventory_cwr2/seqActivity_ConsultEquipmentInventoryStart</element>
+                            <guid>{3dee42cf-8278-463d-b66b-4ea839e09884}</guid>
+                            <label>Repeat</label>
+                            <x>39.655273</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{f9c9af9f-1cc6-4f61-ad6c-5475e8f30326}</guid>
+                        <label>Issue</label>
+                        <x>285.0</x>
+                        <y>-279.0</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{fd859779-79d5-4224-8c9e-f3045dc591d4}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>136.38242</x>
+                            <y>272.1254</y>
+                            <childList>
+                              <child name="ConsultEquipmentInventorySolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConsultEquipmentHandleIssueSubprocess_cwr1</element>
+                                <guid>{5459416b-e95b-49e9-aba1-c28b232b1590}</guid>
+                                <label>Consult Equipment Inventory Solve Issue Task</label>
+                                <x>136.00586</x>
+                                <y>368.4461</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConsultEquipmentInventory_cwr2/seqActivity_ConsultEquipmentInventoryStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{4ce68d1f-90c4-40a9-bda1-cf09ad441395}</guid>
+                                <label>Repeat</label>
+                                <x>160.21582</x>
+                                <y>538.65314</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Consult Equipment Inventory Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConsultEquipmentInventory</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

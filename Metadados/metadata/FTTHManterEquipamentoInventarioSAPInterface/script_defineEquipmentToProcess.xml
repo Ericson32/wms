@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHManterEquipamentoInventarioSAPInterface.defineEquipmentToProcess">
+  <label>Define Equipment To Process</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ord" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="cwDocId" type="rifp">
+      <type>dtype_cwf.cwDocId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        AUTOR: Manoella Cordeiro
+        DATA: 01/05/2017
+        DESCRICAO: Busca do Equipamento a ser processado.
+
+    */
+
+    var equipmentDoc = null;
+    var equipmentFinder = null;
+    var result = true;
+    var error;
+    var equipmentToProcess = null;
+    //Preenche os dados do equipamento que vai ser removido se tiver algum.
+    var equipmentToRemove = new Document('FTTHOrder:EquipmentDataBATime');
+    equipmentToRemove.statusAcao = 'A Remover';
+
+    if(ord.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+        equipmentToRemove.status = 'wait';
+    }
+    else{
+        equipmentToRemove.status = 'end';
+    }
+
+    equipmentToRemove.cwOrderId = ord.id;
+    equipmentToRemove.cwDocId = null;
+    //Busca pelo Equipamento de ponta
+    equipmentDoc =  new Document('FTTHOrder:EquipmentData');
+    equipmentDoc.cwOrderId = ord.id;
+    //equipmentDoc.statusAcao = 'em processamento';
+    equipmentDoc.statusAcao = null;
+    //teste
+    equipmentDoc.cwDocId = cwDocId;
+
+    //Verifica se existe algum equipamento de ponta para ser removido(ponto adicional) caso tenha ele que deve ser processado primeiro.
+    var equipmentBATimeFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentBATimeFinder', equipmentToRemove);
+    if(equipmentBATimeFinder && equipmentBATimeFinder.length > 0){
+        equipmentToProcess = equipmentBATimeFinder[0];
+        equipmentToProcess.statusAcao = 'em processamento';
+        equipmentToProcess.save();
+
+        return equipmentToProcess;
+    }
+
+    equipmentFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentFinder', equipmentDoc);
+
+    if (equipmentFinder.length > 0) {
+        equipmentToProcess = equipmentFinder[0];
+    }else{
+        equipmentDoc =  new Document('FTTHOrder:EquipmentData');
+        equipmentDoc.cwOrderId = ord.id;
+        //equipmentDoc.statusAcao = "pendente";
+        equipmentDoc.statusAcao = null;
+        equipmentFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentFinder', equipmentDoc);
+        if (equipmentFinder.length > 0){
+            equipmentToProcess = equipmentFinder[0];
+        }
+    }
+
+    var equipmentToRemove = new Document('FTTHOrder:EquipmentDataBATime');
+    equipmentToRemove.statusAcao = 'A Remover';
+    equipmentToRemove.cwOrderId = ord.id;
+    equipmentToRemove.numeroSerieSetTopBox = equipmentToProcess.numeroSerieSetTopBox_Original;
+    equipmentToRemove.cwDocId = null;
+    var equipmentBATimeFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentBATimeFinder', equipmentToRemove);
+
+    if(equipmentBATimeFinder && equipmentBATimeFinder.length > 0){
+        equipmentBATimeFinder[0].statusAcao = 'em processamento';
+        equipmentBATimeFinder[0].save();
+    }
+        return equipmentToProcess;
+  ]]></script>
+</script>

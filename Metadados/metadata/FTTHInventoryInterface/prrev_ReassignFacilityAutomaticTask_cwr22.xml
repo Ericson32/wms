@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHInventoryInterface.ReassignFacilityAutomaticTask_cwr22">
+  <activity name="AssignFacilityAutomaticTaskStart" type="seqActivity">
+    <guid>{a3b10a32-9760-477b-af23-92fee36bf51f}</guid>
+    <label>Assign Facility Automatic Task Start</label>
+    <x>230.28592</x>
+    <y>1135.9615</y>
+    <childList>
+      <child name="ReassignFacilitySendOperation" type="opActivity">
+        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_ReassignFacilitySendOperation</element>
+        <guid>{43425290-1e5a-4bd1-8528-87d73bb51109}</guid>
+        <label>Reassign Facility Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>355.6476</x>
+        <y>1264.0352</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              process.processDocument.oldIndCancel = FTTHCommon.isCancelOrder(this.process.processOrder.id);
+              var msg = FTTHInventoryInterface.CreateInventoryMessage(this.process.processOrder, this.process.id, "REDESIGNAR_FACILIDADE", this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Reassign Facility Automatic Task", "Reassign Facility Send Operation", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Reassign Facility Automatic Task", "Reassign Facility Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              this.process.processOrder.OrderHeader.numeroOSInventario = this.activityData.key;
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("REDESIGNAR_FACILIDADE"), status, process.processDocument.oldIndCancel);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("REDESIGNAR_FACILIDADE"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("REDESIGNAR_FACILIDADE"), process.processDocument.oldIndCancel);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckSendOperationResult" type="switchActivity">
+        <guid>{a79b2cd1-ae9d-47d9-863c-1789b219fa1b}</guid>
+        <label>Check Send Operation Result</label>
+        <x>346.8211</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{9c150b37-cac3-4521-8134-d30c0ff930b6}</guid>
+            <label>Success</label>
+            <x>223.58809</x>
+            <y>428.22092</y>
+            <childList>
+              <child name="WaitingAutomaticActivity" type="choiceActivity">
+                <guid>{48b038ce-8e70-4e34-8327-7f4b63d161a9}</guid>
+                <label>Waiting Automatic Activity</label>
+                <x>137.24951</x>
+                <y>185.80469</y>
+                <childList>
+                  <child name="TimeoutControl" type="timeoutActivity">
+                    <guid>{35004a23-86ea-4d8c-91fc-64a2de72611d}</guid>
+                    <label>Timeout Control</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              var timeout = Global.getConfigVariable("TIMEOUT_INVENTORY");
+                              return timeout;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>32.99707</x>
+                    <y>319.2588</y>
+                    <childList>
+                      <child name="TimeOutHandler" type="scriptActivity">
+                        <guid>{35235ba7-4b11-44f4-b81f-f181f6699ffd}</guid>
+                        <label>Time Out Handler</label>
+                        <x>30.0</x>
+                        <y>467.7129</y>
+                        <methodList>
+                          <method name="cwOnProcActBefore" type="action">
+                            <category>before</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var LOG_INTERFACE = "INVENTORY";
+                              var LOG_ACTIVITY = "TIMEOUT_LISTENER";
+                              var LOG_SCRIPT = "cwOnProcActBefore/TimeoutAssign";
+                              var LOG_OPERATION = "Listener";
+                              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_INVENTORY');
+
+                              var errorTypeResult = "" ;
+                              var searchErrorTypeDoc = "";
+
+                              FTTHCommon.log( this.process.processOrder.id, this.process.id, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, "Reassign Facility Timeout-Listener", null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+                              var activity = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+                              var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                              FTTHCommon.log( this.process.processOrder.id, this.process.id, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, "Executar FTTHCommon.setStatusActivity()", null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, activity, status, process.processDocument.oldIndCancel);
+
+                              searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                              searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_INVENTORY_TYPE");
+                              searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("INVENTORY_SYSTEM");
+
+                              FTTHCommon.log( this.process.processOrder.id, this.process.id, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, "Executar FTTHCommon.ErrorCodeFinder", null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+                              errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                              var errorType = errorTypeResult.start;
+
+                              FTTHCommon.log( this.process.processOrder.id, this.process.id, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, "Executar FTTHCommon.saveEvent", null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   Global.getConfigVariable("INVENTORY_SYSTEM"),
+                                                   Global.getConfigVariable("REDESIGNAR_FACILIDADE"),
+                                                   status,
+                                                   errorType.errorCode,
+                                                   errorType.errorDescription,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_REQUEST"));
+                              FTTHCommon.log( this.process.processOrder.id, this.process.id, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,"Executar FTTHCommon.updateAutomaticActivityDocument()", null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("REDESIGNAR_FACILIDADE"), process.processDocument.oldIndCancel);
+
+                              FTTHCommon.log( this.process.processOrder.id, this.process.id, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,"Fim script Reassign Facility Timeout", null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                  <child name="AssingFacilityReceiveOperation" type="opActivity">
+                    <element>iface_FTTHInventoryInterface.InventoryListenerInterface/oper_ReceiveOperation</element>
+                    <guid>{da40e25a-769f-4dbe-995a-249997831118}</guid>
+                    <label>Assign Facility Receive Operation</label>
+                    <participant>part_FTTHInventoryInterface.InventoryListenerParticipant</participant>
+                    <x>293.3418</x>
+                    <y>453.01172</y>
+                    <methodList>
+                      <method name="cwOnProcActAfter" type="action">
+                        <category>script</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHCommon.log(this.process.processOrder.id, this.process.id, "Reassign Facility Automatic Task", "Reassign Facility Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                          var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("REDESIGNAR_FACILIDADE"), status, process.processDocument.oldIndCancel);
+
+                          FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("REDESIGNAR_FACILIDADE"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("ASYNC_RESPONSE"));
+                          FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("REDESIGNAR_FACILIDADE"), process.processDocument.oldIndCancel);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var result = FTTHCommon.getStatusActivity(this.process.processOrder.id, Global.getConfigVariable("REDESIGNAR_FACILIDADE"), process.processDocument.oldIndCancel);
+                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Reassign Facility Automatic Task", "Check Send Operation Result", "cwOnProcActCond", result);
+                  return (result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"));
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{09ca59a2-1c82-43fe-b250-9920452a2ae0}</guid>
+            <label>Error</label>
+            <x>424.69922</x>
+            <y>326.60938</y>
+          </child>
+        </childList>
+      </child>
+      <child name="checkCancelAndWaitForTermination" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMListenerInterface/oper_proceedCancel</element>
+        <guid>{fb5c6bf7-5001-4675-b310-8a674bd21a6d}</guid>
+        <label>Check if order is being canceled and if true stops</label>
+        <participant>part_FTTHOrderManagementInterface.OMListenerParticipant</participant>
+        <x>225.94153</x>
+        <y>608.8164</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              //Sends the message to rollbackactivityprocess if needed and waits for termination
+              return FTTHInventoryInterface.checkAndSendCancelProceedToRollbackProcess(this.process.processOrder.id);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{54cb4503-1a63-472c-a6e6-e650e354d7f0}</guid>
+        <label>exceptionHandler</label>
+        <x>204.00655</x>
+        <y>1286.0869</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("REDESIGNAR_FACILIDADE"), Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+
+              //With this activity, if the order is being cancelled, the process will be stopped.
+              //It also sends a message to the RollbackActionAtutomaticTask process, indicating that it can proceed.
+              FTTHInventoryInterface.checkAndSendCancelProceedToRollbackProcess(this.process.processOrder.id);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{194375a3-5f55-47e9-a6fa-7374b9db5324}</guid>
+        <label>Check Resend</label>
+        <x>225.14154</x>
+        <y>779.02344</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{28a371dd-7c48-4c4d-ab29-df70b36aa388}</guid>
+            <label>Check Need To Resend</label>
+            <x>264.61227</x>
+            <y>871.02344</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{63de539c-9785-4864-9ff1-5acbc8f5bad1}</guid>
+                <label>Yes</label>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHInventoryInterface.ReassignFacilityAutomaticTask_cwr22/seqActivity_AssignFacilityAutomaticTaskStart</element>
+                    <guid>{c03fa129-2ba5-4ba5-93f6-6cd59e4fb18d}</guid>
+                    <label>Resend To Start</label>
+                    <schedule type="sched">
+                      <duration type="dur">
+                        <methodList>
+                          <method name="cwOnDuration" type="action">
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "REDESIGNAR_FACILIDADE", "INVENTORY_SYSTEM");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </duration>
+                    </schedule>
+                    <x>230.0199</x>
+                    <y>997.12695</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{8bc44af8-e842-4ea8-8370-b09da60e271f}</guid>
+                <label>No</label>
+                <x>344.05505</x>
+                <y>1004.47754</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, "REDESIGNAR_FACILIDADE", "INVENTORY_SYSTEM"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="AssignFacilityAutomaticTaskComplete" type="completeActivity">
+            <guid>{7d199854-d099-43fe-b130-6a2bfabde42c}</guid>
+            <label>Assign Facility Automatic Task Complete</label>
+            <x>333.3695</x>
+            <y>1108.5293</y>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{ffe14fda-d14d-47a5-8b21-0f226329ca02}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>324.9972</x>
+        <y>1404.8398</y>
+      </child>
+      <child name="InventoryListenerParticipant" type="participantActivity">
+        <guid>{95a2eded-94da-4e80-a37c-d748dfad3fa6}</guid>
+        <label>Inventory Listener Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryListenerParticipant</participant>
+        <x>262.69922</x>
+        <y>311.9082</y>
+      </child>
+      <child name="OMListenerParticipant" type="participantActivity">
+        <guid>{20cab947-62e5-441a-8560-7fdf78ba0624}</guid>
+        <label>OM Listener Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMListenerParticipant</participant>
+        <x>127.3418</x>
+        <y>460.3623</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Designar
+      Facilidades. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de designa&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de
+      tempo pr&#233; determinado, ser&#227;o feitas mais algumas retentativas. A
+      quantidade de retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo
+      usu&#225;rio.
+    </p>
+  ]]></description>
+  <document>doc_FTTHInventoryInterface.ProcessDoc</document>
+  <label>Reassign Facility Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryInterface.ReassignFacilityAutomaticTask</process>
+  <revision>22</revision>
+  <type>User</type>
+</process__revision>

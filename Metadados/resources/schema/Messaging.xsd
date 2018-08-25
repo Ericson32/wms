@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.oi.net.br/INFRA/SOAFW/SharedResources/Messaging/v1" elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msg="http://www.oi.net.br/INFRA/SOAFW/SharedResources/Messaging/v1" xmlns:typ="http://www.oi.net.br/INFRA/SOAFW/SharedResources/Types/v1">
+  <xsd:import namespace="http://www.oi.net.br/INFRA/SOAFW/SharedResources/Types/v1" schemaLocation="Types.xsd"/>
+  <!--Credentials-->
+  <xsd:complexType name="BaseCredentialsType">
+    <xsd:sequence>
+      <xsd:element name="AppId" type="typ:AppIdType">
+        <xsd:annotation>
+          <xsd:documentation>Identificador da aplicação que enviou a requisição (i.e. consumiu o serviço)</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="AppToken" type="typ:TokenType" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>Chave (hash) de identificação da aplicação que enviou a requisição (i.e. consumiu o serviço)</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="UserId" type="typ:UserIdType" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>Identificador do usuário que enviou a requisição (i.e. consumiu o serviço)</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="UserToken" type="typ:TokenType" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>Chave (hash) de identificação do usuário que enviou a requisição (i.e. consumiu o serviço)</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CredentialsType">
+    <xsd:complexContent>
+      <xsd:extension base="msg:BaseCredentialsType"/>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="Credentials" type="msg:CredentialsType">
+    <xsd:annotation>
+      <xsd:documentation>Credenciais de acesso ao serviço
+
+Agrupa atributos relactionados com credenciais do serviço</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <!--Return-->
+  <xsd:complexType name="BaseCodeType">
+    <xsd:sequence>
+      <xsd:element name="Type" type="typ:CodeTypeType" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>Identifica o Tipo de Retorno do Serviço, i.e. Se é um erro (técnico ou de negócio), um aviso, ou um sucesso</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="Code" type="typ:ReturnCodeType" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>Código de retorno</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="Description" type="typ:DescriptionType" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>Descrição de retorno</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="NativeReturnType">
+    <xsd:complexContent>
+      <xsd:extension base="msg:BaseCodeType">
+        <xsd:sequence>
+          <xsd:element name="AppId" type="typ:AppIdType">
+            <xsd:annotation>
+              <xsd:documentation>Identificador da aplicação que enviou a resposta</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="Detail" minOccurs="0">
+            <xsd:annotation>
+              <xsd:documentation>Detalhes da resposta nativa</xsd:documentation>
+            </xsd:annotation>
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:any namespace="##any" processContents="lax"/>
+              </xsd:sequence>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="NativeReturn" type="msg:NativeReturnType"/>
+  <xsd:complexType name="ReturnType">
+    <xsd:complexContent>
+      <xsd:extension base="msg:BaseCodeType">
+        <xsd:sequence>
+          <xsd:element ref="msg:NativeReturn" maxOccurs="unbounded">
+            <xsd:annotation>
+              <xsd:documentation>Elemento que contém os códigos nativos de retorno, devolvido pelos sistemas/serviços provedores</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="Return" type="msg:ReturnType">
+    <xsd:annotation>
+      <xsd:documentation>Elemento que contém os códigos de retorno
+
+- A ser preenchido pelo barramento nas respostas a uma requisição
+- A ser preenchido pelo sistema consumidor quando essa requisição representar uma resposta a uma requisição assíncrona</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:complexType name="ResponseType">
+    <xsd:sequence>
+      <xsd:element ref="msg:Return" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="Response" type="msg:ResponseType">
+    <xsd:annotation>
+      <xsd:documentation>Estrutura que agrupa toda a informação da Resposta de um serviço</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:complexType name="NativeFaultType">
+    <xsd:complexContent>
+      <xsd:extension base="msg:NativeReturnType">
+        <xsd:sequence>
+          <xsd:element name="APIId" type="xsd:string">
+            <xsd:annotation>
+              <xsd:documentation>Código da API da aplicação que retorno o Erro</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="NativeFault" type="msg:NativeFaultType"/>
+  <xsd:complexType name="FaultType">
+    <xsd:complexContent>
+      <xsd:extension base="msg:BaseCodeType">
+        <xsd:sequence>
+          <xsd:element name="Handle" type="typ:HandleType" minOccurs="0">
+            <xsd:annotation>
+              <xsd:documentation>Representa o tipo de tratamento para este Erro</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element ref="msg:NativeFault" maxOccurs="unbounded">
+            <xsd:annotation>
+              <xsd:documentation>Elemento que contém as exceções nativas, devolvido pelos sistemas/serviços provedores</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="Fault" type="msg:FaultType"/>
+  <!--Header-->
+  <xsd:complexType name="BaseHeaderType">
+    <xsd:sequence>
+      <xsd:element name="Operation" type="typ:IdType" minOccurs="0"/>
+      <xsd:element name="TransactionId" type="typ:IdType">
+        <xsd:annotation>
+          <xsd:documentation>Identificador da transação de negócio do consumidor que iniciou a requisição</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="CorrelationId" type="typ:IdType" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>Identificador que permite correlacionar mensagens num contexto assíncrono</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="BusinessId" type="typ:BusinessIdType" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>Identificador funcional de negócio para a transação
+				Este Id servirá de suporte a identificar funcionalmente a transação (representam dados funcionais por serviço)</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="Timestamp" type="typ:TimestampType">
+        <xsd:annotation>
+          <xsd:documentation>Data e hora da criação desta requisição</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="MessageHeaderType">
+    <xsd:complexContent>
+      <xsd:extension base="msg:BaseHeaderType">
+        <xsd:sequence>
+          <xsd:element ref="msg:Credentials" minOccurs="0"/>
+          <xsd:element ref="msg:Response" minOccurs="0"/>
+          <xsd:element name="Parameters" minOccurs="0">
+            <xsd:annotation>
+              <xsd:documentation>Lista de parâmetros do serviço que podem ser enviados pela aplicação/usuário na requisição</xsd:documentation>
+            </xsd:annotation>
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
+              </xsd:sequence>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="MessageHeader" type="msg:MessageHeaderType">
+    <xsd:annotation>
+      <xsd:documentation>Estrutura que agrupa toda a Informação do Cabeçalho duma Mensagem da Framework</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+</xsd:schema>

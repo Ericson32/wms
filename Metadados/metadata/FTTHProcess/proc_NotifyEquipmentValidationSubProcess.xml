@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.NotifyEquipmentValidationSubProcess">
+  <activity name="StartNotifyEquipmentValidationSubProcess" type="seqActivity">
+    <guid>{0c08d515-e3c8-4fe5-b3cb-84902c4c14ac}</guid>
+    <label>Start Notify Equipment Validation SubProcess</label>
+    <x>75.36328</x>
+    <y>985.5892</y>
+    <childList>
+      <child name="NotifyEquipmentValidationAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHProcess.NotifyEquipmentValidationAutomaticTask</element>
+        <guid>{ee392a18-c176-46b7-a0ec-efe707812b7c}</guid>
+        <label>Notify Equipment Validation Automatic Task</label>
+        <syc>true</syc>
+        <x>156.82382</x>
+        <y>1092.111</y>
+      </child>
+      <child name="CheckNeedResend" type="switchActivity">
+        <guid>{889e4fe4-9fa3-4116-aa3d-28afe6e01311}</guid>
+        <label>Check Need Resend ?</label>
+        <x>144.68124</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{7090db5e-780e-4a83-ae0d-d48d75145a9d}</guid>
+            <label>Success</label>
+            <x>200.31755</x>
+            <y>173.07364</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var ord =  process.processOrder;
+                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+
+
+                      var doc = Document.readDoc("FTTHActivationInterface:ResendAutomaticTask",orderId);
+                      if (doc != null && doc[activityId]){
+                          doc[activityId] = 0;
+                          doc.save();
+                      }
+                      return true;
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Resend" type="caseActivity">
+            <guid>{c1260714-8f6f-4edf-8590-955e1dec66c9}</guid>
+            <label>Resend</label>
+            <x>-93.072754</x>
+            <y>516.0</y>
+            <childList>
+              <child name="Resend" type="repeatActivity">
+                <element>proc_FTTHProcess.NotifyEquipmentValidationSubProcess/seqActivity_StartNotifyEquipmentValidationSubProcess</element>
+                <guid>{da54e6fa-5012-4019-9df2-5a0210e272a9}</guid>
+                <label>Resend</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ord = this.processOrder;
+                          var orderId = ord.OrderHeader.cwOrderId;
+                          var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                          var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                          return FTTHActivationInterface.checkTimetoResend(ord.OrderHeader.cwOrderId, activityId, Global.getConfigVariable("CLICK_SYSTEM"));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>30.0</x>
+                <y>590.10724</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = this.process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                  FTTHCommon.createBreakpoint();
+
+                  if (FTTHCommon.getStatusActivity(orderId, activityId) == 'MANUAL_ACTIVITY'){
+                      return false;
+                  }
+
+                  return (!FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, activityId, "CLICK_SYSTEM"));
+
+
+                  /*
+
+                  var ord = this.process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                  if (((activityId ==  Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE")) || (activityId ==  Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE"))) && (FTTHCommon.getStatusActivity(orderId, activityId) == "TECHNICAL_ERROR")){
+                      return (!(FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, activityId, Global.getConfigVariable("CLICK_SYSTEM"))));
+                  }
+
+                  return false;
+                  */
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="HandleError" type="caseActivity">
+            <guid>{5badc1cb-5a27-41ce-ad21-48522ffa5fef}</guid>
+            <label>HandleError</label>
+            <x>198.60901</x>
+            <y>316.16327</y>
+            <childList>
+              <child name="NotifyEquipmentValidationManualTask" type="seqActivity">
+                <guid>{650082d6-c64b-4569-9b0f-cb4d063111eb}</guid>
+                <label>Notify Equipment Validation Manual Task</label>
+                <x>92.15896</x>
+                <y>171.10352</y>
+                <childList>
+                  <child name="NotifyEquipmentValidationHandleError" type="opActivity">
+                    <element>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_NotifyValidationEquipmentHandleError</element>
+                    <guid>{cc1b7485-c4e0-465d-9f38-5e7419755073}</guid>
+                    <label>Notify Equipment Validation Handle Error</label>
+                    <participant>part_FTTHUserInterface.ClickHandleError</participant>
+                    <x>107.55876</x>
+                    <y>271.74493</y>
+                    <childList>
+                      <child name="NotifyEquipmentValidationHandleErrorResend" type="opActivity">
+                        <element>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_NotifyValidationEquipmentHandleErrorResend</element>
+                        <guid>{fc904f79-0d5b-41d5-9863-6660659a0b07}</guid>
+                        <label>Notify Equipment Validation Handle Error Resend</label>
+                        <participant>part_FTTHUserInterface.ClickHandleError</participant>
+                        <x>119.36133</x>
+                        <y>553.3543</y>
+                        <childList>
+                          <child name="StartNotifyEquipmentValidationHandleErrorResend" type="seqActivity">
+                            <guid>{0790eaab-7106-4ae7-ad52-cd7180c31fd4}</guid>
+                            <label>Start Notify Equipment Validation Handle Error Resend</label>
+                            <x>114.419334</x>
+                            <y>723.5614</y>
+                            <childList>
+                              <child name="RepeatNotifyEquipmentValidationSubProcess" type="repeatActivity">
+                                <element>proc_FTTHProcess.NotifyEquipmentValidationSubProcess/seqActivity_StartNotifyEquipmentValidationSubProcess</element>
+                                <guid>{b82b13bc-623d-44e5-8e29-02e6a2556457}</guid>
+                                <label>Repeat Notify Equipment Validation SubProcess</label>
+                                <x>115.69629</x>
+                                <y>830.08325</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              /*
+
+                              FTTHCommon.createBreakpoint();
+                              if(this.activityData.MessageHeader.Response.Return[0].Code == 99999 ){
+
+                                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+                                  var ord = this.process.processOrder;
+                                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                                  FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("CLICK_SYSTEM"),activityId , status, this.activityData.MessageHeader.Response.Return[0].Code,
+                                                                                                             "Erro do click para reenvio", this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+
+                              }else {
+                                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                                  var ord = this.process.processOrder;
+                                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                                  FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("CLICK_SYSTEM"),activityId , status, this.activityData.MessageHeader.Response.Return[0].Code,
+                                                                                                           "Sucesso", this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+
+                              }
+                              */
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ClickHandleError" type="participantActivity">
+        <guid>{fa85b614-9c1c-40d0-bcb5-6dfb535d1ebf}</guid>
+        <label>Click Handle Error</label>
+        <participant>part_FTTHUserInterface.ClickHandleError</participant>
+        <x>121.74333</x>
+        <y>427.2508</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{41a0fb38-7968-4874-af64-321b4bced490}</guid>
+  <highlight>22</highlight>
+  <label>Notify Equipment Validation SubProcess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process>

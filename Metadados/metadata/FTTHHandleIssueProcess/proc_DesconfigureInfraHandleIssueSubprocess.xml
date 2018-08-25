@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHHandleIssueProcess.DesconfigureInfraHandleIssueSubprocess">
+  <activity name="DesconfigureInfraHandleIssueStart" type="seqActivity">
+    <guid>{699cf68e-18c4-4244-bea0-12b71e2efe3a}</guid>
+    <label>Desconfigure Infra Handle Issue Start</label>
+    <x>96.71953</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{b4b52988-28ad-45a0-93d5-727682004480}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>98.055466</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{e1faa1bc-d348-4168-a0e7-8eb7b026e133}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>100.85449</x>
+            <y>219.52188</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{703d06fd-eb86-484f-bbf3-a6ba09f39a0d}</guid>
+        <label>Check Issue Type</label>
+        <x>102.86035</x>
+        <y>345.6254</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{a3a0fdf6-3a52-4e66-b0ce-a8b333311ab3}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{8a80e842-8258-4e87-ba1e-61f081343f15}</guid>
+                <label>Technical Issue</label>
+                <x>166.04434</x>
+                <y>457.02774</y>
+                <childList>
+                  <child name="DesconfigureInfraSolveIssueTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.DesconfigureInfraSolveIssueTask</element>
+                    <guid>{85365506-77d7-47d3-ab03-282ac424a3c4}</guid>
+                    <label>Desconfigure Infra Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>549.0277</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{69a736d9-60fd-4c2e-9dfd-733c48574a28}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>163.04102</x>
+                    <y>675.1312</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{61a54247-0335-43be-b0cc-fe4e351f5c4a}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{33e0b35c-d94e-4e16-b62a-f556f0b01355}</guid>
+                <label>Client Issue</label>
+                <x>47.020508</x>
+                <y>457.02774</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{22cb57d6-f0ed-4d85-8d9a-d195acb10eed}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.0</x>
+                    <y>550.0277</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar Infra&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      Infra. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de Infra autom&#225;tica para o sistema de Rede,
+      ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar Infra - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <guid>{230f5874-02b1-49ad-b145-1a7a1efb27ad}</guid>
+  <label>Desconfigure Infra Handle Issue Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process>

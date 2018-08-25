@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHServiceRequest.createSRAddressData">
+  
+  <label>Preenche Formulário de Endereço do Service Request</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="serviceRequest" type="rifp">
+      <type>dstruct_FTTHServiceRequest.serviceRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     * AUTHOR:      Marcos Souza - marcossouza@br.ibm.com - 19/07/2017 - PRJ17683
+     * DESCRIPTION: Script reponsável por criar e preencher o formulário de dados do endereço
+     */
+     Global.logInfo("--- Create SR Address Data ---");
+
+     var addressData = new Document('FTTHOrder:AddressData');
+
+     addressData.tipoLogradouro   = FTTHCommon.getValueAttributeFromAttributeList("tipoLogradouro", serviceRequest.atributos);
+     addressData.nomeLogradouro   = FTTHCommon.getValueAttributeFromAttributeList("nomeLogradouro", serviceRequest.atributos);
+     addressData.numeroLogradouro = FTTHCommon.getValueAttributeFromAttributeList("numeroLogradouro", serviceRequest.atributos);
+     addressData.complemento1     = FTTHCommon.getValueAttributeFromAttributeList("complemento", serviceRequest.atributos);
+     addressData.estadoLogradouro = FTTHCommon.getValueAttributeFromAttributeList("uf", serviceRequest.atributos);
+     addressData.siglaLocalidade  = FTTHCommon.getValueAttributeFromAttributeList("localidade", serviceRequest.atributos);
+     addressData.localidade       = FTTHCommon.getValueAttributeFromAttributeList("descLocalidade", serviceRequest.atributos);
+     addressData.bairro           = FTTHCommon.getValueAttributeFromAttributeList("bairro", serviceRequest.atributos);
+     addressData.pontoReferencia  = FTTHCommon.getValueAttributeFromAttributeList("PontoRef", serviceRequest.atributos);
+     addressData.codigoLogradouro = FTTHCommon.getValueAttributeFromAttributeList("idLogradouro", serviceRequest.atributos);
+
+     //Mapeando campos conforme alinhado com TULIO
+     addressData.cidade = addressData.localidade;
+     addressData.codigoLocalidade = FTTHCommon.getValueAttributeFromAttributeList("codigoEndereco", serviceRequest.atributos);
+
+     //MS - marcossouza@br.ibm.com - 15/12/2017 - Adicionando mapeamento do campo CEP para a abertura de BA no CLICK em ordens de reparo
+     addressData.CEP            = FTTHCommon.getValueAttributeFromAttributeList("cep", serviceRequest.atributos);
+     //end MS
+
+     return addressData;
+  ]]></script>
+</script>

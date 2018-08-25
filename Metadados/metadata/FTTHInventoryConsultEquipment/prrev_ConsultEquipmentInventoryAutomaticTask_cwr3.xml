@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHInventoryConsultEquipment.ConsultEquipmentInventoryAutomaticTask_cwr3">
+  <activity name="ConsultEquipmentInventoryStart" type="seqActivity">
+    <guid>{2127eb14-845d-4b9c-861d-e772d1bd7e6f}</guid>
+    <label>Consult Equipment Inventory Start</label>
+    <x>66.69707</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultEquipmentInventorySendOperation" type="opActivity">
+        <element>iface_FTTHInventoryConsultEquipment.ConsultarEquipamentoInventariadoOSB/oper_ConsultarEquipamentoInventariado</element>
+        <guid>{a5ec55bb-952d-4086-8d59-bea92eadb93a}</guid>
+        <label>Consult Equipment Inventory Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryEquipmentSenderParticipant</participant>
+        <x>154.69922</x>
+        <y>145.6414</y>
+        <childList>
+          <child name="CheckResend" type="seqActivity">
+            <guid>{db20e1e1-6851-40ed-b5e4-7c992d90a439}</guid>
+            <label>Check Resend</label>
+            <x>226.87495</x>
+            <y>340.54962</y>
+            <childList>
+              <child name="CheckNeedToResend" type="switchActivity">
+                <guid>{9c8595b9-5153-4bef-9529-a8548c3e62b2}</guid>
+                <label>Check  Need To Resend</label>
+                <x>151.70633</x>
+                <y>456.95197</y>
+                <childList>
+                  <child name="Yes" type="caseActivity">
+                    <guid>{64f906ff-df19-44d5-9cb7-f83fd7d718ee}</guid>
+                    <label>Yes</label>
+                    <x>27.586231</x>
+                    <y>512.0753</y>
+                    <childList>
+                      <child name="ResendToStart" type="repeatActivity">
+                        <element>prrev_FTTHInventoryConsultEquipment.ConsultEquipmentInventoryAutomaticTask_cwr3/seqActivity_ConsultEquipmentInventoryStart</element>
+                        <guid>{8d4c049e-c7a2-4302-abd3-8458e4827caf}</guid>
+                        <label>Resend To Start</label>
+                        <x>56.262215</x>
+                        <y>597.75665</y>
+                      </child>
+                    </childList>
+                  </child>
+                  <child name="No" type="caseActivity">
+                    <guid>{fa9376f1-fe15-48ce-bf5f-b3f466575142}</guid>
+                    <label>No</label>
+                    <x>27.586231</x>
+                    <y>512.0753</y>
+                    <childList>
+                      <child name="ConsultEquipmentInventoryComplete" type="completeActivity">
+                        <guid>{348bf3cc-339d-47e9-85c6-c9e146faac4d}</guid>
+                        <label>Consult Equipment Inventory Complete</label>
+                        <x>166.96143</x>
+                        <y>583.0555</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var atividade = new Document("FTTHCommon:Activity");
+                          atividade.orderId = this.process.processOrder.id;
+                          atividade.activityId = Global.getConfigVariable('CONSULTAR_EQUIPAMENTO_INVENTARIADO');
+                          var docAtividade = Finder.runSearch('FTTHClickInterface:RecuperarAtividade', atividade);
+                          if(docAtividade && docAtividade.size > 0)
+                          {
+                              if(docAtividade[0].status == Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR")){
+                                  return true;
+                              }
+                          }
+                          return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable('CONSULTAR_EQUIPAMENTO_INVENTARIADO'), "INVENTORY_SYSTEM"));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              this.activityData.Ator.sistema = 'OM';
+              this.activityData.GrupoRequest.IdMensagem = this.process.processOrder.id;
+              this.activityData.GrupoRequest.CorrelationID = this.process.id;
+              this.activityData.GrupoRequest.ServiceID = this.process.processOrder.OriginalData[0].FacilityData.acessoGPON;
+
+              var messageDoc = new Document('cwf_pm:messageLog');
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var success = document.ResponseControl.code == Global.getConfigVariable('RETORNO_CONSUL_EQUIP_INV_SUCESSO');
+              var intNovoSTB = 1;
+              var criaEquip = false;
+              var order = this.process.processOrder;
+
+              if(success){
+                  var ordem = this.process.processOrder;
+                  validateEquipmentData(ordem);
+                  if(!ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData){
+                      criaEquip = true;
+                  } else if(ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length <= 1){
+                      criaEquip = true;
+                  }
+                  for(var i=0; i < document.itemEquip.length; i++){
+                      var equipment = document.itemEquip[i];
+                      var msgValidate = validateTagFromMsg(equipment);
+                      if(msgValidate.hasError){
+                          var status = FTTHCommon.defineStatusAutomaticActivity(document.ResponseControl.code
+                          ,Global.getConfigVariable('INVENTORY_SYSTEM'));
+
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id
+                          ,Global.getConfigVariable('CONSULTAR_EQUIPAMENTO_INVENTARIADO')
+                          ,Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR"));
+
+                          FTTHCommon.saveEvent(this.process.processOrder.id
+                          ,Global.getConfigVariable('INVENTORY_SYSTEM')
+                          ,Global.getConfigVariable('CONSULTAR_EQUIPAMENTO_INVENTARIADO')
+                          ,Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR")
+                          ,-1000
+                          ,msgValidate.msgError
+                          ,this.process.id
+                          ,Global.getConfigVariable('SYNC_REQ_RESP'));
+
+                          FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder
+                          ,Global.getConfigVariable('INVENTORY_SYSTEM')
+                          ,Global.getConfigVariable('CONSULTAR_EQUIPAMENTO_INVENTARIADO'));
+
+                          return;
+                      }
+                      var isTv = (equipment.type.indexOf('ONT') < 0 && equipment.type.indexOf('HGW') < 0);
+                      var cpe = getCPE(isTv,equipment.sapNumber);
+                      var equipmentObj = new InventoryEquipment(equipment.type,equipment.serialNumber,equipment.sapNumber,cpe,equipment.owner);
+
+                      if(isTv){
+                          validatePointEquipmentData(ordem);
+                          createPointEquipmentData(ordem,equipmentObj,intNovoSTB,criaEquip);
+                          intNovoSTB++;
+                      }else{
+                          validateBaseEquipmentData(ordem);
+                          createBaseEquipmentData(ordem,equipmentObj);
+                      }
+                  }
+              }
+
+              document.ResponseControl.code = success ? '0' : '1';
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(document.ResponseControl.code
+              ,Global.getConfigVariable('INVENTORY_SYSTEM'));
+
+              FTTHCommon.setStatusActivity(this.process.processOrder.id
+              ,Global.getConfigVariable('CONSULTAR_EQUIPAMENTO_INVENTARIADO')
+              ,status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id
+              ,Global.getConfigVariable('INVENTORY_SYSTEM')
+              ,Global.getConfigVariable('CONSULTAR_EQUIPAMENTO_INVENTARIADO')
+              ,status
+              ,document.ResponseControl.code
+              ,document.ResponseControl.reason
+              ,this.process.id
+              ,Global.getConfigVariable('SYNC_REQ_RESP'));
+
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder
+              ,Global.getConfigVariable('INVENTORY_SYSTEM')
+              ,Global.getConfigVariable('CONSULTAR_EQUIPAMENTO_INVENTARIADO'));
+
+              /***FUNCTIONS***/
+              function validateEquipmentData(ordem){
+                  if(!ordem.OriginalData[0].EquipmentData){
+                      ordem.OriginalData[0].addItem('EquipmentData');
+                      ordem.OriginalData[0].EquipmentData.newInstance();
+                  } else if(ordem.OriginalData[0].EquipmentData.length == 0){
+                      ordem.OriginalData[0].EquipmentData.newInstance();
+                  }
+                  return ordem;
+              }
+
+              function validateBaseEquipmentData(ordem){
+                  if(!ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData){
+                      ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData = new Document('FTTHOrder.BaseEquipmentData');
+                  }
+                  return ordem;
+              }
+
+              function validatePointEquipmentData(ordem){
+                  if(!ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData){
+                      ordem.OriginalData[0].EquipmentData[0].addItem('AddPointsEquipmentData');
+                      ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.newInstance();
+                  }
+                  else if(ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length-1].EquipmentPointData.numeroSerieSetTopBox_Original != null
+                      && criaEquip){
+                          ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.newInstance();
+                      }
+                      return ordem;
+              }
+              function InventoryEquipment(type,serialNumber,sapNumber,idCpe,owner) {
+                  if(type.indexOf('ONT') > 1){
+                      this.type = 'ONT';
+                  }else if(type.indexOf('HGW') > 1){
+                      this.type = 'HGW';
+                  }else{
+                      this.type = 'STB';
+                  }
+
+                  this.serialNumber = serialNumber;
+                  this.sapNumber = sapNumber;
+                  this.idCpe = idCpe;
+                  this.owner = owner;
+              }
+
+              function getCPE(isTv, sapNumber) {
+                  var searchDoc = new Document('FTTHReportApplication:registerCPE');
+                  searchDoc.cwDocId = null;
+                  searchDoc.isTV = isTv;
+                  searchDoc.codigoMaterial = sapNumber;
+                  var tipoCPE = Finder.runSearch('FTTHOrder:nomeCPEFinder', searchDoc);
+                  var cwDocIdCPE = tipoCPE && tipoCPE.length > 0 && tipoCPE[0] ? tipoCPE[0].cwDocId : null;
+                  return cwDocIdCPE;
+              }
+
+              function createBaseEquipmentData(ordem,equipment){
+                  var baseDoc = ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData;
+                  var baseDocNew;
+                  var isModEndereco = isMudancaEndereco(ordem);
+
+                  if(equipment.type == 'ONT'){
+                      //02/05/2018 - Clear dos campos de input nos formulários de equipamento - Solicitação RT LEON
+                      baseDoc.numeroSerieONT = null;//equipment.serialNumber;
+                      baseDoc.codEquipamento = null;//equipment.sapNumber;
+                      baseDoc.nomeCPE = null;//getNomeCPE(equipment.sapNumber);
+                      baseDoc.codOperacao    = 'Ativo';
+                      baseDoc.isSAP          = true;
+                      baseDoc.isNETWIN       = true;
+
+                      baseDoc.numeroSerieONT_Original = equipment.serialNumber;
+                      baseDoc.codEquipamentoONT_Original = equipment.sapNumber;
+                      baseDoc.codOperacaoONT_Original = baseDoc.codOperacao;
+                      baseDoc.nomeCPE_ONT_Original = getNomeCPE(equipment.sapNumber);
+                      //end 02/05/2018
+
+                      if (isModEndereco) {
+                          baseDoc.isSAP    = false;
+                          baseDoc.isNETWIN = false;
+
+                          //baseDoc.cpeHasChanged = false;
+
+
+                          //02/05/2018 - Ajuste solicitado pelo RT LEON. Gravar nos formulários da dados originais as informações dos equipamentos
+                          baseDocNew = ordem.EquipmentData[0].BaseEquipmentData;
+                          baseDocNew.numeroSerieONT = null;
+                          baseDocNew.codEquipamento = null;
+                          baseDocNew.nomeCPE        = null;
+                          baseDocNew.codOperacao    = 'Ativo';
+                          baseDocNew.isSAP          = true;
+                          baseDocNew.isNETWIN       = true;
+
+                          baseDocNew.numeroSerieONT_Original    = equipment.serialNumber;
+                          baseDocNew.codEquipamentoONT_Original = equipment.sapNumber;
+                          baseDocNew.codOperacaoONT_Original    = baseDoc.codOperacao;
+                          baseDocNew.nomeCPE_ONT_Original       = getNomeCPE(equipment.sapNumber);
+                          //end 02/05/2018
+                      }
+                  }else if(equipment.type == 'HGW'){
+                      //02/05/2018 - Clear dos campos de input nos formulários de equipamento - Solicitação RT LEON
+                      baseDoc.numeroSerieHomeGateway = null;// equipment.serialNumber;
+                      baseDoc.codEquipamentoHGW      = null;//equipment.sapNumber;
+                      baseDoc.nomeCPEHGW             = null;//getNomeCPE(equipment.sapNumber);
+                      baseDoc.codOperacaoHGW         = 'Ativo';
+                      baseDoc.isSAPHGW               = true;
+                      baseDoc.isNETWINHGW            = true;
+
+                      baseDoc.numeroSerieHGW_Original = equipment.serialNumber;
+                      baseDoc.nomeCPE_HGW_Original = getNomeCPE(equipment.sapNumber);
+                      baseDoc.codEquipamentoHGW_Original = equipment.sapNumber;
+                      baseDoc.codOperacaoHGW_Original = baseDoc.codOperacaoHGW;
+                      //end 02/05/2018
+
+                      if (isModEndereco) {
+                          baseDoc.isSAPHGW    = false;
+                          baseDoc.isNETWINHGW = false;
+
+                          //baseDoc.cpeHasChangedHGW = false;
+                          /* end 18/04/2018 - Ajuste pós MERGE */
+
+                          //02/05/2018 - Ajuste solicitado pelo RT LEON. Gravar nos formulários da dados originais as informações dos equipamentos
+                          baseDocNew = ordem.EquipmentData[0].BaseEquipmentData;
+                          baseDocNew.numeroSerieHomeGateway = null;
+                          baseDocNew.codEquipamentoHGW      = null;
+                          baseDocNew.nomeCPEHGW             = null;
+                          baseDocNew.codOperacaoHGW         = 'Ativo';
+                          baseDocNew.isSAPHGW               = true;
+                          baseDocNew.isNETWINHGW            = true;
+
+                          baseDocNew.numeroSerieHGW_Original    = equipment.serialNumber;
+                          baseDocNew.nomeCPE_HGW_Original       = getNomeCPE(equipment.sapNumber);
+                          baseDocNew.codEquipamentoHGW_Original = equipment.sapNumber;
+                          baseDocNew.codOperacaoHGW_Original    = baseDoc.codOperacaoHGW;
+                          //end 02/05/2018
+                      }
+
+                  }
+
+                  baseDoc.flgValidado = true;
+                  baseDoc.statusAcao = '-';
+                  baseDoc.flagAssociateONT = true;
+                  baseDoc.flagDadoOriginal = 'O';
+                  baseDoc.atividade = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+                  baseDoc.cwOrderId = ordem.OrderHeader.cwOrderId;
+
+
+                  ordem.save();
+              }
+
+              function createPointEquipmentData(ordem,equipment,size,criaEquipamento){
+                  if(criaEquipamento){
+                      var doc = ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length-1].EquipmentPointData;
+                  } else{
+                      //var doc = ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length-size].EquipmentPointData;
+                          var searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentData");
+                          searchDoc.idAtivo = equipment.owner;
+                          searchDoc.cwOrderId = order.OrderHeader.cwOrderId;
+                          searchDoc.flagDadoOriginal = 'O';
+                          var doc = null;
+                          try{
+                              doc = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc)[0];
+                          } catch(e){
+                          doc = null;
+                          Global.logError("Erro ao procurar o equipamento com idAtivo: " + equipment.owner + "  e orderId: " + order.OrderHeader.cwOrderId);
+                      }
+                  }
+
+                  if(doc){
+                  //02/05/2018 - Clear dos campos de input nos formulários de equipamento - Solicitação RT LEON
+              doc.identificadorIPTV    = ordem.OriginalData[0].ProductData.identificadorIPTV;
+                  doc.numeroSerieSetTopBox = null;//equipment.serialNumber
+                  doc.codEquipamento       = null;//equipment.sapNumber;
+              doc.idAtivo              = equipment.owner;
+                  doc.nomeCPE              = null;//getNomeCPE(equipment.sapNumber);
+              doc.flagDadoOriginal     = 'O';
+              doc.codOperacao          = 'Ativo';
+              doc.statusAcao           = '-';
+              doc.tipoTV               = 'STB';
+              doc.instalado            = true;
+              doc.isSAP                = true;
+              doc.isNETWIN             = true;
+              doc.flgValidado          = true;
+                  //doc.atividade            = 'RETIRAR_EQUIPAMENTO_CLIENTE';
+              doc.cwOrderId            = ordem.OrderHeader.cwOrderId;
+
+              doc.numeroSerieSetTopBox_Original = equipment.serialNumber;
+
+                  doc.nomeCPE_Original = getNomeCPE(equipment.sapNumber);
+              doc.codOperacao_Original = doc.codOperacao;
+                  doc.codEquipamento_Original = equipment.sapNumber;
+                      doc.save();
+                  }
+                  //end 02/05/2018
+
+                  //02/05/2018 - Ajuste solicitado pelo RT LEON. Gravar nos formulários da dados originais as informações dos equipamentos
+                  if (isMudancaEndereco(ordem)) {
+                      if(criaEquipamento){
+                          var docNew = ordem.EquipmentData[0].AddPointsEquipmentData[ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length-1].EquipmentPointData;
+                      } else{
+                          var docNew = ordem.EquipmentData[0].AddPointsEquipmentData[ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length-size].EquipmentPointData;
+                      }
+
+                      docNew.numeroSerieSetTopBox = null;
+                      docNew.codEquipamento       = null;
+                      docNew.nomeCPE              = null;
+                      docNew.codOperacao          = 'Ativo';
+                      docNew.statusAcao           = '-';
+                      docNew.tipoTV               = 'STB';
+                      docNew.isSAP                = true;
+                      docNew.isNETWIN             = true;
+                      docNew.flgValidado          = true;
+                      doc.flagDadoOriginal        = 'N';
+
+                      docNew.numeroSerieSetTopBox_Original = equipment.serialNumber;
+                      docNew.nomeCPE_Original              = getNomeCPE(equipment.sapNumber);
+                      docNew.codOperacao_Original          = docNew.codOperacao;
+                      docNew.codEquipamento_Original       = equipment.sapNumber;
+                  }
+                  //end 02/05/2018
+
+              ordem.save();
+              }
+
+              function getNomeCPE(sapNumber) {
+                  var searchDoc = new Document('FTTHReportApplication:registerCPE');
+                  searchDoc.clearData();
+                  searchDoc.codigoMaterial = sapNumber;
+                  var tipoCPE = Finder.runSearch('FTTHReportApplication:registerCPEFinder', searchDoc);
+                  return tipoCPE.length > 0 ? tipoCPE[0].nomeCPE : null;
+              }
+
+              function validateTagFromMsg(equipment){
+                  var msg ={
+                      hasError: false,
+                      msgError: 'Os seguintes campos obrigatorios não foram recebidos pelo OM ou são inválidos: '
+                  };
+                  var type;
+                  if(equipment.type.indexOf('ONT') > 1){
+                      type = 'ONT';
+                  }else if(equipment.type.indexOf('HGW') > 1){
+                      type = 'HGW';
+                  }else{
+                      type = 'STB';
+                  }
+                  if(type == "STB"){
+                      if(!equipment.owner ||( equipment.owner && equipment.owner == '')){
+                          msg.msgError += "["+type+": " + "equipment.owner] "
+                          msg.hasError = true;
+                      }
+                  }
+                  if(!equipment.serialNumber ||( equipment.serialNumber && equipment.serialNumber == '' )){
+                      msg.msgError += "["+type+": " + "equipment.serialNumber] "
+                      msg.hasError = true;
+                  }
+                  if(!equipment.sapNumber ||( equipment.sapNumber && equipment.sapNumber == '' ) || !getNomeCPE(equipment.sapNumber)){
+                      msg.msgError += "["+type+": " + "equipment.sapNumber] "
+                      msg.hasError = true;
+                  }
+                  return msg;
+              }
+
+              function isMudancaEndereco(ord){
+
+                  var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+                  ops.cwOrderId = ord.OrderHeader.cwOrderId;
+
+                  var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+
+                  if (orderRequest.size > 0) {
+                      for (var i = 0; i < orderRequest.size; i++) {
+                          var solicitacao = orderRequest[i];
+                          if(solicitacao.idSolicitacao == "MUDANCA_ENDERECO"){
+                              return  true;
+                          }
+                      }
+                  }
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ExceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{af06bafa-34d4-4896-9d82-d979265f273e}</guid>
+        <label>Exception Handler</label>
+        <x>50.0</x>
+        <y>167.69316</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("CONSULTAR_EQUIPAMENTO_INVENTARIADO"), Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InventoryEquipmentSenderParticipant" type="participantActivity">
+        <guid>{7c954cb3-943e-4f8a-b98e-5b85f9fd604c}</guid>
+        <label>Inventory Equipment Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryEquipmentSenderParticipant</participant>
+        <x>66.35856</x>
+        <y>316.14728</y>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Consultar
+      Equipamentos Inventory. Inicialmente o fluxo envia para o sistema de
+      Invent&#225;rio uma solicita&#231;&#227;o de consulta caso n&#227;o obtenha resposta em um
+      intervalo de tempo pr&#233; determinado, ser&#227;o feitas mais algumas
+      retentativas. A quantidade de retentativas e o tempo de espera ser&#227;o
+      configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <document>doc_FTTHInventoryInterface.ProcessDoc</document>
+  <label>Consult Equipment Inventory Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryConsultEquipment.ConsultEquipmentInventoryAutomaticTask</process>
+  <revision>3</revision>
+  <type>User</type>
+</process__revision>

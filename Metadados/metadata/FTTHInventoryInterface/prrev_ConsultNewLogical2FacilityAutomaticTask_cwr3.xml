@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHInventoryInterface.ConsultNewLogical2FacilityAutomaticTask_cwr3">
+  <activity name="ConsultNewLogical2FacilityStart" type="seqActivity">
+    <guid>{7c0ac8ec-5797-41b5-bec4-4a1765c7d510}</guid>
+    <label>Consult New Logical 2 Facility Start</label>
+    <x>107.737206</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultNewLogical2FacilitySendOperation" type="opActivity">
+        <element>iface_FTTHInventoryInterface.InventoryOnChangeSenderInterface/oper_ConsultLogical2FacilitySendOperation</element>
+        <guid>{a3a81d5d-4ef4-4f71-9fe3-f63d290c83dd}</guid>
+        <label>Consult New Logical 2 Facility Send Operation</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>175.39258</x>
+        <y>130.64142</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHInventoryInterface.CreateInventoryMessageConsult(this.process.processOrder, this.process.id,"CONSULTAR_FACILIDADE_LOGICA_2_NOVA",this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Consult New Facility Automatic Task", "Consult New Logical 2 Facility Send Operation - mensagem a enviar", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Consult New Facility Automatic Task", "Consult New Logical 2 Facility Send Operation - mensagem recebida", "cwOnProcActAfter", this.activityData.toXML());
+              FTTHInventoryInterface.ProcessQueryResult(this.process.processOrder, this.process.id, this.activityData, 'CONSULTAR_FACILIDADE_LOGICA_2_NOVA');
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("INVENTORY_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_NOVA"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_NOVA"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("INVENTORY_SYSTEM"), Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_NOVA"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{032c5ecd-211b-4df9-ace2-81182fef6fc3}</guid>
+        <label>exceptionHandler</label>
+        <x>30.0</x>
+        <y>167.39435</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_NOVA") , Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InventoryOnChangeSenderParticipant" type="participantActivity">
+        <guid>{b44d579c-69b8-4409-bcc1-b2eb78d786fd}</guid>
+        <label>Inventory On Change Sender Participant</label>
+        <participant>part_FTTHInventoryInterface.InventoryOnChangeSenderParticipant</participant>
+        <x>144.74219</x>
+        <y>300.84845</y>
+      </child>
+    </childList>
+  </activity>
+  <label>Consult New Logical 2 Facility Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryInterface.ConsultNewLogical2FacilityAutomaticTask</process>
+  <revision>3</revision>
+  <type>User</type>
+</process__revision>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ReassignFacilityHandleErrorTask">
+  <activity name="ReassignFacilityHandleErrorTaskStart" type="seqActivity">
+    <guid>{9ecc80cf-4ecb-4a52-b041-a65ab9989944}</guid>
+    <label>Reassign Facility Handle Error Task Start</label>
+    <x>79.569626</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReassignFacilityHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_AssignFacilityHandleError</element>
+        <guid>{c8d6345f-9caf-418c-a0a0-8fedb51c12fc}</guid>
+        <label>Reassign Facility Handle Error Task</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>86.51221</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{bbee0c36-c2ba-46e9-a67c-900f4ad1c81e}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="ReassignFacilityHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_AssignFacilityHandleErrorResend</element>
+                <guid>{b734e767-bed2-4d8c-8e68-f5d6d6e173cc}</guid>
+                <label>Reassign Facility Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>161.23698</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="ReassignFacilityHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_AssignFacilityHandleErrorIssue</element>
+                <guid>{113e1725-f751-450e-86f9-50073f1014d6}</guid>
+                <label>Reassign Facility Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>48.645508</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryHandleError" type="participantActivity">
+        <guid>{73c06f93-bbb4-46c3-aeba-448935b3f7d5}</guid>
+        <label>Inventory Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a designa&#231;&#227;o de facilidades autom&#225;tica n&#227;o tenha sido
+      realizada com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser
+      finalizada com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{abab5109-ad74-4fa4-994b-1b7c25a2c9aa}</guid>
+  <label>Reassign Facility Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process>

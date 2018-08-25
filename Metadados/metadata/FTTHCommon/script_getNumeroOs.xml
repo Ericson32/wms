@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.getNumeroOs">
+  
+  <label>getNumeroOs</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="numeroPedido" type="rifp">
+      <type>dtype_FTTHCommon.numeroPedido</type>
+    </parameter>
+    <parameter name="tipoOrdem" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHCommon.string100</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    if (tipoOrdem == 'TIPO_ORDEM_REPARO'){
+        var fndreq = new Finder("FTTHOrderManagementInterface:orderMaxRevision");
+    }else {
+    var fndreq = new Finder("FTTHOrderManagementInterface:orderMaxVersion");
+    }
+    fndreq.searchDocument.numeroPedido = numeroPedido;
+    var ordemHeaderList = fndreq.search();
+
+    if (ordemHeaderList.size > 0)
+        return ordemHeaderList[0].numeroOS;
+    else
+        return "";
+  ]]></script>
+</script>

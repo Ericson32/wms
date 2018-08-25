@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.getAllAssociatedItens">
+  
+  <label>Retorna todos os Ids dos Itens associados à operacao na rede</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc = new Document("FTTHOrderManagementInterface.productDataSearch");
+    searchDoc.cwOrderId = cwOrderId;
+    var result = Finder.runSearch("FTTHOrderManagementInterface.idItemFinder", searchDoc);
+    var listaIdsAUX = new Array();
+    var listaIds = new Array();
+    var servicosIds = new Array();
+
+    for (var i=0; i < result.length; i++) {
+        listaIdsAUX.push(result[i].idPromocao);
+        if (result[i].identificadorHSI) listaIdsAUX.push(result[i].identificadorHSI);
+        if (result[i].identificadorIPTV) listaIdsAUX.push(result[i].identificadorIPTV);
+        if (result[i].identificadorVoIP) listaIdsAUX.push(result[i].identificadorVoIP);
+        if (result[i].planoHSI_idItem) listaIdsAUX.push(result[i].planoHSI_idItem);
+        if (result[i].planoIPTV_idItem) listaIdsAUX.push(result[i].planoIPTV_idItem);
+        if (result[i].planoVoIP_idItem) listaIdsAUX.push(result[i].planoVoIP_idItem);
+        if (result[i].servicos_idItems) {
+            servicosIds = result[i].servicos_idItems.split(",");
+            for (var j=0; j<servicosIds.length; j++)
+                listaIdsAUX.push(servicosIds[j]);
+        }
+    }
+
+    //remove duplicados, no caso da mudança de endereço
+    listaIds = FTTHCommon.removeDuplicates(listaIdsAUX);
+
+    return listaIds;
+  ]]></script>
+</script>

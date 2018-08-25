@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ValidateCPESubprocess_cwr9">
+  <activity name="ValidateCPEStart" type="seqActivity">
+    <guid>{3756d5ca-87a7-4a04-8b70-bf2614c2488a}</guid>
+    <label>Validate CPE Start</label>
+    <x>58.322754</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ValidateCPEAutomaticTaskScript" type="scriptActivity">
+        <guid>{e2583867-6f06-49c0-bef4-86518b84c5db}</guid>
+        <label>Validate CPE Automatic Task Script</label>
+        <x>64.32861</x>
+        <y>122.0</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.setStatusActivity(this.process.processOrder.id,  Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), "WAIT");
+              FTTHCommon.updateStatusActivityClick(
+                      this.process.processOrder.id, // orderId
+                      Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), //atividadeId
+                      this.process.processDocument.operacao, //operacao
+                      this.process.processDocument.tipoEquipamentoNovo, //tipoEquipamento
+                      this.process.processDocument.tipoEquipamentoNovo == 'STB' ? this.process.processDocument.tipoEquipamentoNovo:this.process.processDocument.idAtivoNovo, //equipmentId
+                      "WAIT" //status
+              );
+
+              Process.startSubProcess("FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask",  this.process.id, this.process.processDocument);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="waitValidate" type="joinActivity">
+        <element>proc_FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask</element>
+        <guid>{213a6f99-a28a-437a-9a4f-6a61959f7f8a}</guid>
+        <label>Wait Validate</label>
+        <x>72.65967</x>
+        <y>262.8047</y>
+      </child>
+      <child name="isAutomatic" type="switchActivity">
+        <guid>{f54130ff-badc-4274-9ac1-e4f24aff918a}</guid>
+        <label>Is Automatic ?</label>
+        <x>62.652832</x>
+        <y>374.20703</y>
+        <childList>
+          <child name="yes" type="caseActivity">
+            <guid>{128c7a95-e348-4ed2-ae68-97df3f449b2a}</guid>
+            <label>Yes</label>
+            <x>114.0</x>
+            <y>641.11523</y>
+            <childList>
+              <child name="NotifyEquipmentValidationSubProcess" type="subflowActivity">
+                <element>prrev_FTTHProcess.NotifyEquipmentValidationSubProcess_cwr1</element>
+                <guid>{f98eafbb-1b3e-4a8e-9a7f-f2e865d3f448}</guid>
+                <label>Notify Equipment Validation Sub Process</label>
+                <x>114.0</x>
+                <y>485.60938</y>
+              </child>
+            </childList>
+          </child>
+          <child name="no" type="caseActivity">
+            <guid>{8e82f06e-2047-4370-bf02-0f32aa4a1ea9}</guid>
+            <label>No</label>
+            <x>30.0</x>
+            <y>515.0117</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  //MS - adicinando validação se o processo foi startado pelo CLICK
+                  //ou pelo técnico na atividade de campo - 11/01/2018
+                  var validateDoc = this.process.processDocument;
+
+                  return (validateDoc.userId && validateDoc.userId != "");
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <label>Validate CPE Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ValidateCPESubprocess</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

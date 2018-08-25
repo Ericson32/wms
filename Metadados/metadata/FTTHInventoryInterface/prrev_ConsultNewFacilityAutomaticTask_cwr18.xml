@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHInventoryInterface.ConsultNewFacilityAutomaticTask_cwr18">
+  <activity name="ConsultNewFacilityAutomaticTask2Start" type="seqActivity">
+    <guid>{d9da7481-18af-4d98-b770-1b910a90ab31}</guid>
+    <label>Consult New Facility Automatic Task 2 Start</label>
+    <x>126.10274</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultNewPhysicalFacility" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConsultNewPhysicalFacilitySubProcess_cwr9</element>
+        <guid>{77d1b707-e954-439f-bd0e-f845da3b61dd}</guid>
+        <label>Consult New Physical Facility</label>
+        <x>239.39844</x>
+        <y>130.6414</y>
+      </child>
+      <child name="ConsultNewLogical1Facility" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConsultNewLogical1FacilitySubProcess_cwr7</element>
+        <guid>{4d5d2732-6162-465c-a4b4-75f195bd64d4}</guid>
+        <label>Consult New Logical 1 Facility</label>
+        <x>237.72266</x>
+        <y>271.4461</y>
+      </child>
+      <child name="ConsultNewLogical2Facility" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConsultNewLogical2FacilitySubProcess_cwr6</element>
+        <guid>{a94d54a1-623e-4a8c-b76d-210b670e5f69}</guid>
+        <label>Consult New Logical 2 Facility</label>
+        <x>237.72266</x>
+        <y>412.2508</y>
+      </child>
+      <child name="ConsultNewFacilityAutomaticTaskComplete" type="completeActivity">
+        <guid>{66fcab8e-7d47-41a8-81b4-757dc9a92898}</guid>
+        <label>Consult New Facility Automatic Task Complete</label>
+        <x>235.05469</x>
+        <y>553.0555</y>
+      </child>
+      <child name="exceptionHandlerInterface" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{87cdd508-69b0-468c-ad2d-cf1732651b9e}</guid>
+        <label>Exception Handler Interface</label>
+        <x>133.36328</x>
+        <y>137.99199</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, process.processDocument.atividade, Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandlerTimeout" type="onExceptionActivity">
+        <element>excp_cwf_pm.timeout</element>
+        <guid>{4dc749d2-b8bf-4c1c-963c-fd617c1f672d}</guid>
+        <label>Exception Handler Timeout</label>
+        <x>30.0</x>
+        <y>137.99199</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, process.processDocument.atividade, Global.getConfigVariable("INVENTORY_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Consultar
+      Facilidades. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de consulta caso n&#227;o obtenha resposta em um intervalo de
+      tempo pr&#233; determinado, ser&#227;o feitas mais algumas retentativas. A
+      quantidade de retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo
+      usu&#225;rio.
+    </p>
+  ]]></description>
+  <document>doc_FTTHInventoryInterface.ProcessDoc</document>
+  <label>Consult New Facility Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryInterface.ConsultNewFacilityAutomaticTask</process>
+  <revision>18</revision>
+  <type>User</type>
+</process__revision>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.RollbackActionSubprocess_cwr10">
+  <activity name="RollbackActionStart" type="seqActivity">
+    <guid>{a1e04c4f-7540-4ba5-813d-1d216bef27af}</guid>
+    <label>Rollback Action Start</label>
+    <x>29.208984</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="RollbackActionAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.RollbackActionAutomaticTask</element>
+        <guid>{a95c3f08-3a05-438f-931f-5bc772f8428e}</guid>
+        <label>Rollback Action Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{860b8424-bad7-4c76-b308-c63f6bb06ae8}</guid>
+        <label>Check Task Result</label>
+        <x>68.31787</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{4ab342f2-d9ca-4dce-a6fc-69fafa350ffa}</guid>
+            <label>Success</label>
+            <x>36.39966</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CANCELAR_DESIGNACAO");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{dacbd515-98b7-4f21-bb84-b80bc96290b5}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{f831ffb5-b622-4522-8bcf-dbc346168269}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06997</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="RollbackActionHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.RollbackActionHandleErrorTask_cwr7</element>
+                    <guid>{b0fcefb0-bce0-4bd0-9b62-cba8778b86a6}</guid>
+                    <label>Rollback Action Handle Error Task</label>
+                    <x>160.5758</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{b921329c-0dcd-4ff9-bcd5-7e20401bacb6}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.816734</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{889c4d29-e755-4e79-83c7-7def593fcd6e}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{b73b54fb-9a01-43c3-b459-30e8227037b9}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.11191</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="RollbackActionSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.RollbackActionHandleIssueSubprocess_cwr12</element>
+                                <guid>{7ff5d6ea-d5df-4671-9ea0-d14ad0986a14}</guid>
+                                <label>Rollback Action Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.RollbackActionSubprocess_cwr10/seqActivity_RollbackActionStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{7beb888a-f809-41e6-99a9-f2d1669a5dd2}</guid>
+                                <label>Repeat</label>
+                                <x>154.33154</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CANCELAR_DESIGNACAO");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{6f54747e-57ee-4f12-9db3-5722c48c7ff3}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.RollbackActionSubprocess_cwr10/seqActivity_RollbackActionStart</element>
+                            <guid>{50465bf6-fbb9-4ac4-b837-01fde2d7fef8}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <label>Rollback Action Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.RollbackActionSubprocess</process>
+  <revision>10</revision>
+  <type>Sub-flow</type>
+</process__revision>

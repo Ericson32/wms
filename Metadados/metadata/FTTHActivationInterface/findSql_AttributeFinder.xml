@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHActivationInterface.AttributeFinder">
+  <dbSchema>ORDER</dbSchema>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHActivationInterface.AttributeFinderDocument</input>
+  <label>AttributesFinder</label>
+  <metaVersion>3</metaVersion>
+  <output>doc_FTTHActivationInterface.AttributeActivation</output>
+  <type>SQL</type>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        select distinct TAA.COD_OPERACAO, TAA.NOME_DOCUMENTO, TAA.NOME_CAMPO,
+               TAA.COD_CAMPO, TAA.IND_OBRIGATORIEDADE,
+               TAA.IND_ENVIAR_DADO_ORIGINAL
+        from TBI_ATRIBUTO_ATIVACAO TAA, TBI_ORDEM_ACAO TOA
+        where TAA.COD_ACAO in ( select COD_ACAO from tbi_ordem_acao where {[1] ID_ORDEM_SERVICO = ?})
+        --TAA.COD_ACAO = TOA.COD_ACAO
+        {[0] and TAA.COD_OPERACAO = ?}
+        {[1] and TOA.ID_ORDEM_SERVICO = ?}
+        UNION
+        select COD_OPERACAO, NOME_DOCUMENTO, NOME_CAMPO,
+               COD_CAMPO, IND_OBRIGATORIEDADE,
+               IND_ENVIAR_DADO_ORIGINAL
+        from TBI_ATRIBUTO_ATIVACAO
+        where COD_ACAO is null
+        {[0] and COD_OPERACAO = ?}
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>Attribute Activation Document</label>
+        <valueType>doc_FTTHActivationInterface.AttributeActivation</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHActivationInterface.AttributeFinderDocument/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHActivationInterface.AttributeActivation/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="AttributesFinderResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="operacao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHActivationInterface.AttributeActivation/leaf_operacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomeDocumento" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHActivationInterface.AttributeActivation/leaf_nomeDocumento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomeCampo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHActivationInterface.AttributeActivation/leaf_nomeCampo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="identificadorCampo" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHActivationInterface.AttributeActivation/leaf_identificadorCampo</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="obrigatoriedade" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHActivationInterface.AttributeActivation/leaf_obrigatoriedade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="enviarDadoOriginal" type="elchk">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHActivationInterface.AttributeActivation/leaf_enviarDadoOriginal</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="cwDocId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHActivationInterface.AttributeActivation/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="acao" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHActivationInterface.AttributeActivation/leaf_acao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <onEnter type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_searchAction</variablePath>
+                  </variablePathList>
+                </onEnter>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+  <viewList>
+    <view name="AttributesFinderView" type="findVView">
+      <outputOverlay>findSql_FTTHActivationInterface.AttributeFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+    </view>
+  </viewList>
+</findSql>

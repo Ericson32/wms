@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureIPTVPlatformsSubprocess_cwr4">
+  <activity name="ConfigureIPTVStart" type="seqActivity">
+    <guid>{fcceab14-3d41-4d7e-aa79-c42c14c81918}</guid>
+    <label>Configure IPTV Start</label>
+    <x>125.53188</x>
+    <y>30.0</y>
+    <childList>
+      <child name="BundleChange" type="switchActivity">
+        <guid>{f0d0eb20-4dc2-4023-a662-4f06bac114ae}</guid>
+        <label>Bundle Change?</label>
+        <x>129.99223</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="No" type="caseActivity">
+            <guid>{b170b387-3ec0-4d50-9f95-d9e6a05896c3}</guid>
+            <label>No</label>
+            <x>141.36914</x>
+            <y>483.96796</y>
+          </child>
+          <child name="Yes" type="caseActivity">
+            <guid>{a46fa66c-2c56-4512-a91a-5c6e09a5e561}</guid>
+            <label>Yes</label>
+            <x>47.172363</x>
+            <y>221.76094</y>
+            <childList>
+              <child name="ConfigureIPTVSequence" type="seqActivity">
+                <guid>{d03a56a8-593b-4bae-b932-f05424c9522a}</guid>
+                <label>ConfigureIPTVSequence</label>
+                <x>12.584572</x>
+                <y>251.16327</y>
+                <childList>
+                  <child name="ConfigureIPTVHDMSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.ConfigureIPTVHDMSubprocess_cwr5</element>
+                    <guid>{6b2e1ca9-ade2-4464-ac8c-a20c090a06ab}</guid>
+                    <label>Configure IPTV HDM Subprocess</label>
+                    <x>30.0</x>
+                    <y>343.16327</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "CONFIGURAR_IPTV_HDM";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return result;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="ConfigureIPTVNASSSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.ConfigureIPTVNASSSubprocess_cwr5</element>
+                    <guid>{4c99439d-d7a2-43f9-bcd7-91677fbc9efb}</guid>
+                    <label>Configure IPTV NASS Subprocess</label>
+                    <x>30.0</x>
+                    <y>469.26678</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "CONFIGURAR_IPTV_NASS";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return result;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="ConfigureIPTVAPCSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.ConfigureIPTVAPCSubprocess_cwr5</element>
+                    <guid>{7c7bbdfd-6d43-44e3-9f58-c4a656a2dca4}</guid>
+                    <label>Configure IPTV APC Subprocess</label>
+                    <x>30.0</x>
+                    <y>595.3703</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "CONFIGURAR_IPTV_APC";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return result;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderSolicitacoes = new Finder('FTTHCommon.RequestFinder');
+                  orderSolicitacoes.searchDocument.cwOrderId = process.processOrderId;
+                  var orderSolicitacoesResult = orderSolicitacoes.search();
+                  for (var x=0; x<orderSolicitacoesResult.length; x++) {
+                      switch(orderSolicitacoesResult[x].requestId) {
+                          case ('MUDANCA_PACOTE') :
+                              return true;
+                      }
+                  }
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="HDTVConfiguration" type="seqActivity">
+        <guid>{ed1a9708-1c63-44fb-9553-bdeb73eafb64}</guid>
+        <label>HD TV Configuration</label>
+        <x>129.79517</x>
+        <y>736.4739</y>
+        <childList>
+          <child name="IsHDTV" type="switchActivity">
+            <guid>{7d91b704-c0fe-445c-bb09-a0b4a14cef35}</guid>
+            <label>Is HD TV?</label>
+            <x>140.23737</x>
+            <y>831.2348</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{35514f3f-33b7-4a13-b8b8-7f9f7659d6ed}</guid>
+                <label>Yes</label>
+                <x>181.29028</x>
+                <y>672.6466</y>
+                <childList>
+                  <child name="ConfigureIPTVIESFSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.ConfigureIPTVIESFSubprocess_cwr5</element>
+                    <guid>{37e06445-18ba-442f-8e7a-d9a3c41ecd69}</guid>
+                    <label>Configure IPTV IESF Subprocess</label>
+                    <x>186.06598</x>
+                    <y>927.936</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      if (process.processOrder.OriginalData != null){
+                          if(process.processOrder.OriginalData[0] != null){
+                             if( process.processOrder.OriginalData[0].ProductData.identificadorIPTV != null)
+                                 return true;
+                          }
+                      }else{
+                          if(process.processOrder.ProductData.identificadorIPTV != null)
+                              return true;
+                      }
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{d1c6b0d3-667e-4639-9a61-9fbcf874ff84}</guid>
+                <label>No</label>
+                <x>102.06597</x>
+                <y>942.63715</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de infra de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <label>Configure IPTV Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureIPTVPlatformsSubprocess</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

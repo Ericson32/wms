@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.RestoreOTTIESFSubprocess_cwr9">
+  <activity name="RestoreOTTIESFStart" type="seqActivity">
+    <guid>{bb67592a-0ffd-4b48-b756-c5e8940f5f32}</guid>
+    <label>Restore OTT IESF Start</label>
+    <x>27.868359</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="RestoreOTTIESFAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.RestoreOTTIESFAutomaticTask</element>
+        <guid>{dce6d90d-d886-461a-adee-d4020994e7a9}</guid>
+        <label>Restore OTT IESF Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{3ac33445-7962-4dbd-87a0-37e003704c74}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{b8a80181-522f-423f-9f49-ede88a322477}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESBLOQUEAR_OTT_IESF");
+                  activityId = '%' + activityId;
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{52888b51-7e4a-4dba-b63f-6f6650e7578b}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{88f5e45e-fbdd-4c77-a82c-08071fc127a8}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="SupendRestoreOTTIESFHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.SuspendOTTIESFHandleErrorTask_cwr6</element>
+                    <guid>{2387a31b-391f-4546-a1a4-0c0fa32ada9a}</guid>
+                    <label>Supend Restore OTT IESF Handle Error Task</label>
+                    <x>160.5719</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{852e9d34-6a2f-48ce-ac39-623a78ca3929}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.808914</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{d4b4702f-9fba-4ae3-9c63-de968d0a5928}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{55d618c3-e87e-4604-8ead-64a73e74adba}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="SupendRestoreOTTIESFSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.SuspendOTTIESFHandleIssueSubprocess_cwr12</element>
+                                <guid>{c1d2ce52-9b38-4d33-8ce2-cf7fc3446414}</guid>
+                                <label>Supend Restore OTT IESF Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.RestoreOTTIESFSubprocess_cwr9/seqActivity_RestoreOTTIESFStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{322cf8eb-c297-44b7-953a-c74d64002299}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESBLOQUEAR_OTT_IESF");
+                              activityId = '%' + activityId;
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{0e3baaa9-ae55-4241-b735-e82f9b3b5cbf}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.RestoreOTTIESFSubprocess_cwr9/seqActivity_RestoreOTTIESFStart</element>
+                            <guid>{3e04f488-4053-49e3-a4c7-a2fbfece04dd}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Desbloquear OTT&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de desbloqueio de OTT. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de desbloqueio de OTT para o sistema de rede. Ou poder&#225;
+      finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de Desbloquear
+      OTT - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Restore OTT IESF Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.RestoreOTTIESFSubprocess</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHReportApplication.PSRFinder">
+  <dbSchema>ORDER</dbSchema>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Finder respons&#225;vel pelo relat&#243;rio de PSR
+    </p>
+  ]]></description>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHReportApplication.PSR</input>
+  <label>PSR Finder</label>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHReportApplication.PSR</output>
+  <type>SQL</type>
+  <vDetailForm>doc_FTTHReportApplication.PSR/ui_UserInterface/frmui_Forms/exov_Default</vDetailForm>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        SELECT
+        CWDOCID,
+        NOMEPSR,
+        CODIGOPSR,
+        UF,
+        GRAATUACAO,
+        LASTUPDATEDAT
+        FROM TBI_PSR
+        WHERE
+        (1=1)
+        {[1] and NOMEPSR = ?}
+        {[2] and CODIGOPSR = ?}
+        {[3] and UF = ?}
+        {[4] and GRAATUACAO = ?}
+        {[5] and lastUpdatedAt = ?}
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>reportPSRResult</label>
+        <valueType>doc_FTTHReportApplication.PSR</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHReportApplication.PSR/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHReportApplication.PSR/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="PSRFinderResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="cwDocId" type="elfld">
+                        <label>cw Doc Id</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomePSR" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_nomePSR</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codigoPSR" type="elfld">
+                        <label>Codigo da PSR</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_codigoPSR</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="uf" type="elslct">
+                        <label>UF</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_uf</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="graAtuacao" type="elfld">
+                        <label>GRA Atuação</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_graAtuacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="lastUpdatedAt" type="elfld">
+                        <label>Atualizado Em</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_lastUpdatedAt</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <onEnter type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/action_searchAction</variablePath>
+                  </variablePathList>
+                </onEnter>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="topSection" type="elext"/>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</base>
+            <extends>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfAdd" type="eldel"/>
+              <override name="cwfCopy" type="eldel"/>
+              <override name="cwfDelete" type="eldel"/>
+              <override name="cwfUpdate" type="eldel"/>
+              <override name="finderMenuLayout" type="elext">
+                <elementList>
+                  <element name="incluir" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/usrActionMethod_registerPSR</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconAdd.gif</icon>
+                    <label>Cadastrar PSR</label>
+                    <showDown>true</showDown>
+                    <showFocused>true</showFocused>
+                    <tooltip>Search</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="alterar" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/usrActionMethod_updatePSR</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconEdit.gif</icon>
+                    <label>Atualizar PSR</label>
+                    <showDown>true</showDown>
+                    <showFocused>true</showFocused>
+                    <tooltip>Search</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/permMethod_cwEnableForSelection</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="excluir" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/usrActionMethod_deleteAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconDelete.gif</icon>
+                    <label>Excluir PSR</label>
+                    <showDown>true</showDown>
+                    <showFocused>true</showFocused>
+                    <tooltip>Search</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/permMethod_cwEnableForSelection</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Search" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Search</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Search</extends>
+            <label>Search</label>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="searchAction" type="action">
+        <parameterList>
+          <parameter name="doValidate" type="rifp">
+            <type>dtype_com.conceptwave.system.Boolean</type>
+          </parameter>
+        </parameterList>
+        <script><![CDATA[
+          doValidate = true;
+          this.cw$super_searchAction(doValidate);
+        ]]></script>
+      </method>
+      <method name="registerPSR" type="usrActionMethod">
+        <parameterList>
+          <parameter name="dialog" type="rifp">
+            <type>ui_com.conceptwave.system.Dialog</type>
+          </parameter>
+        </parameterList>
+        <showInPopup>true</showInPopup>
+        <script><![CDATA[
+          var reg =  new Document("FTTHReportApplication:PSR");
+
+          reg.lastUpdatedAt = Calendar.today();
+
+          return reg;
+        ]]></script>
+      </method>
+      <method name="excluirPSR" type="usrActionMethod">
+        <parameterList>
+          <parameter name="dialog" type="rifp">
+            <type>ui_com.conceptwave.system.Dialog</type>
+          </parameter>
+        </parameterList>
+        <showInPopup>true</showInPopup>
+        <script><![CDATA[return new Document("FTTHReportApplication:PSR");]]></script>
+      </method>
+      <method name="updatePSR" type="usrActionMethod">
+        <confirmation>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/uimthd_updatePSR_confirm</confirmation>
+        <parameterList>
+          <parameter name="dialog" type="rifp">
+            <type>ui_com.conceptwave.system.Dialog</type>
+          </parameter>
+        </parameterList>
+        <showInPopup>true</showInPopup>
+        <script><![CDATA[
+          if (this.result.selected!=null && this.result.selected.length == 1) {
+            var ui = new this.result.selected[0].UserInterface(this.result.selected[0], this);
+            this.isSearchButtonVisible = true;
+            return ui;
+          }
+        ]]></script>
+      </method>
+      <method name="updatePSR_confirm" type="uimthd">
+        <script><![CDATA[
+          var m = this.result.selected;
+          if (m != null) {
+                if (m.length > 1)
+                      Global.throwException("UU0116");
+                if(m.length==0)
+                      Global.throwException("UU0111");
+                return null;
+          }
+          else
+                Global.throwException("UU0111");
+        ]]></script>
+      </method>
+      <method name="canEditDeletePerm" type="permMethod">
+        <script><![CDATA[
+          if(this.result.selected)
+              return true;
+
+          return false;
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+  <viewList>
+    <view name="PSRFinderView" type="findVView">
+      <inputOverlay>doc_FTTHReportApplication.PSR/ui_UserInterface/frmui_Forms/exov_Default</inputOverlay>
+      <label>PSR</label>
+      <outputOverlay>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+      <searchImmediately>true</searchImmediately>
+      <showSearchForm>true</showSearchForm>
+    </view>
+  </viewList>
+</findSql>

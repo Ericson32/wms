@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.updateEquipmentLockStatus">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Este script &#233; respons&#225;vel por verificar se existe alguma transa&#231;&#227;o sendo
+      executada para este equipamento e se este pode ser alterado e
+      movimentado nos sistemas ponta (SIS, NETWIN, SAP)
+    </p>
+  ]]></description>
+  <label>Update Equipment Lock Status</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="fkEquipment" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      CwDocId (PK) do equip na tabela de equips.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_cwf.cwDocId</type>
+    </parameter>
+    <parameter name="equipmentType" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Se STB, HGW ou ONT&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="cwOrderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="lock" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+
+        Este script é responsável por atualizar o status (locked/unlocked)
+        para este equipamento.
+
+    */
+
+    try{
+        var ordem = Order.getOrderById(cwOrderId);
+    } catch(e){
+        Global.logError("erro em FTTHOrder.updateEquipmentLockStatus, não foi possível encontrar pedido para o orderID: " + cwOrderId);
+    }
+
+    ordem.OrderHeader.flagProcessandoTroca = lock;
+    ordem.save();
+  ]]></script>
+</script>

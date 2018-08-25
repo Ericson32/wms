@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHUserInterface.ClickHandleError">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Esse participant representa a pessoa respons&#225;vel por realizar as
+      atividades de tratamento de pend&#234;ncia manual para as opera&#231;&#245;es do Click.
+    </p>
+  ]]></description>
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M1DT0H0M0S</length>
+  </duration>
+  <guid>{7fec76db-2430-4c9f-92d9-cb10cdcb2eaf}</guid>
+  <interface>iface_FTTHUserInterface.ClickHandleErrorInterface</interface>
+  <label>Click Handle Error</label>
+  <metaVersion>4</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_BAOpenningHandleErrorResend</operation>
+      <tasksList>
+        <tasks>BAOpenningHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return true;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_ExecuteBAJumperHandleErrorResend</operation>
+      <tasksList>
+        <tasks>ExecuteBAJumperHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return true;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_NotifyValidationEquipmentHandleErrorResend</operation>
+      <tasksList>
+        <tasks>NotifyValidationEquipmentHandleError</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return true;</script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var ValidateEquipmentDoc = worklistItem.processDocument;
+            var tipoEquipamento = ValidateEquipmentDoc.tipoEquipamentoNovo?ValidateEquipmentDoc.tipoEquipamentoNovo:ValidateEquipmentDoc.tipoEquipamentoOriginal;
+            var idAtivo =  ValidateEquipmentDoc.acaoNovo? ValidateEquipmentDoc.acaoNovo:ValidateEquipmentDoc.idAtivoOriginal;
+            //MERGE 18/04/2018
+            //FTTHClickInterface.atualizarFlagIsProcessandoEquip(worklistItem.processOrder.id, false, tipoEquipamento, idAtivo);
+            //end MERGE 18/04/2018
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>errorActivity</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

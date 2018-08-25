@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.setStatusActivity">
+  <label>Set Status Activity</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="activityId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="indCancel" type="rifp">
+      <type>dtype_com.conceptwave.system.Integer</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var statusActivity;
+    var searchDoc = new Document("FTTHCommon:Activity");
+    var docResult;
+    var order;
+
+    searchDoc.orderId = orderId;
+    searchDoc.activityId = activityId;
+    if(indCancel==null)
+        searchDoc.indCancelamento = FTTHCommon.isCancelOrder(orderId);
+    else
+        searchDoc.indCancelamento = indCancel;
+    statusActivity = Finder.runSearch ("FTTHCommon.statusActivityFinder", searchDoc);
+    if(statusActivity.start != null){
+        docResult = statusActivity.start;
+        docResult.status = status;
+        docResult.executionDate = new Date();
+        docResult.save();
+        FTTHCommon.setStatusOrder(orderId, status);
+    }
+
+    return;
+  ]]></script>
+</script>

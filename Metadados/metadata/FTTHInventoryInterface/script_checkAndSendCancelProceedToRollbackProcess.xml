@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHInventoryInterface.checkAndSendCancelProceedToRollbackProcess">
+  <label>checkAndSendCancelProceedToRollbackProcess</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    //With this activity, if the order is being cancelled, the process will be stopped.
+    //It will be waiting for a message that will never receive.
+    //It also sends a message to the RollbackActionAtutomaticTask process, indicating that it can proceed.
+    if (!orderId)
+        return false;
+
+    if (FTTHCommon.isCancelOrder(orderId)){
+        var typeId = Global.getMetadataIndexByNames('FTTHInventoryInterface.RollbackActionAutomaticTask');
+
+        var rollbackProcessFinder = new Finder('override_cwf_pm.processFinder');
+
+        rollbackProcessFinder.searchDocument.PROCESS_METADATYPE = typeId;
+        rollbackProcessFinder.searchDocument.ORDER_ID = orderId;
+        rollbackProcessFinder.searchDocument.STATUS = 1;
+
+        var res = rollbackProcessFinder.search();
+        if (res.length > 0){
+            Process.sendMessageToProcess(res[0].PROCESS_ID, null,"FTTHOrderManagementInterface:OMListenerInterface/proceedCancel", null);
+        }
+
+        return true;
+    }
+    else return false;
+  ]]></script>
+</script>

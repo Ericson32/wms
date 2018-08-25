@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.defineStatusAutomaticActivity">
+  <label>Define Status Automatic Activity</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="codErro" type="rifp">
+      <type>dtype_FTTHCommon.errorCode</type>
+    </parameter>
+    <parameter name="sistema" type="rifp">
+      <type>dtype_FTTHCommon.downstreamSystem</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var errorType = "";
+    var searchErrorTypeDoc = "";
+    var errorTypeResult = "" ;
+    var errorTypeResultStart = "";
+    var status = "";
+
+    //MS - marcossouza@br.ibm.com - 24/08/2017
+    //convertendo string para number
+    try{
+    //    var aux = codErro;
+        codErro = Number(codErro);
+    } catch(e){
+        //se
+    }
+    //end MS
+
+    if (codErro == "0" || codErro == 0) {
+
+        status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+    } else {
+        codErro = codErro.toString();
+
+        searchErrorTypeDoc = new Document("FTTHCommon:ErrorTypeDocument");
+        searchErrorTypeDoc.errorCode = codErro;
+        searchErrorTypeDoc.downstreamSystem = sistema;
+        errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorTypeFinder", searchErrorTypeDoc);
+
+        if (errorTypeResult != null) {
+            errorTypeResultStart = errorTypeResult.start;
+            if (errorTypeResultStart!=null) {
+                errorType = errorTypeResultStart.errorType;
+                if (errorType == "CANCELAMENTO"){
+                    status = Global.getConfigVariable("ACTIVITY_RETURN_ORDER_CANCELED");
+                } else {
+                    if(errorType == "TECNICO") {
+                        status = Global.getConfigVariable("ACTIVITY_RETURN_TECHNICAL_ERROR");
+                    }else if (errorType == "REUSO"){
+                        status = Global.getConfigVariable("ACTIVITY_RETURN_REUSE");
+                    }else {
+                        status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+                    }
+                }
+            } else {
+                status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+            }
+        }
+        else
+            status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+    }
+
+    return status;
+  ]]></script>
+</script>

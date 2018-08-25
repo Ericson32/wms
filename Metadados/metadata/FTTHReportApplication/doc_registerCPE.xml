@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHReportApplication.registerCPE">
+  <dbSchema>ORDER</dbSchema>
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <generatedKey>true</generatedKey>
+  <guid>{9b7c60cf-4ffd-4b2c-97c0-6a16abecc1f1}</guid>
+  <label>registerCPE</label>
+  <metaVersion>4</metaVersion>
+  <variableList>
+    <variable name="cwDocId" type="leaf">
+      <column>CWDOCID</column>
+      <key>1</key>
+      <table>TBI_TIPO_CPE</table>
+      <valueType>dtype_cwf.cwDocId</valueType>
+    </variable>
+    <variable name="codigoMaterial" type="leaf">
+      <column>CODIGOMATERIAL</column>
+      <table>TBI_TIPO_CPE</table>
+      <valueType>dtype_FTTHCommon.string9</valueType>
+    </variable>
+    <variable name="nomeCPE" type="leaf">
+      <column>NOMECPE</column>
+      <table>TBI_TIPO_CPE</table>
+      <valueType>dtype_cwt_common.string512</valueType>
+    </variable>
+    <variable name="descricaoMaterial" type="leaf">
+      <column>DESCRICAOMATERIAL</column>
+      <table>TBI_TIPO_CPE</table>
+      <valueType>dtype_cwt_common.string1024</valueType>
+    </variable>
+    <variable name="isTV" type="leaf">
+      <column>TV</column>
+      <table>TBI_TIPO_CPE</table>
+      <valueType>dtype_cwt_common.booleanCheckBox</valueType>
+    </variable>
+    <variable name="equipmentType" type="leaf">
+      <column>EQUIPMENTTYPE</column>
+      <table>TBI_TIPO_CPE</table>
+      <valueType>dtype_FTTHCommon.string20</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="cwOnDocVisualKey" type="action">
+      <system>true</system>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+      <script><![CDATA[
+        /* return this.cw$super_cwOnDocVisualKey(); */
+        return this.nomeCPE;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHReportApplication.registerCPE</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="VerticalLayout" type="elvlt">
+                <elementList>
+                  <element name="GridLayout" type="elgrd">
+                    <numOfCols>4</numOfCols>
+                    <elementList>
+                      <element name="codigoMaterial" type="elfld">
+                        <label>Código do Material</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_codigoMaterial</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomeCPE" type="elfld">
+                        <label>Nome do CPE</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_nomeCPE</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="descricaoMaterial" type="elfld">
+                        <label>Descrição do Material</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_descricaoMaterial</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="isTV" type="elchk">
+                        <label>isTV</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.registerCPE/leaf_isTV</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</base>
+            <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="save" type="usrActionMethod">
+        <script><![CDATA[
+          //Verificar se necessita validar as informações vazias.
+
+          if(this.isValid) {
+            this.model.save();
+            Global.showUserMessage("CPE adicionado com sucesso!");
+          }
+          else {
+            Global.throwException("UE0116", this);
+          }
+
+          return Global.STOP_UI;
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

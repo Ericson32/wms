@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHClickInterface.atualizarFlagIsProcessandoEquip">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atualiza a flag dos documents.
+    </p>
+  ]]></description>
+  <label>Atualizar Flag isProcessando</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp"/>
+    <parameter name="isProcessando" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="tipoEquipamento" type="rifp"/>
+    <parameter name="idAtivo" type="rifp"/>
+    <parameter name="cpeHasChanged" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc;
+    var equipamento;
+
+    switch(tipoEquipamento){
+        case "ONT":
+        case "HGW":
+        searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+        searchDoc.clearData();
+        searchDoc.cwOrderId = cwOrderId;
+
+        equipamento = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+        break;
+        case "STB":
+        searchDoc = new Document("FTTHOrder:EquipmentData");
+        searchDoc.clearData();
+        searchDoc.cwOrderId = cwOrderId;
+
+        searchDoc.idAtivo = idAtivo;
+        equipamento = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+        break;
+    }
+
+    if(equipamento && equipamento.start){
+        var equip = equipamento.start;
+        equip.isProcessando = isProcessando;
+
+        if(cpeHasChanged){
+            if(tipoEquipamento == "HGW"){
+                equip.cpeHasChangedHGW = cpeHasChanged;
+            } else{
+            equip.cpeHasChanged = cpeHasChanged;
+        }
+        }
+
+        equip.save();
+    }
+  ]]></script>
+</script>

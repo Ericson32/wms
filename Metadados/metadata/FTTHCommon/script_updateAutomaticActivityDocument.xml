@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.updateAutomaticActivityDocument">
+  <label>Update Automatic Activity Document</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp"/>
+    <parameter name="system" type="rifp"/>
+    <parameter name="activity" type="rifp"/>
+    <parameter name="oldIndCancel" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    var doc = null;
+
+    var ordemEmCancelamento;
+    if(oldIndCancel==null)
+        ordemEmCancelamento = FTTHCommon.isCancelOrder(order.OrderHeader.cwOrderId);
+    else
+        ordemEmCancelamento = oldIndCancel;
+
+    if (order.AutomaticActivityData == null) {
+        order.createOrderItemByPath("AutomaticActivityData");
+        var item = order.AutomaticActivityData.newInstance();
+        doc = item.AutomaticActivityData;
+    } else {
+        for(var i = 0; i < order.AutomaticActivityData.length; i++) {
+            var temp = order.AutomaticActivityData[i].AutomaticActivityData;
+            if(temp.nomeAtividade==activity && ((ordemEmCancelamento == temp.indCancelamento) || (!temp.indCancelamento))) {
+                doc = new Document('FTTHOrder:AutomaticActivityData');
+                temp.copyToDocument(doc, false, false);
+                doc = temp;
+                break;
+            }
+        }
+        if (doc==null) {
+           order.createOrderItemByPath("AutomaticActivityData");
+            var item = order.AutomaticActivityData.newInstance();
+            doc = item.AutomaticActivityData;
+        }
+    }
+
+    // O trecho abaixo foi comentado para corrigir o bug de documents duplicados na ordem. Estava sendo associado o nome da atividade
+    // pesquisada na TBI_ATIVIDADE, desta forma ao pesquisar se ja havia documente com aquele nome comparando com o codigo retirado do
+    // config variables (ver acima: if(temp.nomeAtividade==activity) ), nao coincidia e entao criava um novo document.
+    // Por exemplo temp.nomeAtividade = Designar Facilidade  e  activity = DESIGNAR_FACILIDADE no if to trecho acima resultava FALSE.
+    // Agora o nomeAtividade recebe direto a string do activity na primeira criaçao do document.
+
+
+    //var atividadeSearch = new Document('FTTHCommon:NomeAtividadeQuery');
+    //atividadeSearch.atividade = activity;
+
+    //var atividadeFinder = Finder.runSearch('FTTHCommon:NomeAtividadeFinder', atividadeSearch);
+    //var atividade = atividadeFinder.start;
+
+    //if(atividade == null){
+    //    doc.nomeAtividade = activity;
+    //}else{
+    //    doc.nomeAtividade = atividade.atividade;
+    //}
+
+    /// --------
+
+
+    doc.nomeAtividade = activity;
+
+
+    doc.nomeSistema = system;
+    doc.registroMensagens = FTTHCommon.getEventHtml(order.id, system, activity, ordemEmCancelamento);
+
+    try {
+        order.save();
+    } catch (e) {
+        for(var i = 0; i < order.AutomaticActivityData.length; i++) {
+            var temp = order.AutomaticActivityData[i].AutomaticActivityData;
+            if(temp.nomeAtividade==activity && ((ordemEmCancelamento == temp.indCancelamento) || (!temp.indCancelamento))) {
+                doc = new Document('FTTHOrder:AutomaticActivityData');
+                temp.copyToDocument(doc, false, false);
+                //doc = temp;
+                break;
+            }
+        }
+        doc.nomeAtividade = activity;
+        doc.nomeSistema = system;
+        doc.registroMensagens = FTTHCommon.getEventHtml(order.id, system, activity, ordemEmCancelamento);
+        doc.save();
+    }
+  ]]></script>
+</script>

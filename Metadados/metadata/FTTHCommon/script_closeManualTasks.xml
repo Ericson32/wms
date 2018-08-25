@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.closeManualTasks">
+  <label>closeManualTask</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var fndWorklist   = new Finder("cwf_pm:OrderItemWorklist");
+    fndWorklist.searchDocument.OrderId = orderId;
+    var manualTasks = fndWorklist.search();
+    var manualTask = null;
+
+    for (manualTask = manualTasks.start; manualTask; manualTask = manualTask.next){
+        Process.cancelWorklistItem(manualTask, 'Order completed or cancelled.');
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.checkTimetoResend">
+  <label>Check Time to Resend</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderid" type="rifp">
+      <type>nmeta_com.conceptwave.system.Object</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <type>dtype_FTTHCommon.atividade</type>
+    </parameter>
+    <parameter name="sistemaOrigem" type="rifp">
+      <type>dtype_cwf.String64</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        REGRA resend to start
+        AUTOR: FELIPE MACHADO
+        DATA: 28/11/2016
+        DESCRICAO: ESTE SCRIPT VERIFICA A QUANTIDADE DE TEMPO DE ESPERA PARA REENVIAR A ATIVIDADE AUTOMÁTICA.
+
+    */
+    var parametroError = null;
+    var atividadeError = null;
+    var atividadeErrorFinder = null;
+    var intervaloTentativa = 0;
+    var intervaloTentativaFinder = null;
+
+    atividadeError  = new Document('FTTHCommon:Event');
+    atividadeError.cwOrderId = orderid;
+    atividadeError.atividade = atividade;
+    atividadeErrorFinder = Finder.runSearch('FTTHActivationInterface.getErrorActivityFinder', atividadeError);
+    parametroError = new Document ('FTTHActivationInterface:ParameterErrorAutomaticTask');
+    parametroError.origSystem = sistemaOrigem;
+    parametroError.activity = atividade;
+    parametroError.errorCode = atividadeErrorFinder[0].codigo;
+    intervaloTentativaFinder = Finder.runSearch('FTTHActivationInterface.getErrorParameter', parametroError);
+
+    //MS - marcossouza@br.ibm.com - tratando exceção em caso de não achar nenhum valor me caso de código não cadastrado
+    if(intervaloTentativaFinder && intervaloTentativaFinder.length > 0){
+        return intervaloTentativaFinder[0].intervalRetry;
+    } else{
+        parametroError.errorCode = null;
+        intervaloTentativaFinder = Finder.runSearch('FTTHActivationInterface.getErrorParameter', parametroError);
+        if(intervaloTentativaFinder && intervaloTentativaFinder.length > 0){
+            return intervaloTentativaFinder[0].intervalRetry;
+        } else{
+            return 0;
+        }
+    }
+        //end MS
+
+  ]]></script>
+</script>

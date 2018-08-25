@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script filenameHash="7541a96d6c16dd7766a0e4865d273480" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.copyConsultPhysicalOriginal">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script que copia os dados originais da cunsulta f&#237;sica para os dados
+      novos que est&#227;o sem valores.
+    </p>
+    <p style="margin-top: 0">
+      &#201; utilizado quando a consulta f&#237;sica original n&#227;o necessita ser feita.
+    </p>
+  ]]></description>
+  <label>copyConsultPhysicalOriginal</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var documento = FTTHCommon.getDocument(ordem, "Facility Data", false);
+    var documentoOriginal = FTTHCommon.getDocument(ordem, "Facility Data", true);
+
+    //Campos retornados na consulta fisica: OLTGALC,OLTPORT,OLTRACK,OLTSHELF,OLTSLOT,UNI,splitterPort
+
+    if(documento != null && documentoOriginal != null){
+        if(documento.OLTGALC == null && documentoOriginal.OLTGALC != null){
+            documento.OLTGALC = documentoOriginal.OLTGALC;
+        }
+        if(documento.OLTPORT == null && documentoOriginal.OLTPORT != null){
+            documento.OLTPORT = documentoOriginal.OLTPORT;
+        }
+        if(documento.OLTRACK == null && documentoOriginal.OLTRACK != null){
+            documento.OLTRACK = documentoOriginal.OLTRACK;
+        }
+        if(documento.OLTSHELF == null && documentoOriginal.OLTSHELF != null){
+            documento.OLTSHELF = documentoOriginal.OLTSHELF;
+        }
+        if(documento.OLTSLOT == null && documentoOriginal.OLTSLOT != null){
+            documento.OLTSLOT = documentoOriginal.OLTSLOT;
+        }
+        if(documento.UNI == null && documentoOriginal.UNI != null){
+            documento.UNI = documentoOriginal.UNI;
+        }
+        if(documento.splitterPort == null && documentoOriginal.splitterPort != null){
+            documento.splitterPort = documentoOriginal.splitterPort;
+        }
+        if(documento.ONT == null && documentoOriginal.ONT != null){
+            documento.ONT = documentoOriginal.ONT;
+        }
+        if(documento.ONTCARD == null && documentoOriginal.ONTCARD != null){
+            documento.ONTCARD = documentoOriginal.ONTCARD;
+        }
+        if(documento.estacao == null && documentoOriginal.estacao != null){
+            documento.estacao = documentoOriginal.estacao;
+        }
+        if(documento.ICX == null && documentoOriginal.ICX != null){
+            documento.ICX = documentoOriginal.ICX;
+        }
+        if(documento.DGO == null && documentoOriginal.DGO != null){
+            documento.DGO = documentoOriginal.DGO;
+        }
+        if(documento.BSP == null && documentoOriginal.BSP != null){
+            documento.BSP = documentoOriginal.BSP;
+        }
+        documento.save();
+        ordem.save();
+    }
+  ]]></script>
+</script>

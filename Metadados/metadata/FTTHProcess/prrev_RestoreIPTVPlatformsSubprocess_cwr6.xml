@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.RestoreIPTVPlatformsSubprocess_cwr6">
+  <activity name="RestoreIPTVStart" type="seqActivity">
+    <guid>{f8c55618-3bd0-452b-8f45-25ad540e73ea}</guid>
+    <label>Restore IPTV Start</label>
+    <x>68.890724</x>
+    <y>30.0</y>
+    <childList>
+      <child name="HDTVRestore" type="seqActivity">
+        <guid>{5b62e85e-0681-4ecd-ba60-58cdf604d44e}</guid>
+        <label>HD TV Restore</label>
+        <x>65.15947</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="IsHDTV" type="switchActivity">
+            <guid>{e4d41c12-6ae4-42ca-8ec4-265bc5c8677c}</guid>
+            <label>Is HD TV?</label>
+            <x>68.17139</x>
+            <y>216.76096</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{b813f9af-e1de-4020-ab72-5274edee93f9}</guid>
+                <label>Yes</label>
+                <x>181.29028</x>
+                <y>672.6466</y>
+                <childList>
+                  <child name="RestoreIPTVIESFSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.RestoreIPTVIESFSubprocess_cwr10</element>
+                    <guid>{bd1e1681-eb23-4263-90f9-70f101a57847}</guid>
+                    <label>Restore IPTV IESF Subprocess</label>
+                    <x>113.0</x>
+                    <y>312.4621</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      // MS - marcossouza@br.ibm.com - PKE000000026664 - 20170814
+                      /*
+                      if (process.processOrder.OriginalData != null){
+                          if(process.processOrder.OriginalData[0] != null){
+                             if( process.processOrder.OriginalData[0].ProductData.identificadorIPTV != null)
+                                 return true;
+                          }
+                      }else{
+                          if(process.processOrder.ProductData.identificadorIPTV != null)
+                              return true;
+                      }
+                      return false;
+                      */
+
+                      if(process.processOrder.ProductData.needTVIESF){
+                          if(process.processOrder.OriginalData && process.processOrder.OriginalData[0] && process.processOrder.OriginalData[0].ProductData){
+                              if(process.processOrder.OriginalData[0].ProductData.needTVIESF != false){
+                                  return true;
+                              } else{
+                                  return false;
+                              }
+                          } else{
+                              return true;
+                          }
+                      } else if(process.processOrder.ProductData.needTVIESF == null){
+                          if (process.processOrder.OriginalData && process.processOrder.OriginalData[0] && process.processOrder.OriginalData[0].ProductData){
+                              if(process.processOrder.OriginalData[0].ProductData.needTVIESF){
+                                  return true;
+                              }
+                          }
+                      }
+
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{e1517978-dcab-45dc-8243-6839216f3bc2}</guid>
+                <label>No</label>
+                <x>30.0</x>
+                <y>328.16327</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="RestoreIPTVAPCSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.RestoreIPTVAPCSubprocess_cwr10</element>
+        <guid>{118da271-033a-441e-8d84-6c26bcf0d882}</guid>
+        <label>Restore IPTV APC Subprocess</label>
+        <x>64.157715</x>
+        <y>440.5656</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "%DESBLOQUEAR_IPTV_APC";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de infra de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <label>Restore IPTV Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.RestoreIPTVPlatformsSubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

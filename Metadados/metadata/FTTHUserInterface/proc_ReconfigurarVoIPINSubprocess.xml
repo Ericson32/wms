@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ReconfigurarVoIPINSubprocess">
+  <activity name="ReconfigurarVoIPINStart" type="seqActivity">
+    <guid>{6dddf46c-a6c9-4eb1-9f54-8a6905ab184d}</guid>
+    <label>Reconfigurar VoIP IN Start</label>
+    <x>30.94629</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ReconfigurarVoIPINAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ReconfigurarVoIPINAutomaticTask</element>
+        <guid>{82ef1c69-b196-4fa5-8d18-8d6b933ae9ec}</guid>
+        <label>Reconfigurar VoIP IN Automatic Task</label>
+        <syc>true</syc>
+        <x>29.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{b2d5c602-e739-4567-8c23-78bd780dd94c}</guid>
+        <label>Check Task Result</label>
+        <x>73.42448</x>
+        <y>516.0715</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{89527328-b759-4f26-8108-3ce22790a70a}</guid>
+            <label>Success</label>
+            <x>41.506256</x>
+            <y>642.175</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_IN");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{506bdc97-b1b7-4cfc-9fc4-92320bf0aa53}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{7a43577e-133c-4126-94b0-3764719e98b7}</guid>
+                <label>Handle Error Start</label>
+                <x>126.17657</x>
+                <y>644.5256</y>
+                <childList>
+                  <child name="ReconfigurarVoIPINHandleErrorTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.ReconfigurarVoIPINHandleErrorTask</element>
+                    <guid>{778bcb3f-85a9-4dca-9a0b-0ca31fedf545}</guid>
+                    <label>Reconfigurar VoIP IN Handle Error Task</label>
+                    <x>165.148</x>
+                    <y>740.87616</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{760c4e80-543d-48dc-8b6e-2088959e18ec}</guid>
+                    <label>Check Error Handling</label>
+                    <x>126.38412</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{1904b343-dfa4-4cb6-9537-d3a5bc5a4bd0}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{0a4b840b-1ecd-4fa8-a4c9-33aae6d87c70}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>136.79355</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ReconfigurarVoIPINSolveIssueTask" type="subflowActivity">
+                                <element>proc_FTTHUserInterface.ReconfigurarVoIPINSolveIssueTask</element>
+                                <guid>{c8385bd8-4001-4c85-95c9-5f114468a2bc}</guid>
+                                <label>Reconfigurar VoIP IN Solve Issue Task</label>
+                                <x>138.05664</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>proc_FTTHUserInterface.ReconfigurarVoIPINSubprocess/seqActivity_ReconfigurarVoIPINStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{328574ab-8255-4f2b-a5b1-12384c4e7374}</guid>
+                                <label>Repeat</label>
+                                <x>159.43816</x>
+                                <y>530.77264</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_IN");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{036cf627-dc78-433f-99c2-0b4ecade0b65}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>proc_FTTHUserInterface.ReconfigurarVoIPINSubprocess/seqActivity_ReconfigurarVoIPINStart</element>
+                            <guid>{9fe442de-72a3-4504-bba0-fa182ff96c79}</guid>
+                            <label>Repeat</label>
+                            <x>40.680664</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{183ccecc-6093-469e-9aa8-90f681aa4ffc}</guid>
+  <label>Reconfigurar VoIP IN Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process>

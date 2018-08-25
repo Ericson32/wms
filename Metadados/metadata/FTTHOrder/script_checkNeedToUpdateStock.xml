@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.checkNeedToUpdateStock">
+  
+  <label>Check Need To Update Stock</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var isRetirada = false, isExclusaoPonto = false;
+
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = ordem.OrderHeader.cwOrderId;
+
+    var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+
+    if (orderRequest.size > 0) {
+        for (var i = 0; i < orderRequest.size; i++) {
+            var solicitacao = orderRequest[i];
+
+            if(solicitacao.idSolicitacao == "EXCLUSAO_PONTO_ADICIONAL"){
+                isExclusaoPonto = true;
+            }
+
+            if(solicitacao.tipoOrdemServico == "TIPO_ORDEM_RETIRADA"){
+                isRetirada = true;
+            }
+        }
+    }
+
+
+
+    var equipDataOld = {
+        cwOrderId: ordem.OrderHeader.cwOrderId,
+        equipmentId: null,
+        equipmentType: null,
+        numeroSerieEquipamento: null,
+        codEquipamento: null,
+        nomeCPE: null,
+        foiDevolvido: null,
+        motivoRetirada: null,
+        flagDadoOriginal: null,
+        idAtivo: null,
+        deviceGUID: null,
+        possuiDVRIntegrado: null
+    };
+
+
+    if(isRetirada){
+        if(ordem && ordem.OriginalData && ordem.OriginalData.length > 0 && ordem.OriginalData[0].EquipmentData && ordem.OriginalData[0].EquipmentData.length > 0){
+            //Equipamentos BASE
+            if(ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData){
+                var baseEquip = ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData;
+                //ONT
+                if(baseEquip.numeroSerieONT_Original){
+                    equipDataOld.equipmentId = baseEquip.cwDocId;
+                    equipDataOld.equipmentType = "ONT";
+                    equipDataOld.numeroSerieEquipamento = baseEquip.numeroSerieONT_Original;
+                    equipDataOld.codEquipamento = baseEquip.codEquipamentoONT_Original;
+                    equipDataOld.nomeCPE = baseEquip.nomeCPE_ONT_Original;
+                    equipDataOld.foiDevolvido = baseEquip.foiDevolvidoONT_Original;
+                    equipDataOld.motivoRetirada = baseEquip.motivoONT;
+                    equipDataOld.flagDadoOriginal = baseEquip.flagDadoOriginal;
+
+                    FTTHOrder.logEquipmentTransaction(equipDataOld, "RETIRADA EQUIPAMENTO", "remover", true);
+                }
+
+                //HGW
+                if(baseEquip.numeroSerieHGW_Original){
+                    equipDataOld.equipmentId = baseEquip.cwDocId;
+                    equipDataOld.equipmentType = "HGW";
+                    equipDataOld.numeroSerieEquipamento = baseEquip.numeroSerieHGW_Original;
+                    equipDataOld.codEquipamento = baseEquip.codEquipamentoHGW_Original;
+                    equipDataOld.nomeCPE = baseEquip.nomeCPE_HGW_Original;
+                    equipDataOld.foiDevolvido = baseEquip.foiDevolvidoHGW_Original;
+                    equipDataOld.motivoRetirada = baseEquip.motivoHomeGateway;
+                    equipDataOld.flagDadoOriginal = baseEquip.flagDadoOriginal;
+
+                    FTTHOrder.logEquipmentTransaction(equipDataOld, "RETIRADA EQUIPAMENTO", "remover", true);
+                }
+            }
+
+
+            //Equipamentos PONTA
+            if(ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData && ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length > 0){
+                for(var i = 0; i < ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length; i++){
+                    var stb = ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData;
+
+                    equipDataOld.equipmentId            = stb.cwDocId;
+                    equipDataOld.equipmentType          = "STB";
+                    equipDataOld.numeroSerieEquipamento = stb.numeroSerieSetTopBox_Original;
+                    equipDataOld.codEquipamento         = stb.codEquipamento_Original;
+                    equipDataOld.nomeCPE                = stb.nomeCPE_Original;
+                    equipDataOld.foiDevolvido           = stb.foiDevolvidoSetTopBox_Original;
+                    equipDataOld.motivoRetirada         = stb.motivoSetTopBox;
+                    equipDataOld.flagDadoOriginal       = stb.flagDadoOriginal;
+                    equipDataOld.idAtivo                = stb.idAtivo;
+                    equipDataOld.deviceGUID             = stb.deviceGUID_Original;
+                    equipDataOld.possuiDVRIntegrado     = stb.possuiDVRIntegrado;
+
+                    FTTHOrder.logEquipmentTransaction(equipDataOld, "RETIRADA EQUIPAMENTO", "remover", true);
+                }
+            }
+        }
+
+    }
+
+    if(isExclusaoPonto){
+        if(ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData && ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length > 0){
+            for(var i = 0; i < ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length; i++){
+                var stb = ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData;
+
+                if (stb.acao == "remover") {
+                        equipDataOld.equipmentId            = stb.cwDocId;
+                        equipDataOld.equipmentType          = "STB";
+                        equipDataOld.numeroSerieEquipamento = stb.numeroSerieSetTopBox_Original;
+                        equipDataOld.codEquipamento         = stb.codEquipamento_Original;
+                        equipDataOld.nomeCPE                = stb.nomeCPE_Original;
+                        equipDataOld.foiDevolvido           = stb.foiDevolvidoSetTopBox_Original;
+                        equipDataOld.motivoRetirada         = stb.motivoSetTopBox;
+                        equipDataOld.flagDadoOriginal       = stb.flagDadoOriginal;
+                        equipDataOld.idAtivo                = stb.idAtivo;
+                        equipDataOld.deviceGUID             = stb.deviceGUID_Original;
+                        equipDataOld.possuiDVRIntegrado     = stb.possuiDVRIntegrado;
+
+                        FTTHOrder.logEquipmentTransaction(equipDataOld, "RETIRADA EQUIPAMENTO", "remover", true);
+                }
+            }
+        }
+    }
+
+
+
+    return true;
+  ]]></script>
+</script>

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.UpdateStockSubprocess_cwr10">
+  <activity name="UpdateStockStart" type="seqActivity">
+    <guid>{d6d8cb9f-8003-44eb-8f68-e80beba84856}</guid>
+    <label>Update Stock Start</label>
+    <x>22.533985</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="UpdateStockAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHManterEquipamentoInventarioSAPInterface.UpdateStockAutomaticTask</element>
+        <guid>{75c75ed8-3b4e-49ad-af36-21d888202952}</guid>
+        <label>Update Stock Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>359.8047</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{656c7d85-d94c-401b-8893-d0f1bf592ad8}</guid>
+        <label>Check Task Result</label>
+        <x>65.7666</x>
+        <y>498.60938</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{dd3568eb-56c3-4411-a36b-2b42c1c481a5}</guid>
+            <label>Success</label>
+            <x>33.84839</x>
+            <y>624.7129</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{1cd10d56-8fc4-46c6-a802-89809122aabe}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{209c9343-da71-44e2-ab7f-5e9b77d59252}</guid>
+                <label>Handle Error Start</label>
+                <x>118.5187</x>
+                <y>627.0635</y>
+                <childList>
+                  <child name="UpdateStockHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.UpdateStockHandleErrorTask_cwr6</element>
+                    <guid>{c999250e-f57d-4c1f-9c91-9fd9af49cec0}</guid>
+                    <label>Update Stock Handle Error Task</label>
+                    <x>157.83582</x>
+                    <y>721.41406</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{2bd2dc4c-a757-4ff0-bfbf-456e415fe977}</guid>
+                    <label>Check Error Handling</label>
+                    <x>119.80501</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{3a0eda3c-f27c-48fb-b610-3e70dc2e5d33}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{eda87b12-7a31-4a20-a26e-c87bd13a966d}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>128.10019</x>
+                            <y>267.8047</y>
+                            <childList>
+                              <child name="UpdateStockSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.UpdateStockHandleIssueSubprocess_cwr13</element>
+                                <guid>{94996031-be5a-4a86-b4c7-9d9fc69d4cdd}</guid>
+                                <label>Update Stock Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>366.15527</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.UpdateStockSubprocess_cwr10/seqActivity_UpdateStockStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{638a9a51-14bf-46a7-9339-d17ebd4b25cf}</guid>
+                                <label>Repeat</label>
+                                <x>151.78027</x>
+                                <y>513.31055</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{1d213988-6982-4b06-b7d9-d875f00eb7d2}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.UpdateStockSubprocess_cwr10/seqActivity_UpdateStockStart</element>
+                            <guid>{36345b20-164f-45c9-ab18-e128f1913a94}</guid>
+                            <label>Repeat</label>
+                            <x>35.33789</x>
+                            <y>172.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Atualizar CPE&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Invent&#225;rio a solicita&#231;&#227;o de atualiza&#231;&#227;o de CPE. Caso o
+      Invent&#225;rio retorne algum erro, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de atualiza&#231;&#227;o de CPE para o sistema de Invent&#225;rio.
+      Ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Atualizar CPE - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Update Stock Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.UpdateStockSubprocess</process>
+  <revision>10</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.ParticipantIssueConfirmation">
+  <label>Participant Issue Confirmation</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="atividade" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="operation" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="userId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="idItem" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="listaIdItens" type="rifp">
+      <type>dtype_FTTHCommon.servicos_idItems</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+
+    var userDoc = UserProfile.getUserProfile(userId);
+    var matriculaUsuario = Global.trim(userDoc.profileId);
+    var nomeUsuario = Global.trim(userDoc.userName);
+
+    if(order.ManualActivityData != null){
+        var ba = order.ManualActivityData[order.ManualActivityData.length -1].ManualActivityData.numeroBA;
+    }
+    var docAbrirPend = new Document ("FTTHCommon.OpenIssuePopUp");
+
+    docAbrirPend.atividade = atividade;
+    docAbrirPend.operationWorklist = operation;
+    docAbrirPend.dataAbertura = new Date();
+    docAbrirPend.cwOrderId =order.OrderHeader.cwOrderId;
+    docAbrirPend.nomeUsuario = nomeUsuario;
+    docAbrirPend.matriculaUsuario = matriculaUsuario;
+    docAbrirPend.ba = ba;
+    docAbrirPend.idItem = idItem;
+    //docAbrirPend.listaIdItens = listaIdItens; -------> NAO É POSSIVEL SABER O VALOR POIS O CÓDIGO DA PENDENCIA AINDA SERÁ DEFINIDO PELO USUÁRIO
+
+    return docAbrirPend;
+  ]]></script>
+</script>

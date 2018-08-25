@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.verifyErrorType">
+  <label>Verify Error Type</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var result = 1;
+    var searchErrorTypeDoc = new Document("FTTHCommon:Activity");
+    var finderResult;
+    var finderResultStart;
+
+    searchErrorTypeDoc.orderId = cwOrderId;
+    searchErrorTypeDoc.activityId = atividade;
+
+    finderResult = Finder.runSearch ("FTTHCommon.errorTypeTechnicalFunctionalFinder", searchErrorTypeDoc);
+    finderResultStart = finderResult.start;
+
+    if(finderResultStart != null){
+        if(finderResultStart.status == Global.getConfigVariable("ACTIVITY_RETURN_TECHNICAL_ERROR"))
+            result = 0;
+         if(finderResultStart.status == Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR"))
+            result = 1;
+    }
+
+    return result;
+  ]]></script>
+</script>

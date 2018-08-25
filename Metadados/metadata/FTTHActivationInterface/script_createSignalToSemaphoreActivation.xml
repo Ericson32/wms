@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.createSignalToSemaphoreActivation">
+  <label>Create Signal To Semaphore Activation</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="processId" type="rifp">
+      <type>dtype_cwf_pm.PROCESS_ID</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    if(processId){
+        Global._beginTransaction("ORDER");
+        var sql = "Insert into TBI_SEMAFORO_ATIVACAO (PROCESSID) values (?)";
+        var param = [];
+        param.push(processId);
+        Global.runDBUpdate("ORDER", sql, param);
+        Global._commitTransaction("ORDER");
+
+        Global.logInfo('<<< Semaforo SIS >>> Sinal: '+processId+' criado.');
+        return;
+    }
+  ]]></script>
+</script>

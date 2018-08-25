@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ReconfigureVoIPHDMSolveIssueTask_cwr1">
+  <activity name="startReconfigureVoIPHDMSolveIssue" type="seqActivity">
+    <guid>{157ebecb-eaa9-4c2a-9ec3-2363af0cb4a2}</guid>
+    <label>Start Reconfigure VoIP HDM Solve Issue</label>
+    <x>35.147655</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureVoIPHDMSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPHDMSolveIssue</element>
+        <guid>{e4a554b9-3574-4cf0-9b8e-c5eb1ac5ad8a}</guid>
+        <label>Reconfigure VoIP HDM Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>36.14746</x>
+        <y>124.76094</y>
+      </child>
+      <child name="ReconfigureVoIPHDMSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ReconfigureVoIPHDMSolveIssueSuccess</element>
+        <guid>{7a00a6a3-da2b-4ad9-b2a1-d1f6dbd5e32a}</guid>
+        <label>Reconfigure VoIP HDM Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>36.14746</x>
+        <y>363.26678</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_HDM");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{ff715b15-52c0-4a3f-95cd-95d302d3ce32}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>250.86444</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("RECONFIGURAR_VOIP_HDM");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Reconfigurar VoIP - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Reconfigure VoIP HDM Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ReconfigureVoIPHDMSolveIssueTask</process>
+  <type>Sub-flow</type>
+</process__revision>

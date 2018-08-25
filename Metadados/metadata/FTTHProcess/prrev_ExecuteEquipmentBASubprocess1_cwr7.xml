@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ExecuteEquipmentBASubprocess1_cwr7">
+  <activity name="inicioInstalacaoKitAdsl" type="seqActivity">
+    <guid>{a70eef8a-a11e-4cd5-ac01-8a0ebde71de4}</guid>
+    <label>Inicio Instalacao Kit Adsl</label>
+    <x>57.001167</x>
+    <y>720.5912</y>
+    <childList>
+      <child name="continuandoInstalacaoKit" type="seqActivity">
+        <guid>{0f27504b-a1fb-4180-bd2d-64b2b267cd87}</guid>
+        <label>Continuando Instalacao de Kit</label>
+        <x>105.08739</x>
+        <y>1282.8398</y>
+        <childList>
+          <child name="Delay" type="pollActivity">
+            <guid>{ec744f64-2ddb-4b0f-9bef-155d8c1c4fc2}</guid>
+            <label>Delay</label>
+            <schedule type="sched">
+              <duration type="dur">
+                <methodList>
+                  <method name="cwOnDuration" type="action">
+                    <system>true</system>
+                    <script>return 20;</script>
+                  </method>
+                </methodList>
+              </duration>
+            </schedule>
+            <x>121.57645</x>
+            <y>1377.6008</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script>return 0;</script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ExecuteEquipmentBASubprocess" type="subflowActivity">
+            <element>prrev_FTTHProcess.ExecuteEquipmentBAAutomaticTask_cwr3</element>
+            <guid>{dd033bb5-662c-410d-a4bf-be5f9e6fc1c7}</guid>
+            <label>Execute Equipment BA Subprocess</label>
+            <x>300.41174</x>
+            <y>1474.302</y>
+          </child>
+          <child name="manageIssue" type="switchActivity">
+            <guid>{38edb590-2253-4dfc-99c2-605951d3630e}</guid>
+            <inclusive>true</inclusive>
+            <label>Manage Issue?</label>
+            <x>302.51245</x>
+            <y>30.0</y>
+            <childList>
+              <child name="sim" type="caseActivity">
+                <guid>{b80590d8-d51b-4e5b-99a6-5c0ef0ca8ac2}</guid>
+                <label>Sim</label>
+                <x>100.117294</x>
+                <y>408.60938</y>
+                <childList>
+                  <child name="scheduleIssue" type="switchActivity">
+                    <guid>{b6e90421-90c8-4796-a768-95074cdd5e83}</guid>
+                    <label>scheduleIssue</label>
+                    <x>70.00879</x>
+                    <y>141.40234</y>
+                    <childList>
+                      <child name="sim" type="caseActivity">
+                        <guid>{1339d3f9-7367-4f8c-a911-0197b3cadae6}</guid>
+                        <label>sim</label>
+                        <x>125.53731</x>
+                        <y>1482.8398</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <description><![CDATA[
+                              <p style="margin-top: 0">
+                                Quando h&#225; pend&#234;ncia na CONSULTA DE AGENDAMENTO, o fluxo &#233; desviado para
+                                o in&#237;cio
+                              </p>
+                            ]]></description>
+                            <element>prrev_FTTHProcess.ExecuteEquipmentBASubprocess1_cwr7/seqActivity_inicioInstalacaoKitAdsl</element>
+                            <guid>{45d868c5-e08d-4ada-83a6-f73efa426fd5}</guid>
+                            <label>Repeat To Start</label>
+                            <x>30.0</x>
+                            <y>393.60938</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var ord = this.process.processOrder;
+
+                              var codPendencia = ord.IssueData[ord.IssueData.length - 1].IssueData.codigoPendencia;
+                              return (codPendencia == FTTHHandleIssueProcess.getPendenciesByCode(Global.getConfigVariable("COD_PENDENCIA_MUA"))[0].cwDocId);
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="nao" type="caseActivity">
+                        <guid>{f0e9f1ef-66b3-4705-b994-b3d86158e7a3}</guid>
+                        <label>nao</label>
+                        <x>125.53731</x>
+                        <y>1482.8398</y>
+                        <childList>
+                          <child name="manageIssue" type="seqActivity">
+                            <guid>{473a1077-b9d8-4ce0-8d51-157388659b6f}</guid>
+                            <label>Manage Issue</label>
+                            <x>136.56543</x>
+                            <y>262.50586</y>
+                            <childList>
+                              <child name="ExecuteEquipmentBAHandleIssue" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ExecuteEquipmentBAHandleIssueSubprocess_cwr10</element>
+                                <guid>{4a665b6b-4eeb-409b-a088-7598395e31b9}</guid>
+                                <label>Execute Equipment BA Handle Issue</label>
+                                <x>134.0332</x>
+                                <y>378.9082</y>
+                              </child>
+                              <child name="resendToOpenning" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ExecuteEquipmentBASubprocess1_cwr7/seqActivity_inicioInstalacaoKitAdsl</element>
+                                <guid>{97b86677-514a-439b-a860-fd63da5f7063}</guid>
+                                <label>Resend To Openning</label>
+                                <x>91.47674</x>
+                                <y>534.41406</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ord = this.process.processOrder;
+                      var orderId = ord.OrderHeader.cwOrderId;
+                      var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                      var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                      return (result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="nao" type="caseActivity">
+                <guid>{4930f6b7-f3f7-4079-9691-5476431b2a85}</guid>
+                <label>Nao</label>
+                <x>216.0</x>
+                <y>861.9797</y>
+                <childList>
+                  <child name="IsThereAnyOpenningIssue" type="seqActivity">
+                    <guid>{bfa1fe6c-46ff-4133-bd12-00e1f04b3a3c}</guid>
+                    <label>Is There Any Openning Issue</label>
+                    <x>294.57162</x>
+                    <y>142.37247</y>
+                    <childList>
+                      <child name="IsThereAnyOpenningIssue" type="switchActivity">
+                        <guid>{1c45e47c-0abc-4a3b-b95a-4e03ca1b3141}</guid>
+                        <label>Is There Any Openning Issue?</label>
+                        <x>312.998</x>
+                        <y>238.10352</y>
+                        <childList>
+                          <child name="sim" type="caseActivity">
+                            <guid>{db8c4fbf-7231-461a-a886-56b35736a246}</guid>
+                            <label>Sim</label>
+                            <x>0.0</x>
+                            <y>0.0</y>
+                            <childList>
+                              <child name="OpenningBAHandleError" type="seqActivity">
+                                <guid>{ec30c84f-29bc-479a-9503-49f4199e7748}</guid>
+                                <label>Openning BA Handle Error</label>
+                                <x>240.84845</x>
+                                <y>401.93008</y>
+                                <childList>
+                                  <child name="BAOpenningHandleError" type="opActivity">
+                                    <element>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_BAOpenningHandleError</element>
+                                    <guid>{38456060-1592-458e-9347-6b31cdb3491c}</guid>
+                                    <label>BA Openning Handle Error</label>
+                                    <participant>part_FTTHUserInterface.ClickHandleError</participant>
+                                    <x>202.17596</x>
+                                    <y>519.7129</y>
+                                  </child>
+                                  <child name="BAOpenningResend" type="opActivity">
+                                    <element>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_BAOpenningHandleErrorResend</element>
+                                    <guid>{b39200e8-040a-46ca-851e-ce2638522221}</guid>
+                                    <label>BA Openning Resend</label>
+                                    <participant>part_FTTHUserInterface.ClickHandleError</participant>
+                                    <x>161.70992</x>
+                                    <y>889.8281</y>
+                                    <childList>
+                                      <child name="resendToStart" type="switchActivity">
+                                        <guid>{25eee1e8-61c6-4cbc-afa0-31c30cd65889}</guid>
+                                        <label>Check Need To Resend</label>
+                                        <x>164.7187</x>
+                                        <y>1052.6846</y>
+                                        <childList>
+                                          <child name="yes" type="caseActivity">
+                                            <guid>{08e73a00-061a-4343-94ec-9ca4fc4c805d}</guid>
+                                            <label>Yes</label>
+                                            <x>486.42645</x>
+                                            <y>1138.4856</y>
+                                            <childList>
+                                              <child name="repeat" type="repeatActivity">
+                                                <element>prrev_FTTHProcess.ExecuteEquipmentBASubprocess1_cwr7/seqActivity_inicioInstalacaoKitAdsl/seqActivity_continuandoInstalacaoKit</element>
+                                                <guid>{b404ad29-5285-4534-978b-1f5b1a68a4aa}</guid>
+                                                <label>Resend</label>
+                                                <x>167.05074</x>
+                                                <y>1186.1387</y>
+                                              </child>
+                                            </childList>
+                                            <methodList>
+                                              <method name="cwOnProcActCond" type="action">
+                                                <category>cond</category>
+                                                <system>true</system>
+                                                <script>return true;</script>
+                                              </method>
+                                            </methodList>
+                                          </child>
+                                        </childList>
+                                      </child>
+                                    </childList>
+                                  </child>
+                                </childList>
+                              </child>
+                            </childList>
+                            <methodList>
+                              <method name="cwOnProcActCond" type="action">
+                                <category>cond</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  /*     MS - marcossouza@bri.ibm.com - 20170901 - PRJ14008 */
+                                  var ord = this.process.processOrder;
+                                  var orderId = ord.OrderHeader.cwOrderId;
+                                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                                  //TODO verificar casos de erro que nao deve executar
+                                  //se a abertura de BA teve erro, não executa esta atividade
+                                  if(result == Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR"))
+                                      return true;
+
+                                  return false;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                          <child name="nao" type="caseActivity">
+                            <guid>{0386dc7b-ea7f-4109-816b-0f19a57ace96}</guid>
+                            <label>Nao</label>
+                            <x>140.69922</x>
+                            <y>714.64514</y>
+                            <childList>
+                              <child name="AditionalPointsCRMNotification" type="seqActivity">
+                                <guid>{2f2230aa-96e2-4aab-832a-cd273c5ecdef}</guid>
+                                <label>Aditional Points CRM Notification</label>
+                                <x>380.6366</x>
+                                <y>401.93008</y>
+                                <childList>
+                                  <child name="checkAdditionalPointsIssue" type="switchActivity">
+                                    <guid>{c0deb48c-8dbd-4111-ae9b-2b65a901f2d0}</guid>
+                                    <label>Check Additional Points Issue</label>
+                                    <x>386.29187</x>
+                                    <y>519.7129</y>
+                                    <childList>
+                                      <child name="installAdditionalPoints" type="caseActivity">
+                                        <guid>{d9d3186c-dd84-4a3c-b74e-240ee8da60bb}</guid>
+                                        <label>Install</label>
+                                        <x>165.38477</x>
+                                        <y>567.7566</y>
+                                        <childList>
+                                          <child name="installAdditionalPoint" type="seqActivity">
+                                            <guid>{6794ea6f-ddd7-4014-a5a6-7249d4543eb7}</guid>
+                                            <label>Install Additional Point</label>
+                                            <x>330.2767</x>
+                                            <y>720.5912</y>
+                                            <childList>
+                                              <child name="partialInstallAdditionalPointHandleIssueSubprocess" type="subflowActivity">
+                                                <element>prrev_FTTHHandleIssueProcess.PartialInstallAdditionalPointHandleIssueSubprocess_cwr2</element>
+                                                <guid>{3f821db8-1c3d-4767-b2d7-3e38c46c25c0}</guid>
+                                                <label>Partial Install Additional Point Handle Issue Subprocess</label>
+                                                <x>359.3852</x>
+                                                <y>860.4258</y>
+                                              </child>
+                                              <child name="sendToInstallAdditionalPoint" type="repeatActivity">
+                                                <element>prrev_FTTHProcess.ExecuteEquipmentBASubprocess1_cwr7/seqActivity_inicioInstalacaoKitAdsl/seqActivity_continuandoInstalacaoKit/switchActivity_manageIssue/caseActivity_nao/seqActivity_IsThereAnyOpenningIssue/switchActivity_IsThereAnyOpenningIssue/caseActivity_nao/seqActivity_AditionalPointsCRMNotification/switchActivity_checkAdditionalPointsIssue/caseActivity_installAdditionalPoints/seqActivity_installAdditionalPoint</element>
+                                                <guid>{987ef879-6671-4149-a922-881f17c0f6fa}</guid>
+                                                <label>Send To Install Additional Point</label>
+                                                <x>334.87103</x>
+                                                <y>1045.334</y>
+                                                <methodList>
+                                                  <method name="cwOnProcActCond" type="action">
+                                                    <category>cond</category>
+                                                    <system>true</system>
+                                                    <script><![CDATA[
+                                                      var searchDoc = new Document('FTTHOrder:IssueAdditionalPointData');
+                                                      searchDoc.cwOrderId = process.processOrder.id;
+                                                      searchDoc.status = 'WAIT';
+                                                      var pendencies = Finder.runSearch('FTTHCommon.AdditionalPointsIssueFinder', searchDoc);
+                                                      var hasPendencyToSend = (pendencies != null && pendencies.length > 0);
+
+                                                      return hasPendencyToSend;
+                                                    ]]></script>
+                                                  </method>
+                                                </methodList>
+                                              </child>
+                                            </childList>
+                                          </child>
+                                        </childList>
+                                        <methodList>
+                                          <method name="cwOnProcActCond" type="action">
+                                            <category>cond</category>
+                                            <system>true</system>
+                                            <script><![CDATA[FTTHHandleIssueProcess.validateAdditionalPointIssue('INSTALL', process);]]></script>
+                                          </method>
+                                        </methodList>
+                                      </child>
+                                      <child name="removeAdditionalPoints" type="caseActivity">
+                                        <guid>{687339f9-0c36-42f0-b872-ca4be39c117d}</guid>
+                                        <label>Remove</label>
+                                        <x>24.0</x>
+                                        <y>718.0555</y>
+                                        <childList>
+                                          <child name="PartialRemoveAdditionalPointHandleIssueSubprocess" type="subflowActivity">
+                                            <element>prrev_FTTHHandleIssueProcess.PartialRemoveAdditionalPointHandleIssueSubprocess_cwr2</element>
+                                            <guid>{47a36328-9e00-439b-99cf-f6dea4630aae}</guid>
+                                            <label>Partial Remove Additional Point Handle Issue Subprocess</label>
+                                            <x>435.23138</x>
+                                            <y>675.5176</y>
+                                          </child>
+                                        </childList>
+                                        <methodList>
+                                          <method name="cwOnProcActCond" type="action">
+                                            <category>cond</category>
+                                            <system>true</system>
+                                            <script><![CDATA[FTTHHandleIssueProcess.validateAdditionalPointIssue('REMOVE', process);]]></script>
+                                          </method>
+                                        </methodList>
+                                      </child>
+                                    </childList>
+                                  </child>
+                                </childList>
+                                <methodList>
+                                  <method name="cwOnProcActBefore" type="action">
+                                    <category>before</category>
+                                    <system>true</system>
+                                    <script><![CDATA[
+                                      var ordem = this.process.processOrder;
+
+                                      ordem.OrderHeader.permiteCancelamento = false;
+
+                                      ordem.save();
+                                    ]]></script>
+                                  </method>
+                                </methodList>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ClickHandleError" type="participantActivity">
+        <guid>{05d8fa69-7be4-46ef-9ec4-f45f99d1d2e6}</guid>
+        <label>Click Handle Error</label>
+        <participant>part_FTTHUserInterface.ClickHandleError</participant>
+        <x>173.2314</x>
+        <y>704.9199</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          /*
+           Script para a criação do formulário de atividade de campo.
+           Ele devera ser executado apenas uma vez
+           */
+          var activityId;
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+          //Define ponto de não retorno
+          //process.processOrder.OrderHeader.permiteCancelamento = false;
+
+          if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+              activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+          }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+              activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+          }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+              activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+          }
+              if(result == null){
+                  activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                  result = FTTHCommon.getStatusActivity(orderId, activityId);
+                  if(result == null || result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                  }
+              }
+
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+
+
+          var ord = process.processOrder;
+          if (ord.ManualActivityData == null) {
+              ord.createOrderItemByPath("ManualActivityData");
+          }
+          var psrIns = ord.ManualActivityData.newInstance();
+
+
+          var nomeAtividade = FTTHCommon.getActivityNameOrConfigVariable(activityId, 2);
+          psrIns.ManualActivityData.nomeAtividade = nomeAtividade;
+          /*
+          if(activityId == Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Instalar Equipamento";
+          else if(activityId == Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Remover Equipamento";
+          else if(activityId == Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Instalar/Remover Equipamento";
+          */
+
+          psrIns.ManualActivityData.operationWorklist = "FTTHProcess.InstallRemoveEquipmentManualTaskInterface/InstallRemoveEquipmentTask";
+          psrIns.ManualActivityData.dataAbertura = new Date();
+          psrIns.ManualActivityData.dataAgendamento = ord.OrderHeader.dataAgendamento;
+          ord.save();
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>ExecuteEquipmentBASubprocess1</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ExecuteEquipmentBASubprocess1</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

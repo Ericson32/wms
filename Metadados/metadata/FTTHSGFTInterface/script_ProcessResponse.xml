@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHSGFTInterface.ProcessResponse">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel por gravar as informa&#231;&#245;es do BA aberto
+    </p>
+  ]]></description>
+  <label>Process Response</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processID" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="retornoConsulta" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      estrutura de retorno da consulta de equipamento (ONT/HGW e STB)&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHSolicitarAberturaBAResponse.SolicitarAberturaBAResponse</type>
+    </parameter>
+    <parameter name="tipo" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      ONT/HGW ou STB&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    funcao para tratamento dos retornos de pedido de abertura ao SGFT
+
+    parametros:
+    order                (this.process.processOrder) tipo FTTHOrder.FTTHOrder
+    processID            (this.process.id)           transacao no OM     tipo string
+    retornoConsulta      (this.activity)             tipo FTTHInventoryConsultEquipmentMessages.response
+    tipo:     tipo de consulta realizada
+    SOLICITAR_ABERTURA_BA_SGFT
+    ----------------------------------------------------------
+    */
+
+    //Parametros de LOG
+    var LOG_INTERFACE = "SGFT";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_SGFT');
+    var LOG_ACTIVITY = tipo;
+    var LOG_SCRIPT = "ProcessResponse";
+    var LOG_OPERATION = "Listener";
+    var passouValidacao = true;
+
+    if (retornoConsulta.numDocAssociado == null || retornoConsulta.numBA == null || retornoConsulta.ResponseControl.code == null || retornoConsulta.ResponseControl.reason == null) {
+        var LOG_MSG = "Consulta não retorna campos obrigatórios.";
+        FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        retornoConsulta.ResponseControl.code='-1000';
+        retornoConsulta.ResponseControl.reason=LOG_MSG;
+        return retornoConsulta;
+    } else {
+        if (order.OrderHeader.numeroPedido != retornoConsulta.numDocAssociado) {
+            var LOG_MSG = "Documento Associado retornado não possui pedido de abertura de BA";
+            FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+            retornoConsulta.ResponseControl.code='-1000';
+            retornoConsulta.ResponseControl.reason=LOG_MSG;
+            return retornoConsulta;
+        } else {
+            var searchDoc = new Document("FTTHOrder:ManualActivityData");
+            searchDoc.cwOrderId = order.id;
+            searchDoc.statusAtividade = 0;
+            var atividadeManual = Finder.runSearch("FTTHOrder:ManualActivityDataFinder", searchDoc)[0];
+
+            atividadeManual.numeroBA = retornoConsulta.numBA;
+            atividadeManual.save();
+
+            order.SRTicketActivityData[0].SRTicketActivityData.numBA = retornoConsulta.numBA;
+            order.SRTicketActivityData[0].SRTicketActivityData.numBADuplicado = retornoConsulta.numBADuplicado;
+            order.SRTicketActivityData[0].SRTicketActivityData.docAssoc = retornoConsulta.numDocAssociado;
+            order.save();
+
+            if ( retornoConsulta.ResponseControl.code == "0001") { //Se código retornado for "0001"o BA foi aberto com sucesso
+                var LOG_MSG = "Abertura de BA realizada com sucesso";
+                FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null, LOG_INTERFACE, LOG_NIVEL, "DEBUG" );
+                retornoConsulta.ResponseControl.code='0';
+                retornoConsulta.ResponseControl.reason=LOG_MSG;
+                return retornoConsulta;
+            } else {
+                var LOG_MSG = "Bilhete não foi aberto: [" + retornoConsulta.ResponseControl.detail + "]";
+                FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                retornoConsulta.ResponseControl.code='-1000';
+                retornoConsulta.ResponseControl.reason=LOG_MSG;
+                return retornoConsulta;
+            }
+        }
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.InsertAdditionalPackageSubprocess_cwr3">
+  <activity name="InsertAdditionalPackageStart" type="seqActivity">
+    <guid>{06a97691-29ff-4f10-a4f7-f610a3dcfd58}</guid>
+    <label>Insert AdditionalPackage Start</label>
+    <x>20.91758</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="InsertAdditionalPackageAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.InsertAdditionalPackageAutomaticTask</element>
+        <guid>{a02783a4-e2d3-4cdc-943f-238c9816cc09}</guid>
+        <label>Insert Additional Package Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>368.4461</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{e724297f-afcf-4f7d-b5f9-26908456fb0f}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>521.95197</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{b1c54cfb-5a07-48f6-9501-a03dc05f87b3}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>648.0555</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{8e9e7c25-32ff-46b2-b684-a4350fcf2599}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{c365f7ff-eb93-4a6d-956d-2f393e1e2fa0}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>650.40607</y>
+                <childList>
+                  <child name="InsertAdditionalPackageHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.InsertAdditionalPackageHandleErrorTask_cwr1</element>
+                    <guid>{168804e9-31ad-443d-a1c8-627861d20ede}</guid>
+                    <label>Insert Additional Package Handle Error Task</label>
+                    <x>160.5719</x>
+                    <y>744.75665</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{c5ad3835-0966-48e9-adc5-6a794e293392}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.808914</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{6469d41d-41f0-492f-ba71-804bbdab73b7}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{bb581451-dcf5-4df3-b947-01f063bd117e}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>272.1254</y>
+                            <childList>
+                              <child name="InsertAdditionalPackageSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.InsertAdditionalPackageHandleIssueSubprocess_cwr3</element>
+                                <guid>{921a111b-2efe-449d-bf51-cd9e042edd9c}</guid>
+                                <label>Insert AdditionalPackage Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>373.7967</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.InsertAdditionalPackageSubprocess_cwr3/seqActivity_InsertAdditionalPackageStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{987019ff-87b7-48ea-8479-9fa72915642d}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>536.65314</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{3f1d1971-a5b8-4ae0-a17e-c3956d075718}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.InsertAdditionalPackageSubprocess_cwr3/seqActivity_InsertAdditionalPackageStart</element>
+                            <guid>{9cc7c566-11c7-4057-b913-d8cbb853b92f}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar VoIP&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      VoIP. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de HSI autom&#225;tica para o sistema de Rede, ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Insert Additional Package Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.InsertAdditionalPackageSubprocess</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

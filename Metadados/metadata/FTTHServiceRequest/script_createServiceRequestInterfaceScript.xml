@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHServiceRequest.createServiceRequestInterfaceScript">
+  <label>createServiceRequestInterfaceScript</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="serviceRequest" type="rifp">
+      <type>dstruct_FTTHServiceRequest.serviceRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('FTTHServiceRequest::createServiceInterfaceScript - Validar se o número da SR encontra-se no sistema.');
+
+    //MS - marcossouza@br.ibm.com - 20170928 - Criação do log da abertura da mensagem
+    var msgLogDoc = UserProfile.getMsgLogDoc();
+    if(msgLogDoc != null){
+        msgLogDoc.userData1 = FTTHCommon.getValueAttributeFromAttributeList("docAssoc", serviceRequest.atributos);
+        msgLogDoc.userData2 = serviceRequest.correlationId;
+        msgLogDoc.save();
+    }
+    //end MS
+
+    var serviceRequestValid = FTTHServiceRequest.validarCampoObrigatoriosSR(serviceRequest);
+
+    if(serviceRequestValid){
+        var ds = FTTHOrderManagementInterface.CreateDSErro(serviceRequest.correlationId, FTTHCommon.getAttributeFromAttributeList("docAssoc", serviceRequest.atributos), serviceRequestValid);
+        Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+    }else{
+        Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Submit', serviceRequest);
+    }
+
+    var output = new DataStructure('FTTHCommon.acknowledge');
+    output.code = '0';
+    output.description = 'Mensagem Recebida com Sucesso';
+    return output;
+  ]]></script>
+</script>

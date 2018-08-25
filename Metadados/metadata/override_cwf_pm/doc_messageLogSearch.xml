@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document filenameHash="eaa9035abfe0b145d0dbbd99c93b8879" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="override_cwf_pm.messageLogSearch">
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{f1608182-7687-4380-89c3-51fbeb3978fd}</guid>
+  <label>Message Log Search</label>
+  <metaVersion>3</metaVersion>
+  <variableList>
+    <variable name="messageID" type="leaf">
+      <label>Message ID</label>
+      <valueType>dtype_cwf_pm.MessageID</valueType>
+    </variable>
+    <variable name="avm" type="leaf">
+      <label>AVM</label>
+      <valueType>dtype_cwf_pm.VMID</valueType>
+    </variable>
+    <variable name="interType" type="leaf">
+      <label>Interface</label>
+      <valueType>dtype_cwf.metaInterfacesId</valueType>
+    </variable>
+    <variable name="operation" type="leaf">
+      <label>Operation</label>
+      <valueType>dtype_cwf.interOper</valueType>
+    </variable>
+    <variable name="userId" type="leaf">
+      <label>User ID</label>
+      <valueType>dtype_cwf.userIdRef</valueType>
+    </variable>
+    <variable name="fromTime" type="leaf">
+      <label>Msg Time &gt;=</label>
+      <valueType>dtype_com.conceptwave.system.Timestamp</valueType>
+    </variable>
+    <variable name="toTime" type="leaf">
+      <label>Msg Time &lt;=</label>
+      <valueType>dtype_com.conceptwave.system.Timestamp</valueType>
+    </variable>
+    <variable name="userData" type="leaf">
+      <label>User Data</label>
+      <valueType>dtype_cwf_pm.userData</valueType>
+    </variable>
+    <variable name="isNullOCCRM" type="leaf">
+      <label>Boolean</label>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+    </variable>
+    <variable name="userData2" type="leaf">
+      <label>User Data</label>
+      <valueType>dtype_cwf_pm.userData</valueType>
+    </variable>
+    <variable name="userData3" type="leaf">
+      <label>User Data</label>
+      <valueType>dtype_cwf_pm.userData</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="cwLeafInitAction$fromTime" type="laction">
+      <path>doc_override_cwf_pm.messageLogSearch/leaf_fromTime</path>
+      <type>initializer</type>
+      <script>return new Date(Date.parse(new Date())-1000*60*60);</script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.DocumentUserInterface</extends>
+    <label>Message Log Search</label>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_override_cwf_pm.messageLogSearch</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Generated" type="vform">
+            <label>Generated</label>
+          </overlay>
+          <overlay name="Default" type="vform">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="VerticalLayout" type="elvlt">
+                <fillSpace>true</fillSpace>
+                <elementList>
+                  <element name="searchGrid" type="elgrd">
+                    <cellPadding>5</cellPadding>
+                    <colWidths>170px</colWidths>
+                    <fillSpace>true</fillSpace>
+                    <membersMargin>5</membersMargin>
+                    <numOfCols>5</numOfCols>
+                    <elementList>
+                      <element name="search_Header" type="elhdr">
+                        <label>Search</label>
+                      </element>
+                      <element name="interType" type="elslct">
+                        <label>Interface</label>
+                        <onChangeMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/usrActionMethod_resetOperationList</variablePath>
+                          </variablePathList>
+                        </onChangeMethod>
+                        <sorted>true</sorted>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_interType</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="operation" type="elslct">
+                        <label>Operation</label>
+                        <sorted>true</sorted>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_operation</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="fromTime" type="eldatetime">
+                        <displayFormat>dd/MM/yyyy HH:mm:ss</displayFormat>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_fromTime</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>170px</width>
+                      </element>
+                      <element name="toTime" type="eldatetime">
+                        <columnSpan>2</columnSpan>
+                        <displayFormat>dd/MM/yyyy HH:mm:ss</displayFormat>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_toTime</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>170px</width>
+                      </element>
+                      <element name="messageID" type="elfld">
+                        <dataLength>15</dataLength>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_messageID</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="userData" type="elfld">
+                        <dataLength>25</dataLength>
+                        <label>Pedido</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_userData</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="userData2" type="elfld">
+                        <label>Versão</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_userData2</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="userData3" type="elfld">
+                        <label>Id da Ordem</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_userData3</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="isNullOCCRM" type="elchk">
+                        <label>OC CRM a nulo</label>
+                        <labelAsTitle>false</labelAsTitle>
+                        <removeLabelLine>true</removeLabelLine>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_override_cwf_pm.messageLogSearch/leaf_isNullOCCRM</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="resetOperationList" type="usrActionMethod">
+        <script><![CDATA[this.model.operation="";]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

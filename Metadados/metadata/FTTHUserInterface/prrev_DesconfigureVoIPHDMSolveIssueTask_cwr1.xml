@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DesconfigureVoIPHDMSolveIssueTask_cwr1">
+  <activity name="startDesconfigureVoIPHDMSolveIssue" type="seqActivity">
+    <guid>{ffdd031f-d7b9-4482-b7ee-c16f9fb900f3}</guid>
+    <label>Start Desconfigure VoIP HDM Solve Issue</label>
+    <x>32.747658</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureVoIPHDMSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureVoIPHDMSolveIssue</element>
+        <guid>{0adef7c9-d7de-4bcf-a47a-5bf38bf4a3e8}</guid>
+        <label>Desconfigure VoIP HDM Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>130.6414</y>
+      </child>
+      <child name="DesconfigureVoIPHDMSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DesconfigureVoIPHDMSolveIssueSuccess</element>
+        <guid>{c3d30010-4bd1-468a-b7bc-f3fda2ba52c8}</guid>
+        <label>Desconfigure VoIP HDM Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>33.14746</x>
+        <y>382.84845</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_HDM");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{70ea7972-02cf-4cb7-98e8-0bc6e7a065f3}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("DESCONFIGURAR_VOIP_HDM");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Desconfigurar VoIP - Erro
+      tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade
+      manual ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Desconfigure VoIP HDM Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DesconfigureVoIPHDMSolveIssueTask</process>
+  <type>Sub-flow</type>
+</process__revision>

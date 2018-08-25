@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process filenameHash="d3e849fada99818ab9f582ab1b3edc76" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.InitiateNotifyProcess">
+  <activity name="Start" type="seqActivity">
+    <guid>{86f26330-8312-464e-87c7-a84461c484ba}</guid>
+    <label>Start</label>
+    <x>42.68457</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InitiateNotify" type="opActivity">
+        <element>iface_FTTHInventoryInterface.ProcessInventoryNotification/oper_InitiateNotify</element>
+        <guid>{093695aa-c043-4603-a003-feecd3a56a02}</guid>
+        <label>InitiateNotify</label>
+        <x>62.177246</x>
+        <y>123.0</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              Global.logInfo("Metodo after do InitiateNotify - Inventario");
+              var msg = "id [" + document.correlationId + "]";
+              Global.logInfo(msg);
+              try {
+                  FTTHInventoryInterface.ProcessNotification(this.activityData);
+              } catch(e) {
+                  Global.logError('Excecao em FTTHInventoryInterface.ProcessNotification: ' + e);
+                  throw e;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="RepeatNotify" type="repeatActivity">
+        <element>proc_FTTHInventoryInterface.InitiateNotifyProcess/seqActivity_Start</element>
+        <guid>{b778e52e-ef40-4f8c-b967-691920e051a7}</guid>
+        <label>RepeatNotify</label>
+        <x>30.0</x>
+        <y>218.70117</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{82b9f092-7af5-452e-8f7c-355d7c187f5d}</guid>
+  <interface>iface_FTTHInventoryInterface.ProcessInventoryNotification</interface>
+  <label>Initiate Notify Process</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>5</revision>
+  <type>Global</type>
+</process>

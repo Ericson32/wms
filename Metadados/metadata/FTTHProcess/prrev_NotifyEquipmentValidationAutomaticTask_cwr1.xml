@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.NotifyEquipmentValidationAutomaticTask_cwr1">
+  <activity name="StartNotifyEquipmentValidationAutomaticTask" type="seqActivity">
+    <guid>{be40f015-9dc0-45e1-a93f-0f1f3630c2c0}</guid>
+    <label>Start Notify Equipment Validation Automatic Task</label>
+    <x>80.783104</x>
+    <y>30.0</y>
+    <childList>
+      <child name="CheckNeedNecessityNotifyValidationEquipmentClick" type="switchActivity">
+        <guid>{b6154020-4dfc-44bc-9f54-43d9e201ba63}</guid>
+        <label>Check Need Necessity Notify Validation Equipment Click </label>
+        <x>134.69922</x>
+        <y>136.52188</y>
+        <childList>
+          <child name="yes" type="caseActivity">
+            <guid>{128c7a95-e348-4ed2-ae68-97df3f449b2a}</guid>
+            <label>Yes</label>
+            <x>246.55905</x>
+            <y>3022.6848</y>
+            <childList>
+              <child name="NotifyEquipmentValidationSendOperation" type="opActivity">
+                <element>iface_FTTHClickGestaoInventario.GestaoInventarioPortType/oper_NotificarValidacaoEquipamentoFTTH</element>
+                <guid>{5c7ab519-8b23-44a4-bfae-03d9c4b5434c}</guid>
+                <label>Notify Equipment Validation Send Operation</label>
+                <participant>part_FTTHClickInterface.ClickSenderParticipant</participant>
+                <x>207.21265</x>
+                <y>321.43008</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      /*
+                      Marcos Souza - marcossouza@br.ibm.com - PRJ 11255 - 20/06/2017
+                      script responsável pelo envio da mensagem para o CLICK da notificação de validação de equipamento
+                      */
+
+                      //NÃO ALTERAR ESSA ORDEM, ORDEM É A ORDEM DE EXECUÇÃO DO PROCESSO
+                      var activitysArray = [
+                      {activityId: Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), sistema: Global.getConfigVariable("SAP_SYSTEM"), originSystem: Global.getConfigVariable("SAP")},
+                      {activityId: Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE"), sistema: Global.getConfigVariable("INVENTORY_SYSTEM"), originSystem: Global.getConfigVariable("NETWIN")},
+                      {activityId: Global.getConfigVariable("ASSOCIAR_ONT_APC"), sistema: Global.getConfigVariable("ACTIVATION_SYSTEM"), originSystem: Global.getConfigVariable("SIS")},
+                      {activityId: Global.getConfigVariable("DISSOCIAR_STB"), sistema: Global.getConfigVariable("ACTIVATION_SYSTEM"), originSystem: Global.getConfigVariable("SIS")}
+                      ];
+
+
+                      var activity = activitysArray[0]; //this.process.processDocument.operacao;
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var result;
+
+                      var activityObj;
+                      for(var i = 0; i < activitysArray.length; i++){
+                          activityObj = activitysArray[i];
+                          result = FTTHCommon.getStatusActivity(orderId, activityObj.activityId);
+                          if(result){
+                              var searchEvent = new Document('FTTHCommon:Event');
+                              searchEvent.cwOrderId = orderId;
+                              searchEvent.sistema = activityObj.sistema;
+                              searchEvent.atividade = activityObj.activityId;
+
+                              var events = Finder.runSearch('FTTHCommon:EventFinder', searchEvent);
+
+                              if(events &&  events.length > 0){
+                                  activity = activityObj;
+                                  activity.atividade = activityObj.activityId;
+                              }
+                          }
+                      }
+
+                      var msg = FTTHClickInterface.createClickNotificationMessage(this.process.processDocument, activity.sistema, activity.atividade, this.activityData, null, activity.originSystem);
+
+                      var messageDoc = new Document("cwf_pm:messageLog");
+                      messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                      messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                      messageDoc.userData3 = this.process.processOrder.order.id;
+                      UserProfile.setMsgLogDoc(messageDoc);
+
+
+                      return msg;
+                    ]]></script>
+                  </method>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      /*
+                      this.activityData.MessageHeader.Response.Return[0].Code
+                      this.activityData.MessageHeader.Response.Return[0].Description
+
+                      //this.activityData.MessageHeader.Response.Return[0].NativeReturn.Actor // nao achei a estrutura
+                      this.activityData.MessageHeader.Response.Return[0].NativeReturn.Code
+                      this.activityData.MessageHeader.Response.Return[0].NativeReturn.Description
+                      //this.activityData.MessageHeader.Response.Return[0].NativeReturn.Detail //nao achei a estrutura
+                      */
+
+                      var ValidateEquipmentDoc = this.process.processDocument;
+                      var tipoEquipamento = ValidateEquipmentDoc.tipoEquipamentoNovo?ValidateEquipmentDoc.tipoEquipamentoNovo:ValidateEquipmentDoc.tipoEquipamentoOriginal;
+                      var idAtivo =  ValidateEquipmentDoc.acaoNovo? ValidateEquipmentDoc.acaoNovo:ValidateEquipmentDoc.idAtivoOriginal;
+
+                      FTTHClickInterface.atualizarFlagIsProcessandoEquip(this.process.processOrder.id, false, tipoEquipamento, idAtivo);
+
+                      FTTHCommon.log(this.process.processOrder.id, this.process.id, "Validate Equipment Automatic Task", "Validate Equipment Send Operation", Global.getConfigVariable("CWONPROCACTBEFORE") , this.activityData.toXML());
+                      //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+                      /*
+                       *
+                      var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.MessageHeader.Response.Return[0].Code,  Global.getConfigVariable("SAP_SYSTEM"));
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), status);
+
+                      FTTHCommon.saveEvent(this.process.processOrder.id,
+                                              Global.getConfigVariable("SAP_SYSTEM"),
+                                              Global.getConfigVariable("VALIDAR_EQUIPAMENTO"),
+                                              status,
+                                              this.activityData.MessageHeader.Response.Return[0].Code,
+                                              this.activityData.MessageHeader.Response.Return[0].Description,
+                                              this.process.id,
+                                              Global.getConfigVariable("SYNC_REQ_RESP"));
+                       */
+                      //FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,  Global.getConfigVariable("SAP_SYSTEM"), Global.getConfigVariable("VALIDAR_EQUIPAMENTO"));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="no" type="caseActivity">
+            <guid>{fdbd1ebd-d001-4503-9a86-cc11e21273ca}</guid>
+            <label>No</label>
+            <x>123.21265</x>
+            <y>350.83243</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var validateDoc = this.process.processDocument;
+                  return validateDoc.userId;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{6c0114fc-e961-44cd-affb-d2e263198123}</guid>
+        <label>Exception Handler</label>
+        <x>30.0</x>
+        <y>173.27481</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var ord = this.process.processOrder;
+              var orderId = ord.OrderHeader.cwOrderId;
+              var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+              var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id,activityId, Global.getConfigVariable("CLICK_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ClickSenderParticipant" type="participantActivity">
+        <guid>{89759a62-802d-4df6-8061-1554e78b6985}</guid>
+        <label>Click Sender Participant</label>
+        <participant>part_FTTHClickInterface.ClickSenderParticipant</participant>
+        <x>178.89722</x>
+        <y>476.9359</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          
+          var teste= 'iniciar fluxo de validacao' ;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <document>doc_FTTHClickInterface.ValidateEquipmentDoc</document>
+  <label>Notify Equipment Validation Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <parentProcessDoc>true</parentProcessDoc>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.NotifyEquipmentValidationAutomaticTask</process>
+  <type>User</type>
+</process__revision>

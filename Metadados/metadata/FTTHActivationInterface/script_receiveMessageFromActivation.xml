@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.receiveMessageFromActivation">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel por:
+    </p>
+    <p style="margin-top: 0">
+      - Validar o script recebido pelo sistema de Rede;
+    </p>
+    <p style="margin-top: 0">
+      - Validar se todos os campos obrigat&#243;rios est&#227;o sendo recebidos
+      corretamente;
+    </p>
+    <p style="margin-top: 0">
+      - Mapear os campo recebidos para o DB do WMS;
+    </p>
+  ]]></description>
+  <label>Receive Message From Activation</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o recebida pelo sistema de ativa&amp;#231;&amp;#227;o.&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHActivationInterface.notification</type>
+    </parameter>
+  </parameterList>
+  <useInRuleInstances>true</useInRuleInstances>
+  <script><![CDATA[
+    var LOG_INTERFACE = "ACTIVATION";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+    var LOG_ACTIVITY = "Atividade nao identificada";
+    var LOG_SCRIPT = "receiveMessageFromActivation";
+    var LOG_OPERATION = "Listener";
+
+    var msg = "Requisicao inválida: ";
+    var errors = requisicao.validate(5, true, true);
+    var hasErrors = errors!=null && errors.length>0;
+    var output = new DataStructure('FTTHCommon.acknowledge');
+    var idOrdem;
+    var correlationID;
+
+    if(!hasErrors) {
+        var msgLogDoc = UserProfile.getMsgLogDoc();
+
+        var LOG_MSG = "Id:[" + msgLogDoc.id + "] [XML == >>>" + requisicao.toXML() + "<<<]";
+        FTTHCommon.log( null, requisicao.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+        LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+        var searchDoc = new Document("FTTHCommon:LogMessageUserDataDocument");
+        searchDoc.correlationId = requisicao.correlationId;
+        var result = Finder.runSearch("FTTHCommon:LogMessageUserDataFinder", searchDoc);
+        if (result != null && result.size>0) {
+            var userData = result.start;
+            if(msgLogDoc != null){
+                msgLogDoc.userData1 = userData.numeroPedido;
+                msgLogDoc.userData2 = userData.numeroOS;
+                msgLogDoc.userData3 = userData.cwOrderId;
+                msgLogDoc.save();
+            }
+        }
+
+        correlationID = requisicao.correlationId;
+        idOrdem = requisicao.messageId;
+
+        if(requisicao.code == '0'){
+            if(requisicao.executionDate == null || requisicao.executionDate == ''){
+                output.code = '-1';
+                output.description = 'Mensagem Recebida com Erros::Requisicao inválida: DE0030 - No value in mandatory field "executionDate" notification';
+                FTTHCommon.log(idOrdem, correlationID,
+                LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                'Mensagem Recebida com Erros::' + msg, -1,
+                LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                return output;
+            }
+            // CR - Data Ativacao
+            //var dataSis = new Date(requisicao.executionDate.toUTCString().replace('GMT',''));
+            var dataSis = new Date(requisicao.executionDate.toUTCString());
+            var dataExecucao = FTTHCommon.setExecutionDateActivity(msgLogDoc.userData3, requisicao.operation, dataSis);
+            //
+        }
+
+        FTTHCommon.log(idOrdem, correlationID,
+        LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+        'Mensagem Recebida com Sucesso::' + requisicao.toXML(), null,
+        LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+        /*
+        * accd@br.ibm.com - Reformulacao do tratamento das mensagens oriundas do SIS
+        */
+        var configVarValue = Global.getConfigVariable('SIS_DELAY_IFACE_MILLISECOND');
+        var delay = configVarValue ? configVarValue : 5000;
+        var semaphore = false;
+        var date = new Date();
+        var start_time = date.getTime();
+        while(!semaphore){
+            var signal = FTTHActivationInterface.getSignalFromSemaphoreActivation(correlationID);
+            if(signal){
+                FTTHCommon.sleep(1000);
+                FTTHActivationInterface.deleteSignalFromSemaphoreActivation(correlationID);
+                semaphore = true;
+                Process.sendMessageToQueue('FTTHActivationInterface:InitiateNotifyProcess', 'InitiateNotify', requisicao);
+                Global.logInfo('<<< Semaforo SIS >>> Sinal verde.');
+                break;
+            }
+            date = new Date();
+            var final_time = date.getTime();
+            if (final_time - start_time > delay){
+                Process.sendMessageToQueue('FTTHActivationInterface:InitiateNotifyProcess', 'InitiateNotify', requisicao);
+                Global.logInfo('<<< Semaforo SIS >>> Sinal verde via timeout.');
+                break;
+            }
+        }
+
+        output.code = '0';
+        output.description = 'Mensagem Recebida com Sucesso';
+
+        return output;
+
+    } else {
+        for(var i=0; i < errors.length; i=i+2){
+            msg = msg + errors[i] + ' - ' + errors[i+1] + '\n';
+        }
+        output.code = '-1';
+        output.description = 'Mensagem Recebida com Erros::' + msg;
+        try {
+            idOrdem = requisicao.messageId;
+        } catch (e) {
+            idOrdem = "Id da ordem nao identificado";
+        }
+        try {
+            correlationID = requisicao.correlationId;
+
+            var msgLogDoc = UserProfile.getMsgLogDoc();
+
+            var searchDoc = new Document("FTTHCommon:LogMessageUserDataDocument");
+            searchDoc.correlationId = correlationID;
+            var result = Finder.runSearch("FTTHCommon:LogMessageUserDataFinder", searchDoc);
+            if (result != null && result.size>0) {
+                var userData = result.start;
+                if(msgLogDoc != null){
+                    msgLogDoc.userData1 = userData.numeroPedido;
+                    msgLogDoc.userData2 = userData.numeroOS;
+                    msgLogDoc.userData3 = userData.cwOrderId;
+                    msgLogDoc.save();
+                }
+            }
+
+        } catch (e) {
+            correlationID = "correlationId nao identificado";
+        }
+        FTTHCommon.log(idOrdem, correlationID,
+        LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+        'Mensagem Recebida com Erros::' + msg, -1,
+        LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+
+
+        return output;
+    }
+  ]]></script>
+</script>

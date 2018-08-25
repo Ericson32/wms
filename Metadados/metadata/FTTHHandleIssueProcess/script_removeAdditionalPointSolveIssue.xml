@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHHandleIssueProcess.removeAdditionalPointSolveIssue">
+  <label>Remove Additional Point Solve Issue</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ord" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_com.conceptwave.system.Order</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.processId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var execute = false;
+
+    for(var i = 0; i < ord.IssueData.length; i++){
+        var issueDoc = Document.readDoc("FTTHCommon.Issues", ord.IssueData[i].IssueData.codigoPendencia);
+        if(ord.IssueData[i].IssueData.idProcesso == processId && issueDoc.codPendencia == '7023'){
+            execute = true;
+            break;
+        }
+    }
+
+    if(execute){
+        var size = ord.EquipmentData[0].AddPointsEquipmentData.length;
+        for(var i = 0; i < size; i++){
+            if(!ord.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData.instalado){
+                ord.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData.deleteItem();
+                i--;
+                size--;
+            }
+        }
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ConfigureOTTSolveIssueTask">
+  <activity name="startConfigureOTTSolveIssue" type="seqActivity">
+    <guid>{d2009f4d-49ee-4afb-bf76-43d0bb3c4b75}</guid>
+    <label>Start Configure OTT Solve Issue</label>
+    <x>82.77744</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureOTTSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureOTTSolveIssue</element>
+        <guid>{1d7900e4-b893-44c4-8919-ab2dd722c72a}</guid>
+        <label>Configure OTT Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>85.51221</x>
+        <y>124.760925</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{e08640b4-cd78-49b1-a4c3-2f7332b2c6f0}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>30.0</x>
+        <y>250.86444</y>
+        <childList>
+          <child name="ConfigureOTTSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureOTTSolveIssueChangeIssue</element>
+            <guid>{cb3070a4-fea0-445b-a1d3-f5c8d20ec83b}</guid>
+            <label>Configure OTT Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>155.91406</x>
+            <y>391.96796</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_OTT");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureOTTSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ConfigureOTTSolveIssueSuccess</element>
+            <guid>{7717a3a6-8b33-48d1-9229-07a8bdb033a3}</guid>
+            <label>Configure OTT Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>31.17627</x>
+            <y>399.31854</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_OTT");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{a4067637-d195-4b57-9eae-9204b394472f}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>122.0293</x>
+        <y>258.21503</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_OTT");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar OTT - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <guid>{07c104e3-f884-4fa4-9e3d-c2002e632224}</guid>
+  <highlight>22</highlight>
+  <label>Configure OTT Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process>

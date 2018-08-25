@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHHandleIssueProcess.createNewIssue">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script que cria pend&#234;ncias via c&#243;digo
+    </p>
+  ]]></description>
+  <label>Create new Issue</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="codPendencia" type="rifp">
+      <type>dtype_FTTHCommon.codigoPendencia</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="observacao" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="atividadeInterface" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="isCloseBA" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var newIssueDoc;
+    var searchDoc1 = FTTHCommon.createEmptyDoc("FTTHCommon:Issues");
+
+    if(codPendencia != "7029"){
+        searchDoc1.atividade = atividadeInterface;
+    }
+    searchDoc1.codPendencia = codPendencia;
+    var dadosPendenciaResult  = Finder.runSearch ("FTTHCommon.IssuesFinder", searchDoc1);
+
+
+    if (!("IssueData" in order)){
+        order.createOrderItemByPath("IssueData");
+    }
+    order.IssueData.newInstance();
+
+    try{
+        if(dadosPendenciaResult && dadosPendenciaResult.length > 0){
+            order.IssueData[order.IssueData.count - 1].IssueData.codigoPendencia = dadosPendenciaResult[0].cwDocId;
+        } else{
+            if(codPendencia == "7033"){//pendencia do defeito PRJ14008#777 - para atender outras pendencias, comentar o if
+                searchDoc1.cwDocId = null;
+                searchDoc1.atividade = null;
+                var dadosPendenciaResult  = Finder.runSearch ("FTTHCommon.IssuesFinder", searchDoc1);
+                order.IssueData[order.IssueData.count - 1].IssueData.codigoPendencia = dadosPendenciaResult[0].cwDocId;
+                //Colocando Fechamento na pendencia MUA a pedidos para corrigir o defeito PRJ4008#984
+                order.IssueData[order.IssueData.count - 1].IssueData.dataFechamento = new Date();
+            }
+        }
+    } catch (e) {
+        //PRJ14008 código de Pendência enviado pelo Click não existe
+    }
+
+    order.IssueData[order.IssueData.count - 1].IssueData.observacaoAbertura       = observacao;
+    order.IssueData[order.IssueData.count - 1].IssueData.dataAbertura             = new Date();
+    order.IssueData[order.IssueData.count - 1].IssueData.nomeAtividade            = atividade;
+    order.IssueData[order.IssueData.length - 1].IssueData.cwOrderId               = order.id;
+
+    if(isCloseBA){
+       order.IssueData[order.IssueData.count - 1].IssueData.matriculaUsuarioAbertura = order.ManualActivityData[order.ManualActivityData.length -1].ManualActivityData.matriculaTecnicoClick;
+       order.IssueData[order.IssueData.count - 1].IssueData.nomeUsuarioAbertura      = order.ManualActivityData[order.ManualActivityData.length -1].ManualActivityData.nomeTecnico;
+    }
+
+
+    if (order.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+        order.IssueData[order.IssueData.count - 1].IssueData.idItem = order.OriginalData[0].ProductData.idPromocao;
+    } else{
+        order.IssueData[order.IssueData.count - 1].IssueData.idItem = order.ProductData.idPromocao;
+    }
+
+    order.save();
+
+    return order.IssueData[order.IssueData.length - 1].IssueData;
+  ]]></script>
+</script>

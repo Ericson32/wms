@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.DeleteAdditionalPackageAutomaticTask_cwr2">
+  <activity name="DeleteAdditionalPackageAutomaticTaskStart" type="seqActivity">
+    <guid>{0cba4357-fb50-4584-babb-91522ac75025}</guid>
+    <label>Delete AdditionalPackage Automatic Task Start</label>
+    <x>186.11871</x>
+    <y>947.8143</y>
+    <childList>
+      <child name="DeleteAdditionalPackageSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{6913af4b-67d0-4f63-87e5-b500c8a0f6cb}</guid>
+        <label>Delete Additional Package Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>291.31598</x>
+        <y>1078.8281</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{8e6468d8-1099-4ad8-9587-6211ab8d74e8}</guid>
+            <label>Check Send Operation Result</label>
+            <x>266.44565</x>
+            <y>30.0</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{de14a231-e6bc-4cbe-b905-580ad6179014}</guid>
+                <label>Success</label>
+                <x>271.4801</x>
+                <y>412.54962</y>
+                <childList>
+                  <child name="WaitAutomaticActivity" type="choiceActivity">
+                    <guid>{e887c005-d680-4033-b533-36d1eacda818}</guid>
+                    <label>Wait Automatic Activity</label>
+                    <x>92.43799</x>
+                    <y>185.80469</y>
+                    <childList>
+                      <child name="TimeOutControl" type="timeoutActivity">
+                        <guid>{f830b579-a781-4866-b472-613396b5478b}</guid>
+                        <label>TimeOut Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>49.341797</x>
+                        <y>319.2588</y>
+                        <childList>
+                          <child name="TimeOutControl" type="scriptActivity">
+                            <guid>{d0c92720-a68b-493b-aea4-e4fc307bd3b6}</guid>
+                            <label>TimeOutControl</label>
+                            <x>30.0</x>
+                            <y>460.06348</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Remover Pacote Adicional Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activity = Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL");
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                  Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                  Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"),
+                                  status,
+                                  errorType.errorCode,
+                                  errorType.errorDescription,
+                                  this.process.id,
+                                  Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                  Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                  Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL");
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="DeleteAdditionalPackageReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{a2cbed12-550c-4f3c-82ed-6aeb7de32c54}</guid>
+                        <label>Delete Additional Package Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>162.6914</x>
+                        <y>438.01172</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Remover Pacote Adicional Automatic Task", "Remover Pacote Adicional Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"), status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                              Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                              Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"),
+                              status,
+                              this.activityData.code,
+                              this.activityData.description,
+                              this.process.id,
+                              Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                              Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                              Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"));
+
+                              if(status ==  Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                                  FTTHActivationInterface.updateAdditionalPackageStatus(this.process.processOrder.id, this.process.id, '0', 'processado');
+                              else
+                              FTTHActivationInterface.updateAdditionalPackageStatus(this.process.processOrder.id, this.process.id, '0', 'pendente');
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL");
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT")){
+                                  FTTHActivationInterface.createSignalToSemaphoreActivation(this.process.id);
+                      return true;
+                            }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{8b3f8908-ee74-4641-80cd-73c5ef6b23cf}</guid>
+                <label>Error</label>
+                <x>335.3047</x>
+                <y>326.60938</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_ACTIVITY = "Remover Pacote Adicional";
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+
+              //MS - marcossouza@br.ibm.com - correção defeito PRJ21262#509 - 09/01/2018
+              FTTHActivationInterface.defineAdditionalPackageToProcess(this.process.processOrder.id, 'remover' ,this.process.id, 'O');
+              //end MS
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Remover Pacote Adicional Automatic Task", "Remover Pacote Adicional Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+              Global.getConfigVariable("ACTIVATION_SYSTEM"),
+              Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"),
+              status,
+              this.activityData.code,
+              this.activityData.description,
+              this.process.id,
+              Global.getConfigVariable("ASYNC_REQUEST"));
+
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+              Global.getConfigVariable("ACTIVATION_SYSTEM"),
+              Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"));
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{9e8b8516-f4b2-41d0-aaff-8ebe2db88c8a}</guid>
+        <label>exceptionHandler</label>
+        <x>145.92339</x>
+        <y>1100.8799</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend" type="seqActivity">
+        <guid>{89c3bbfe-327e-42d2-816e-f4daf0936182}</guid>
+        <label>Check Resend</label>
+        <x>185.30914</x>
+        <y>593.8164</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{c8f21a48-061d-4031-a529-57b858fd6cc3}</guid>
+            <label>Check Need To Resend</label>
+            <x>229.75876</x>
+            <y>685.8164</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{83ce0c40-9f37-4a41-85a5-e09cb7cf159b}</guid>
+                <label>Yes</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, "INSERIR_FRANQUIA_IN", "ACTIVATION_SYSTEM");
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHActivationInterface.DeleteAdditionalPackageAutomaticTask_cwr2/seqActivity_DeleteAdditionalPackageAutomaticTaskStart</element>
+                    <guid>{25923609-a8ec-4611-a140-d19ced11167c}</guid>
+                    <label>Resend To Start</label>
+                    <x>192.53708</x>
+                    <y>811.9199</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{eae2040b-b2c1-446e-a22c-3e6776115b15}</guid>
+                <label>No</label>
+                <x>306.57224</x>
+                <y>819.2705</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL"), Global.getConfigVariable("ACTIVATION_SYSTEM")));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InsertFrachiseAutomaticTaskComplete" type="completeActivity">
+        <guid>{d211b534-0fcb-4349-8b77-18ed87d5f7e9}</guid>
+        <label>Insert Frachise Automatic Task Complete</label>
+        <x>295.8867</x>
+        <y>923.32227</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHActivationInterface.deleteSignalFromSemaphoreActivation(this.process.id);
+              Global.logInfo('Atividade Automática SIS Completa e semaforo excluido');
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{fb103094-e97f-4e3f-8f65-10e0652dfee0}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>284.02594</x>
+        <y>1219.6328</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{2c6fda5e-0a63-40a4-983c-8eefec020620}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>173.30469</x>
+        <y>311.9082</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Configurar
+      VoIP. Inicialmente o fluxo envia para o sistema de Rede uma solicita&#231;&#227;o
+      de configura&#231;&#227;o caso n&#227;o obtenha resposta em um intervalo de tempo pr&#233;
+      determinado, ser&#227;o feitas mais algumas retentativas. A quantidade de
+      retentativas e o tempo de espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <label>Delete Additional Package Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.DeleteAdditionalPackageAutomaticTask</process>
+  <revision>2</revision>
+  <type>User</type>
+</process__revision>

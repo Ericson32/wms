@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.checkNeedTVIESF">
+  <label>checkNeedTVIESF</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="tipoProcesso" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc = new Document("FTTHOrder:ProductData");
+       searchDoc.cwOrderId = cwOrderId;
+       searchDoc.needTVIESF = true;
+
+       var result = Finder.runSearch("FTTHOrderManagementInterface:productDataFinder", searchDoc);
+
+       if(result && result.length > 0){
+           return true;
+       }
+
+       var ord = Order.getOrderById(cwOrderId);
+
+       var equipRemoved = 0;
+       var equipAdded = 0;
+       var origEquips = 0;
+       var newEquips = 0;
+
+       try{
+           if(ord.OriginalData[0])
+               if(ord.OriginalData[0].EquipmentData[0])
+                   if(ord.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[0]){
+                       var item = ord.OriginalData[0].EquipmentData[0].AddPointsEquipmentData;
+                       var size = item.length;
+
+                       origEquips = size;
+                       for (var i = 0; i < size; i++){
+                           if (item[i].EquipmentPointData.acao == "remover")
+                               equipRemoved++;
+                       }
+                   }
+       } catch(e){
+           //erro
+           //Ordem nao possui equipamento ponta em dados originais
+       }
+
+       try{
+           if(ord.EquipmentData[0])
+               if(ord.EquipmentData[0].AddPointsEquipmentData[0]){
+                   var item = ord.EquipmentData[0].AddPointsEquipmentData;
+                   var size = item.length;
+
+                   newEquips = size;
+                   for (var i = 0; i < size; i++){
+                       if (item[i].EquipmentPointData.acao == "adicionar")
+                           equipAdded++;
+                   }
+               }
+       } catch(e){
+           //erro
+           //Ordem nao possui equipamento ponta em dados novos
+       }
+
+
+
+       switch(tipoProcesso){
+       /*    case "bloqueio":
+
+             break;
+           case "desbloqueio":
+
+             break;
+       */
+           case "configurar":
+             if(equipRemoved == 0 && origEquips==equipRemoved && equipAdded > 0)
+                 return true;
+
+             break;
+           case "desconfigurar":
+               if(equipRemoved > 0 && newEquips==equipAdded && equipAdded == 0)
+                 return true;
+
+             break;
+       }
+
+
+       return false;
+  ]]></script>
+</script>

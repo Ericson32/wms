@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHInventoryInterface.ReExecuteRollbackChangeCPE_cwr1">
+  <activity name="RollbackChangeCpeResendStart" type="seqActivity">
+    <guid>{51b8183b-c36a-4c06-bb56-e762471762d8}</guid>
+    <label>Rollback Change CPE Resend Start</label>
+    <x>77.297165</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RollbackChangeCPEHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackChangeCPEError</element>
+        <guid>{383eefc7-f4fe-4786-a443-8b9eca3689fc}</guid>
+        <label>Rollback Change CPE Handle Error Task</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>84.51318</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="Choice" type="choiceActivity">
+            <guid>{eb8a6ca7-c92d-467f-bb70-ac526de03288}</guid>
+            <label>Choice</label>
+            <x>30.0</x>
+            <y>294.96796</y>
+            <childList>
+              <child name="RollbackChangeCPESucess" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackChangeCPESucess</element>
+                <guid>{3b9d49ca-09dc-4ba4-90aa-0789c3d986f8}</guid>
+                <label>Rollback Change CPE Sucess</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>157.01367</x>
+                <y>421.3703</y>
+                <childList>
+                  <child name="End" type="completeActivity">
+                    <guid>{d96ac05b-ca21-4844-81f3-63b05a904a2e}</guid>
+                    <label>End</label>
+                    <x>144.69238</x>
+                    <y>584.22675</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="RollbackChangeCPEResend" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_RollbackChangeCPEResend</element>
+                <guid>{b55cd03e-cd19-4c7d-964e-8657c872acbf}</guid>
+                <label>Rollback Change CPE Resend</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>39.663086</x>
+                <y>421.3703</y>
+                <childList>
+                  <child name="RollbackChangeCPESubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.RollbackChangeCPESubprocess_cwr6</element>
+                    <guid>{80eb3689-8f2f-4773-9bd5-701f57fd99cb}</guid>
+                    <label>Rollback Change CPE Subprocess</label>
+                    <x>30.988281</x>
+                    <y>562.175</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script>FTTHCommon.createBreakpoint();</script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryHandleError" type="participantActivity">
+        <guid>{31aa6c18-c101-44c2-8389-f46421d4646b}</guid>
+        <label>Inventory Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>119.353516</x>
+        <y>280.26678</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <document>doc_FTTHClickInterface.ValidateEquipmentDoc</document>
+  <label>ReExecuteRollbackChangeCPE</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHInventoryInterface.ReExecuteRollbackChangeCPE</process>
+  <type>User</type>
+</process__revision>

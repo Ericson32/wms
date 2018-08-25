@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.SuspendVoIPIMSSubprocess_cwr11">
+  <activity name="SuspendRestoreVoIPIMSStart" type="seqActivity">
+    <guid>{cd2975cb-e43f-4433-8573-229cec11c7ad}</guid>
+    <label>Supend Restore VoIP IMS Start</label>
+    <x>25.995705</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="SuspendRestoreVoIPIMSAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.SuspendVoIPIMSAutomaticTask</element>
+        <guid>{49ab75ed-a971-4bd9-90e8-450c7b22baf1}</guid>
+        <label>Supend Restore VoIP IMS Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{6295caa5-d9b7-40ad-b328-90c2881a3ab0}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>518.0715</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{1a0b9352-589d-4018-aaf7-4474da6deabe}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>644.175</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_IMS");
+                  activityId = '%' + activityId;
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{49b0689d-b0b7-4ef9-b94b-4b4fd614bfb3}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{0e8c0310-6029-49bf-a353-0f8bb1d1389e}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>646.5256</y>
+                <childList>
+                  <child name="SuspendRestoreVoIPIMSHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.SuspendVoIPIMSHandleErrorTask_cwr6</element>
+                    <guid>{7bd4cb42-ac02-4cda-a95e-36115731b1db}</guid>
+                    <label>Supend Restore VoIP IMS Handle Error Task</label>
+                    <x>160.5719</x>
+                    <y>740.87616</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{06949017-5615-47f7-9630-bb73f3815e1d}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{5cd17658-7105-43a9-af6d-f692f0d4496a}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{07dcd913-521f-4e8b-8075-223239a4de10}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="SuspendRestoreVoIPIMSSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.SuspendVoIPIMSHandleIssueSubprocess_cwr14</element>
+                                <guid>{05a5e7dd-fc86-448c-8f78-8d9ad139c4a9}</guid>
+                                <label>Supend Restore VoIP IMS Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.SuspendVoIPIMSSubprocess_cwr11/seqActivity_SuspendRestoreVoIPIMSStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{3a7d7ac9-5f9e-49e1-8df6-58b0de744fc8}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>532.77264</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_IMS");
+                              activityId = '%' + activityId;
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{e6b3b091-c709-4a95-af9b-75872dc03bf0}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.SuspendVoIPIMSSubprocess_cwr11/seqActivity_SuspendRestoreVoIPIMSStart</element>
+                            <guid>{b815e009-d0dc-41b7-aaf1-b83b99cb8280}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Bloquear VoIP&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de bloqueio de VoIP. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de bloqueio de VoIP para o sistema de rede. Ou poder&#225;
+      finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de Bloquear
+      VoIP - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Suspend VoIP IMS Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.SuspendVoIPIMSSubprocess</process>
+  <revision>11</revision>
+  <type>Sub-flow</type>
+</process__revision>

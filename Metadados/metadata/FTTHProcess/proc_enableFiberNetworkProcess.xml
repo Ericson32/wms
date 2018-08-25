@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.enableFiberNetworkProcess">
+  <activity name="enableFiberNetworkProcessStart" type="seqActivity">
+    <guid>{25ab5426-eca6-481b-b449-5f179302cdb0}</guid>
+    <label>Enable Fiber Network Process Start</label>
+    <x>159.66435</x>
+    <y>30.0</y>
+    <childList>
+      <child name="createExecutionPlan" type="scriptActivity">
+        <guid>{8635f708-3fe1-4569-b4b0-13504eb5b0e5}</guid>
+        <label>Create Execution Plan</label>
+        <x>165.59131</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var searchActivity = new Document("FTTHCommon:Activity");
+              searchActivity.orderId = process.processOrder.OrderHeader.cwOrderId;
+              searchActivity.activityId = Global.getConfigVariable('VIABILIZAR_REDE_FTTH');
+              searchActivity.indCancelamento = false
+              var activityResult  = Finder.runSearch ("FTTHCommon.statusActivityFinder", searchActivity);
+              FTTHCommon.createBreakpoint();
+              if(activityResult.length == 0){
+                  var activity = new Document("FTTHCommon:Activity");
+                  activity.orderId = process.processOrder.OrderHeader.cwOrderId;
+                  activity.activityId = Global.getConfigVariable('VIABILIZAR_REDE_FTTH');
+                  activity.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+                  activity.indCancelamento = false
+                  activity.save();
+              }
+              else{
+                  // TO DO
+              }
+
+              var searchDoc = new Document("FTTHCommon:PlanoExecReuso");
+              searchDoc.cwOrderId = process.processOrder.OrderHeader.cwOrderId;
+              searchDoc.idAtividade = Global.getConfigVariable('VIABILIZAR_REDE_PLANEJAMENTO');
+              var reusoPlanejamentoResult  = Finder.runSearch ("FTTHCommon.PlanoExecReusoFinder", searchDoc);
+
+              if(reusoPlanejamentoResult.length == 0){
+                  var planejReuso = new Document("FTTHCommon:PlanoExecReuso");
+                  planejReuso.cwOrderId = process.processOrder.OrderHeader.cwOrderId;
+                  planejReuso.idAtividade = Global.getConfigVariable('VIABILIZAR_REDE_PLANEJAMENTO');
+                  planejReuso.statusAtividade = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+                  planejReuso.save();
+              }
+              else{
+                  // TO DO
+              }
+
+              var searchDoc = new Document("FTTHCommon:PlanoExecReuso");
+              searchDoc.cwOrderId = process.processOrder.OrderHeader.cwOrderId;
+              searchDoc.idAtividade = Global.getConfigVariable('VIABILIZAR_REDE_EXECUCAO');
+              var reusoExecucaoResult  = Finder.runSearch ("FTTHCommon.PlanoExecReusoFinder", searchDoc);
+
+              if(reusoExecucaoResult.length == 0){
+                  var execReuso = new Document("FTTHCommon:PlanoExecReuso");
+                  execReuso.cwOrderId = process.processOrder.OrderHeader.cwOrderId;
+                  execReuso.idAtividade = Global.getConfigVariable('VIABILIZAR_REDE_EXECUCAO');
+                  execReuso.statusAtividade = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+                  execReuso.save();
+              }
+              else{
+                  // TO DO
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="createEnableFiberNetworkForm" type="scriptActivity">
+        <guid>{f85b61b1-34ef-4540-9470-ab651e53970b}</guid>
+        <label>Create Enable Fiber Network Form</label>
+        <x>169.93604</x>
+        <y>256.74493</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var ord = process.processOrder;
+              var procDoc = process.processDocument;
+
+              var networkProjectDataDoc =  new Document('FTTHOrder:NetworkProjectData');
+              networkProjectDataDoc.cwOrderId = ord.id;
+              networkProjectDataDoc.dataAbertura = new Date();
+
+              ord.NetworkProjectData.newInstance();
+              ord.NetworkProjectData[ord.NetworkProjectData.count - 1].NetworkProjectData = networkProjectDataDoc;
+              ord.save();
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="createAndNotifyOpeningEnableFiberNetworkIssue" type="subflowActivity">
+        <element>proc_FTTHUserInterface.createAndNotifyOpeningEnableFiberNetworkIssue</element>
+        <guid>{41b7e740-0e1a-4cbe-bb6b-1db3fa300371}</guid>
+        <label>Create and Notify Opening Enable Fiber Network Issue</label>
+        <x>162.2544</x>
+        <y>412.2508</y>
+      </child>
+      <child name="enableFiberNetworkPlanningStart" type="seqActivity">
+        <guid>{8d252284-1af1-4579-87dd-e9538d358a29}</guid>
+        <label>Enable Fiber Network - Planning Start</label>
+        <x>165.78857</x>
+        <y>597.15906</y>
+        <childList>
+          <child name="enableFiberNetworkPlanningManualTask" type="subflowActivity">
+            <element>proc_FTTHUserInterface.enableFiberNetworkPlanningManualTask</element>
+            <guid>{3add9394-605d-43f8-bfe2-bc8ee811bd45}</guid>
+            <label>Enable Fiber Network - Planning Manual Task</label>
+            <x>166.271</x>
+            <y>697.8005</y>
+          </child>
+          <child name="planningSuccessfully" type="switchActivity">
+            <guid>{0e06aeaa-95bb-4a3c-b661-761b2ff9140b}</guid>
+            <label>Planning successfully?</label>
+            <x>156.26025</x>
+            <y>868.0075</y>
+            <childList>
+              <child name="issue" type="caseActivity">
+                <guid>{8843af97-dc47-4767-8f9b-c4ee18023dbf}</guid>
+                <label>Issue</label>
+                <x>130.34961</x>
+                <y>849.3959</y>
+                <childList>
+                  <child name="solveIssue" type="seqActivity">
+                    <guid>{4650834a-8672-4406-a839-cf6e4bba7a2a}</guid>
+                    <label>Solve Issue</label>
+                    <x>246.36621</x>
+                    <y>983.7306</y>
+                    <childList>
+                      <child name="notifyCloseEnableFiberNetworkIssue" type="scriptActivity">
+                        <guid>{c8bcd0c8-91aa-4444-813b-9c4e186fa257}</guid>
+                        <label>Notify Close Enable Fiber Network Issue</label>
+                        <x>246.36133</x>
+                        <y>1080.0513</y>
+                      </child>
+                      <child name="enableFiberNetworkPlanningHandleIssueTask" type="subflowActivity">
+                        <element>proc_FTTHHandleIssueProcess.enableFiberNetworkPlanningHandleErrorTask</element>
+                        <guid>{ae8ea390-4b01-47ad-93e7-7aad9363d069}</guid>
+                        <label>Enable Fiber Network - Planning Handle Issue Task</label>
+                        <x>240.36426</x>
+                        <y>1250.2583</y>
+                      </child>
+                      <child name="completePending" type="completeActivity">
+                        <guid>{6630c30f-243c-41b4-bc6a-b5a6231ba615}</guid>
+                        <label>Complete Pending</label>
+                        <x>242.6875</x>
+                        <y>1420.4653</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+              <child name="success" type="caseActivity">
+                <guid>{b993fef4-d91c-441e-9b95-4a12c6385318}</guid>
+                <label>Success</label>
+                <x>30.0</x>
+                <y>576.57733</y>
+                <childList>
+                  <child name="enableFiberNetworkExecutionStart" type="seqActivity">
+                    <guid>{dcb1ac50-9a0d-4637-b3d1-25126cdc2bbe}</guid>
+                    <label>Enable Fiber Network - Execution Start</label>
+                    <x>86.96562</x>
+                    <y>979.4099</y>
+                    <childList>
+                      <child name="enableFiberNetworkExecutionManualTask" type="subflowActivity">
+                        <element>proc_FTTHUserInterface.enableFiberNetworkExecutionManualTask</element>
+                        <guid>{e6160f6c-efb0-4502-add0-26f52ae43038}</guid>
+                        <label>Enable Fiber Network - Execution Manual Task</label>
+                        <x>89.166016</x>
+                        <y>1080.0513</y>
+                      </child>
+                      <child name="executionSuccessfully" type="switchActivity">
+                        <guid>{d397b42e-8dac-4a3f-97b8-a696dca7b239}</guid>
+                        <label>Execution successfully?</label>
+                        <x>79.83496</x>
+                        <y>1279.6606</y>
+                        <childList>
+                          <child name="issue" type="caseActivity">
+                            <guid>{cf63a141-f211-404e-9dd3-5b95df28ade8}</guid>
+                            <label>Issue</label>
+                            <x>30.0</x>
+                            <y>1077.4695</y>
+                            <childList>
+                              <child name="solveIssue" type="seqActivity">
+                                <guid>{11b033a8-5c6c-4b98-a6be-b46a92bc75d0}</guid>
+                                <label>Solve Issue</label>
+                                <x>146.6875</x>
+                                <y>1430.1665</y>
+                                <childList>
+                                  <child name="notifyCloseEnableFiberNetworkIssue" type="scriptActivity">
+                                    <guid>{c8bcd0c8-91aa-4444-813b-9c4e186fa257}</guid>
+                                    <label>Notify Close Enable Fiber Network Issue</label>
+                                    <x>146.68262</x>
+                                    <y>1531.8677</y>
+                                  </child>
+                                  <child name="enableFiberNetworkExecutionHandleIssueTask" type="subflowActivity">
+                                    <element>proc_FTTHHandleIssueProcess.DesconfigureIPTVAPCHandleIssueSubprocess</element>
+                                    <guid>{ae8ea390-4b01-47ad-93e7-7aad9363d069}</guid>
+                                    <label>Enable Fiber Network - Execution Handle Issue Task</label>
+                                    <x>137.6709</x>
+                                    <y>1702.0747</y>
+                                  </child>
+                                  <child name="completePending" type="completeActivity">
+                                    <guid>{eb8e3efa-f5b7-4417-9f7c-4ce231b20d69}</guid>
+                                    <label>Complete Pending</label>
+                                    <x>143.00879</x>
+                                    <y>1872.2817</y>
+                                  </child>
+                                </childList>
+                              </child>
+                            </childList>
+                          </child>
+                          <child name="success" type="caseActivity">
+                            <guid>{5ea498af-70bc-4a46-bb45-a0b5939ade0c}</guid>
+                            <label>Success</label>
+                            <x>27.79961</x>
+                            <y>1118.2742</y>
+                            <childList>
+                              <child name="completeSuccessfully" type="completeActivity">
+                                <guid>{dd1b9672-d721-4c9f-a0eb-ea301f946213}</guid>
+                                <label>Complete successfully</label>
+                                <x>30.0</x>
+                                <y>1420.4653</y>
+                              </child>
+                            </childList>
+                            <methodList>
+                              <method name="cwOnProcActCond" type="action">
+                                <category>cond</category>
+                                <system>true</system>
+                                <script>return true;</script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script>return true;</script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{2987164d-f15c-4406-a074-c7b6b607e810}</guid>
+  <label>Enable Fiber Network Process</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>User</type>
+</process>

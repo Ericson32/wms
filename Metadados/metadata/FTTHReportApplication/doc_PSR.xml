@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHReportApplication.PSR">
+  <dbSchema>ORDER</dbSchema>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atualizar PSR na base de dados do OMR
+    </p>
+  ]]></description>
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <generatedKey>true</generatedKey>
+  <guid>{bcd7483d-619d-4731-b4f9-6b4de76f62b9}</guid>
+  
+  <label>PSR</label>
+  <metaVersion>4</metaVersion>
+  <variableList>
+    <variable name="cwDocId" type="leaf">
+      <column>CWDOCID</column>
+      <key>1</key>
+      <table>TBI_PSR</table>
+      <valueType>dtype_cwf.cwDocId</valueType>
+    </variable>
+    <variable name="nomePSR" type="leaf">
+      <column>NOMEPSR</column>
+      <table>TBI_PSR</table>
+      <valueType>dtype_FTTHCommon.nomePSR</valueType>
+    </variable>
+    <variable name="codigoPSR" type="leaf">
+      <column>CODIGOPSR</column>
+      <table>TBI_PSR</table>
+      <valueType>dtype_FTTHReportApplication.codigoPSR</valueType>
+    </variable>
+    <variable name="uf" type="leaf">
+      <column>UF</column>
+      <propertyElement type="elslct">
+        <label>Codigo da Localidade</label>
+        <sorted>false</sorted>
+      </propertyElement>
+      <table>TBI_PSR</table>
+      <valueType>dtype_FTTHCommon.estadoLogradouro</valueType>
+    </variable>
+    <variable name="graAtuacao" type="leaf">
+      <column>GRAATUACAO</column>
+      <table>TBI_PSR</table>
+      <valueType>dtype_cwt_common.string512</valueType>
+    </variable>
+    <variable name="lastUpdatedAt" type="leaf">
+      <column>LASTUPDATEDAT</column>
+      <table>TBI_PSR</table>
+      <valueType>dtype_com.conceptwave.system.Timestamp</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="cwOnDocVisualKey" type="action">
+      <system>true</system>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+      <script>return this.codigoPSR;</script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHReportApplication.PSR</valueType>
+      </variable>
+      <variable name="PSRFinderUI" type="leaf">
+        <valueType>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="VerticalLayout" type="elvlt">
+                <elementList>
+                  <element name="GridLayout" type="elgrd">
+                    <colWidths>200px,100px,50px,200px</colWidths>
+                    <numOfCols>4</numOfCols>
+                    <elementList>
+                      <element name="nomePSR" type="elfld">
+                        <label>Nome da PSR</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.PSR/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_nomePSR</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codigoPSR" type="elfld">
+                        <label>Código da PSR</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.PSR/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_codigoPSR</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="uf" type="elslct">
+                        <label>UF</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.PSR/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_uf</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="graAtuacao" type="elfld">
+                        <label>GRA de Atuação</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.PSR/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_graAtuacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="lastUpdatedAt" type="eldate">
+                        <label>Last updated at</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHReportApplication.PSR/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHReportApplication.PSR/leaf_lastUpdatedAt</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                  <element name="FormFrame" type="elovf">
+                    <fillSpace>false</fillSpace>
+                    <formReference type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_FTTHReportApplication.PSR/ui_UserInterface/leaf_PSRFinderUI</variablePath>
+                        <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/frmui_Forms</variablePath>
+                        <variablePath>findSql_FTTHReportApplication.PSRFinder/ui_UserInterface/frmui_Forms/exov_Result</variablePath>
+                      </variablePathList>
+                    </formReference>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>doc_FTTHReportApplication.PSR/ui_UserInterface/leaf_PSRFinderUI</variablePath>
+                      </variablePathList>
+                    </variable>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</base>
+            <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="hl1" type="elext"/>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="save" type="usrActionMethod">
+        <confirmation>doc_FTTHReportApplication.PSR/ui_UserInterface/uimthd_validatePSR_confirm</confirmation>
+        <script><![CDATA[
+          if(this.isValid) {
+            this.model.save();
+            Global.showUserMessage("Ação concluída com sucesso!");
+            this.refreshPSRGrid();
+          }
+          else {
+            Global.throwException("UE0116", this);
+          }
+
+          return Global.STOP_UI;
+        ]]></script>
+      </method>
+      <method name="refreshPSRGrid" type="uimthd">
+        <script>this.parent.parent.content.searchAction(false);</script>
+      </method>
+      <method name="validatePSR_confirm" type="uimthd">
+        <script><![CDATA[
+          var campos = new Array();
+              if(!this.model.codigoPSR ){
+                  campos.push('\n- Código PSR ');
+              }
+              if(!this.model.nomePSR){
+                  campos.push('\n- Nome PSR');
+              }
+               if(!this.model.uf){
+                  campos.push('\n- UF');
+              }
+              if(!this.model.graAtuacao){
+                  campos.push('\n- GRA de Atuação');
+              }
+
+
+
+              var mensagem = campos.length > 0 ? "Os itens são de preenchimento obrigatório: \n" + campos : null;
+
+              if(campos.length > 0){
+                   Global.showUserMessage(mensagem);
+                   return false;
+              }
+          return null;
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHSGFTInterface.createMessageToSGFT">
+  <label>create Message To SGFT</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHCommon.string64</type>
+    </parameter>
+    <parameter name="correlationId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHCommon.string64</type>
+    </parameter>
+    <parameter name="request" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHSolicitarAberturaBARequest.SolicitarAberturaBARequest_el</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     * Script que vai, a partir de uma ordem e atividade, verificar qual operação deverá ser realizada,
+     * validar se possui os campos mínimos para a operação e gerar o XML com o conteúdo a ser enviado para o sistema de SGFT.
+     * A única atividade presente neste script é a abertura de BA, mas a adição de outras no futuro é possível.
+    */
+
+    //Criando searchDoc para a busca de atributos na attributeList da ordem
+    var searchDoc = new Document("FTTHOrder:Attribute");
+    searchDoc.cwOrderId = ordem.OrderHeader.cwOrderId;
+
+    var name;
+    var result;
+
+
+    //Parametros de LOG
+    var LOG_INTERFACE = "SGFT";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_SGFT');
+    var LOG_ACTIVITY = atividade;
+    var LOG_SCRIPT = "createMessageToSGFT";
+    var LOG_OPERATION = "Sender";
+    var passouValidacao = true;
+    var msgValidacao = 'Campo(s) obrigatório(s) sem valor => ';
+
+    request.Ator.sistema    = "OM";
+    request.TipoInfo        = ordem.OrderHeader.tipoInfo;
+    request.UFInfo          = ordem.OrderHeader.ufInfo;
+
+    name = "localidadeInfo";
+    request.LocalidadeInfo  = getAttributeValue(name);
+    name = "matrInfo";
+    request.MatrInfo = getAttributeValue(name);
+    name = "nomeInfo";
+    request.NomeInfo = getAttributeValue(name);
+    name = "telInfo";
+    request.TelInfo = getAttributeValue(name);
+    request.descProblema    = ordem.OrderHeader.descProblema;
+    request.DocAssoc        = ordem.OrderHeader.numeroPedido;
+    request.TipoAtiv        = ordem.SRTicketActivityData[0].SRTicketActivityData.tipoAtiv;
+    name = "cos";
+    request.COS = getAttributeValue(name);
+    name = "velocidadeCircuito";
+    request.VelocidadeCircuito = getAttributeValue(name);
+    request.AreaTec         = ordem.SRTicketActivityData[0].SRTicketActivityData.areaTec;
+    name = "subAreaTec";
+    request.SubAreaTec = getAttributeValue(name);
+    request.Atividade       = ordem.SRTicketActivityData[0].SRTicketActivityData.atividade;
+    name = "macroAtiv";
+    request.MacroAtiv = getAttributeValue(name);
+    name = "tipoProd";
+    request.TipoProd = getAttributeValue(name);
+    name = "aprazado";
+    request.Aprazado = getAttributeValue(name);
+    name = "tipoUso";
+    request.TipoUso = getAttributeValue(name);
+    request.PrioridadeBA    = ordem.SRTicketActivityData[0].SRTicketActivityData.prioridadeBA;
+    request.TipoProg        = ordem.SRTicketActivityData[0].SRTicketActivityData.tipoProg;
+    name = "microArea";
+    request.MicroArea = getAttributeValue(name);
+    request.CodTecnico      = ordem.SRTicketActivityData[0].SRTicketActivityData.codTecnico;
+    name = "codContratada";
+    request.CodContratada = getAttributeValue(name);
+    name = "codMantenedora";
+    request.CodMantenedora = getAttributeValue(name);
+    request.DescLivre       = ordem.SRTicketActivityData[0].SRTicketActivityData.descLivre;
+    request.TipoCliente     = ordem.ClientData.tipoCliente;
+    request.NomeCliente     = ordem.ClientData.nome;
+    request.TelCliente      = ordem.ClientData.telefoneCliente;
+    name = "numAssDesig";
+    request.numAssDesig = getAttributeValue(name);
+    request.NomeContato     = ordem.ClientData.nomeContato;
+    request.TelContato      = ordem.ClientData.telefoneContato;
+
+    var x =0, y = 0;
+    for(var i = 0; i < ordem.AttributeList.length; i++){
+        var atributo = ordem.AttributeList[i].Attribute;
+
+        if(atributo.name == "dadosCliente"){
+            request.InfoCliente.item[x].DadosCliente = atributo.value;//  OBRIGATORIO
+            x++;
+        }
+
+        if(atributo.name == "dadosCompl"){
+            request.InfoCliente.item[y].DadosCompl = atributo.value;//  OBRIGATORIO
+            y++;
+        }
+    }
+
+    request.DataPromessa    = ordem.OrderHeader.dataPromessa ? Calendar.formatDate(ordem.OrderHeader.dataPromessa,"yyyyMMdd") : '';
+    request.HoraPromessa    = ordem.OrderHeader.horaPromessa ? ordem.OrderHeader.horaPromessa : '';
+    name = "dataPrevIni";
+    request.DataPrevIni               = getAttributeValue(name);
+    name = "horaPrevIni";
+    request.HoraPrevIni               = getAttributeValue(name);
+    name = "dataPrevFim";
+    request.DataPrevFim               = getAttributeValue(name);
+    name = "horaPrevFim";
+    request.HoraPrevFim               = getAttributeValue(name);
+    request.TipoLogradouro  = ordem.AddressData.tipoLogradouro;
+    request.NomeLogradouro  = ordem.AddressData.nomeLogradouro;
+    request.NumeroLogradouro = ordem.AddressData.numeroLogradouro;
+    request.Bairro          = ordem.AddressData.bairro;
+    request.Complemento     = ordem.AddressData.complemento1;
+    request.UF              = ordem.AddressData.estadoLogradouro;
+    request.Localidade      = ordem.AddressData.siglaLocalidade;
+    request.Estacao         = ordem.OriginalData[0].FacilityData.estacao;
+    name = "agrupamento";
+    request.Agrupamento                = getAttributeValue(name);
+    name = "complAgrup";
+    request.ComplAgrup                 = getAttributeValue(name);
+    name = "nomeRota";
+    request.NomeRota                   = getAttributeValue(name);
+    name = "tipoDado";
+    request.TipoDado                   = getAttributeValue(name);
+    name = "qtdeCircuitoPtaA";
+    request.QtdeCircuitoPtaA           = getAttributeValue(name);
+    name = "qtdeCircuitoPtaB";
+    request.QtdeCircuitoPtaB           = getAttributeValue(name);
+    name = "qtdeCircuitoBi";
+    request.QtdeCircuitoBi             = getAttributeValue(name);
+    name = "nomeEnlace";
+    request.NomeEnlace                 = getAttributeValue(name);
+    name = "numEnlace";
+    request.NumEnlace                  = getAttributeValue(name);
+    request.CodReclamacao            = ordem.SRTicketActivityData[0].SRTicketActivityData.codReclamacao;
+    name = "codAlarme";
+    request.CodAlarme                  = getAttributeValue(name);
+    name = "nomeAlarme";
+    request.NomeAlarme                 = getAttributeValue(name);
+    request.DataIniProblema = ordem.SRTicketActivityData[0].SRTicketActivityData.dataIniProblema;
+    request.HoraIniProblema = ordem.SRTicketActivityData[0].SRTicketActivityData.horaIniProblema;
+    name = "dataIniServico";
+    request.DataIniServico             = getAttributeValue(name);
+    name = "horaIniServico";
+    request.HoraIniServico             = getAttributeValue(name);
+    name = "tipoEquip";
+    request.TipoEquip                  = getAttributeValue(name);
+    name = "modeloEquip";
+    request.ModeloEquip                = getAttributeValue(name);
+    name = "fabricanteEquip";
+    request.FabricanteEquip            = getAttributeValue(name);
+    name = "areaEquip";
+    request.AreaEquip                  = getAttributeValue(name);
+    name = "idEquip";
+    request.IdEquip                    = getAttributeValue(name);
+    name = "qtdeAfetacaoFixa";
+    request.QtdeAfetacaoFixa           = getAttributeValue(name);
+    name = "qtdeAfetacaoDados";
+    request.QtdeAfetacaoDados          = getAttributeValue(name);
+    name = "qtdeAfetacaoMovelBts";
+    request.QtdeAfetacaoMovelBts       = getAttributeValue(name);
+    name = "qtdeAfetacaoMovelNodeB";
+    request.QtdeAfetacaoMovelNodeB     = getAttributeValue(name);
+    name = "qtdeAfetacaoAdsl";
+    request.QtdeAfetacaoAdsl           = getAttributeValue(name);
+    name = "qtdeAssInterromp";
+    request.QtdeAssInterromp           = getAttributeValue(name);
+
+
+    var valorAtributo;
+    var a = 0;
+
+    if(ordem.OriginalData[0].FacilityData.acessoGPON){
+        request.MatrizDados.item[a].Label     = "IdAcesso";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.acessoGPON;
+        a++;
+    }
+
+    //07/06/2018 - Ajustes para as pendencias de UAT
+    if(ordem.ProductData.nomePlanoIPTV){
+        request.MatrizDados.item[a].Label     = "NomePlanoTV";
+        request.MatrizDados.item[a].Valor     = ordem.ProductData.nomePlanoIPTV;
+        a++;
+    }
+
+    if(ordem.ProductData.nomePlanoHSI){
+        request.MatrizDados.item[a].Label     = "NomePlanoBL";
+        request.MatrizDados.item[a].Valor     = ordem.ProductData.nomePlanoHSI;
+        a++;
+    }
+
+    if(ordem.ProductData.nomePlanoVoIP){
+        request.MatrizDados.item[a].Label     = "NomePlanoVoIP";
+        request.MatrizDados.item[a].Valor     = ordem.ProductData.nomePlanoVoIP;
+        a++;
+    }
+    //END 07/06/2018
+
+    if(ordem.ProductData.nomePacote){
+        request.MatrizDados.item[a].Label     = "NomeBundle";
+        request.MatrizDados.item[a].Valor     = ordem.ProductData.nomePacote;
+        a++;
+    }
+
+    if(ordem.ProductData.identificadorHSI){
+        request.MatrizDados.item[a].Label     = "IdBL";
+        request.MatrizDados.item[a].Valor     = ordem.ProductData.identificadorHSI;
+        a++;
+    }
+
+    if(ordem.ProductData.identificadorIPTV){
+        request.MatrizDados.item[a].Label     = "IdTV";
+        request.MatrizDados.item[a].Valor     = ordem.ProductData.identificadorIPTV;
+        a++;
+    }
+
+    if(ordem.ProductData.identificadorVoIP){
+        request.MatrizDados.item[a].Label     = "IdVoIP";
+        request.MatrizDados.item[a].Valor     = ordem.ProductData.identificadorVoIP;
+        a++;
+    }
+
+    if(ordem.ProductData.idBundle){
+        request.MatrizDados.item[a].Label     = "IdBundle";
+        request.MatrizDados.item[a].Valor     = ordem.ProductData.idBundle;
+        a++;
+    }
+
+    if(ordem.OriginalData[0].FacilityData.estacao){
+        request.MatrizDados.item[a].Label     = "estacao";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.estacao;
+        a++;
+    }
+
+    if(ordem.OriginalData[0].FacilityData.OLTGALC){
+        request.MatrizDados.item[a].Label     = "OLTGALC";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.OLTGALC;
+        a++;
+    }
+
+    if(ordem.OriginalData[0].FacilityData.OLTRACK){
+        request.MatrizDados.item[a].Label     = "OLTRACK";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.OLTRACK;
+        a++;
+    }
+
+    if(ordem.OriginalData[0].FacilityData.OLTSHELF){
+        request.MatrizDados.item[a].Label     = "OLTSHELF";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.OLTSHELF;
+        a++;
+    }
+
+    if(ordem.OriginalData[0].FacilityData.OLTSLOT){
+        request.MatrizDados.item[a].Label     = "OLTSLOT";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.OLTSLOT;
+        a++;
+    }
+
+    if(ordem.OriginalData[0].FacilityData.OLTPORT){
+        request.MatrizDados.item[a].Label     = "OLTPORT";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.OLTPORT;
+        a++;
+    }
+
+
+    if(ordem.OriginalData[0].FacilityData.ICX){
+        request.MatrizDados.item[a].Label     = "ICX";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.ICX;
+        a++;
+    }
+
+
+    if(ordem.OriginalData[0].FacilityData.DGO){
+        request.MatrizDados.item[a].Label     = "DGO";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.DGO;
+        a++;
+    }
+
+
+    if(ordem.OriginalData[0].FacilityData.splitterPort){
+        request.MatrizDados.item[a].Label     = "splitterPort";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.splitterPort;
+        a++;
+    }
+
+    if(ordem.OriginalData[0].FacilityData.UNI){
+        request.MatrizDados.item[a].Label     = "UNI";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.UNI;
+        a++;
+    }
+
+    if(ordem.OriginalData[0].FacilityData.BSP){
+        request.MatrizDados.item[a].Label     = "BSP";
+        request.MatrizDados.item[a].Valor     = ordem.OriginalData[0].FacilityData.BSP;
+        a++;
+    }
+
+    //Mapeando os campos caminho da fibra
+    var searchDoc2 = new Document("FTTHOrder:CaminhoDaFibra");
+    searchDoc2.cwOrderId = ordem.OrderHeader.orderId;
+
+    var result2 = Finder.runSearch("FTTHOrder:caminhoFibraFinder", searchDoc2);
+
+    for (var i = 0; i < result2.length; i++){
+        request.MatrizDados.item[a].Label     = result2[i].campo;
+        request.MatrizDados.item[a].Valor     = result2[i].valor;
+        a++;
+    }
+
+
+    if(passouValidacao){
+        var LOG_MSG = "Atividade: [" + atividade + "] realizada com sucesso";
+        FTTHCommon.log( ordem.id, correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+    }else{
+        FTTHCommon.log(ordem.id, correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+        msgValidacao, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        FTTHCommon.saveEvent(ordem.id, Global.getConfigVariable("INVENTORY_SYSTEM"),
+        atividade, "FUNCTIONAL_ERROR", -1000, msgValidacao,
+        correlationId, Global.getConfigVariable("ASYNC_REQUEST"));
+        FTTHCommon.updateAutomaticActivityDocument(ordem, Global.getConfigVariable("INVENTORY_SYSTEM"), atividade);
+    }
+
+    return request;
+
+
+    function getAttributeValue(name){
+        searchDoc.name = name;
+        result = Finder.runSearch("FTTHOrder:attributeFinder", searchDoc);
+
+        if(result && result.length > 0){
+            return result[0].value;
+        } else{
+            return null;
+        }
+    }
+  ]]></script>
+</script>

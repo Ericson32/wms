@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ReconfigureVOIPPlatformsSubprocess_cwr5">
+  <activity name="ReconfigureVOIPStart" type="seqActivity">
+    <guid>{d5fc39e2-4fee-4352-a9fb-73cda4c79c60}</guid>
+    <label>Reconfigure VOIP Start</label>
+    <x>75.84091</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureVOIPIMSSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.ReconfigureVoIPIMSSubprocess_cwr6</element>
+        <guid>{f276c12c-d3ec-4488-904b-06257124b16c}</guid>
+        <label>Reconfigure VOIP IMS Subprocess</label>
+        <x>78.17432</x>
+        <y>124.76094</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "RECONFIGURAR_VOIP_IMS";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="NumberChangeReconfiguration" type="seqActivity">
+        <guid>{d6ecee5c-d280-477a-ad42-b37cc18fa3e4}</guid>
+        <label>Number Change Reconfiguration</label>
+        <x>79.30733</x>
+        <y>250.86444</y>
+        <childList>
+          <child name="NumberChange" type="switchActivity">
+            <guid>{3560516c-8591-4996-87e0-359db8c2e305}</guid>
+            <label>Number Change?</label>
+            <x>86.17236</x>
+            <y>345.62537</y>
+            <childList>
+              <child name="No" type="caseActivity">
+                <guid>{4b7a9004-e139-415b-9c0c-af85f058ae70}</guid>
+                <label>No</label>
+                <x>144.70312</x>
+                <y>689.8324</y>
+              </child>
+              <child name="Yes" type="caseActivity">
+                <guid>{b6f6ca19-b504-4f68-aa1f-646f5f5057a6}</guid>
+                <label>Yes</label>
+                <x>66.95418</x>
+                <y>445.6254</y>
+                <childList>
+                  <child name="ReconfigureVOIPSequence" type="seqActivity">
+                    <guid>{a6049bfb-23d7-4c29-adca-1811f2035adc}</guid>
+                    <label>ReconfigureVOIPSequence</label>
+                    <x>9.379494</x>
+                    <y>457.0277</y>
+                    <childList>
+                      <child name="ReconfigureVOIPHDMSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHProcess.ReconfigureVoIPHDMSubprocess_cwr6</element>
+                        <guid>{68ba5a2b-73f3-4e86-a60c-ab1855c96681}</guid>
+                        <label>Reconfigure VOIP HDM Subprocess</label>
+                        <x>31.998047</x>
+                        <y>549.0277</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var atividade = "RECONFIGURAR_VOIP_HDM";
+                              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              return result;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="ReconfigureVOIPVMPSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHProcess.ReconfigureVoIPVMPSubprocess_cwr6</element>
+                        <guid>{2c013a11-9642-4936-a018-d5ba4d959252}</guid>
+                        <label>Reconfigure VOIP VMP Subprocess</label>
+                        <x>31.998047</x>
+                        <y>675.1312</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var atividade = "RECONFIGURAR_VOIP_VMP";
+                              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              return result;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="ReconfigurarVoIPINSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHUserInterface.ReconfigurarVoIPINSubprocess_cwr1</element>
+                        <guid>{f5f4ad95-d947-4184-8030-3c7aecfdf509}</guid>
+                        <label>Reconfigurar VoIP IN Subprocess</label>
+                        <x>30.0</x>
+                        <y>801.23474</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var atividade = "RECONFIGURAR_VOIP_IN";
+                              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              return result;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderSolicitacoes = new Finder('FTTHCommon.RequestFinder');
+                      orderSolicitacoes.searchDocument.cwOrderId = process.processOrderId;
+                      var orderSolicitacoesResult = orderSolicitacoes.search();
+                      for (var x=0; x<orderSolicitacoesResult.length; x++) {
+                          switch(orderSolicitacoesResult[x].requestId) {
+                              case ('MUDANCA_NUMERO') :
+                                  return true;
+                          }
+                      }
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="PlanChangeReconfiguration" type="seqActivity">
+        <guid>{5e0e837e-f08a-4efe-b6f0-1299b06d3fd9}</guid>
+        <label>Plan Change Reconfiguration</label>
+        <x>80.90576</x>
+        <y>927.33826</y>
+        <childList>
+          <child name="PlanChange" type="switchActivity">
+            <guid>{63866fc8-4ef6-4fcd-b20b-9c833be7beea}</guid>
+            <label>Plan Change?</label>
+            <x>105.17334</x>
+            <y>1022.0991</y>
+            <childList>
+              <child name="no" type="caseActivity">
+                <guid>{259f0c9c-adb8-4f0f-aa3c-91f731a01ef1}</guid>
+                <label>No</label>
+                <x>158.52783</x>
+                <y>1133.5015</y>
+              </child>
+              <child name="yes" type="caseActivity">
+                <guid>{6e1eae3f-f516-4813-a7fa-b1329b1065af}</guid>
+                <label>Yes</label>
+                <x>78.907715</x>
+                <y>1001.2348</y>
+                <childList>
+                  <child name="ReconfigurePlanVoIPSequence" type="seqActivity">
+                    <guid>{cf511f0e-db54-4dbd-9384-e307eb80d1ae}</guid>
+                    <label>Reconfigure Plan VoIP Sequence</label>
+                    <x>51.705177</x>
+                    <y>1134.4717</y>
+                    <childList>
+                      <child name="ModificarPlanoVoIPIMSSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHUserInterface.ModificarPlanoVoIPIMSSubprocess_cwr1</element>
+                        <guid>{9c11782c-315c-4af0-aa4a-3233549458c5}</guid>
+                        <label>Modificar Plano VoIP IMS Subprocess</label>
+                        <x>52.84326</x>
+                        <y>1230.2026</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var atividade = "MODIFICAR_PLANO_VOIP_IMS";
+                              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              return result;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="ModificarPlanoVoIPVMPSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHUserInterface.ModificarPlanoVoIPVMPSubprocess_cwr1</element>
+                        <guid>{4b53b671-9781-45ff-8dde-060fa3354011}</guid>
+                        <label>Modificar Plano VoIP VMP Subprocess</label>
+                        <x>52.84326</x>
+                        <y>1371.0073</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var atividade = "MODIFICAR_PLANO_VOIP_VMP";
+                              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              return result;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderSolicitacoes = new Finder('FTTHCommon.RequestFinder');
+                      orderSolicitacoes.searchDocument.cwOrderId = process.processOrderId;
+                      var orderSolicitacoesResult = orderSolicitacoes.search();
+                      for (var x=0; x<orderSolicitacoesResult.length; x++) {
+                          switch(orderSolicitacoesResult[x].requestId) {
+                              case ('MUDANCA_PLANO') :
+                              return true;
+                          }
+                      }
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de infra de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <label>Reconfigure VOIP Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ReconfigureVOIPPlatformsSubprocess</process>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process__revision>

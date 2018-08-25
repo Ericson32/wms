@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.InsertAdditionalPackageSolveIssueTask">
+  <activity name="startInsertAdditionalPackageSolveIssue" type="seqActivity">
+    <guid>{b1fd8baa-a6e0-449d-8189-e8a5662c2450}</guid>
+    <label>Start Insert Additional Package Solve Issue</label>
+    <x>90.02226</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InsertAdditionalPackageSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_InsertAdditionalPackageSolveIssue</element>
+        <guid>{cb8f8745-7d22-4129-b674-79b5c4a2d8dd}</guid>
+        <label>Insert Additional Package Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>87.024414</x>
+        <y>136.52188</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{e37c2455-3273-4ffa-8bb9-085fb3c3aaa1}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.526855</x>
+        <y>292.02774</y>
+        <childList>
+          <child name="InsertAdditionalPackageSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_InsertAdditionalPackageSolveIssueChangeIssue</element>
+            <guid>{9eb9c484-986f-42a6-9829-39f1bd4454ac}</guid>
+            <label>Insert Additional Package Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>157.87321</x>
+            <y>433.13123</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{7a7ab27a-c717-4feb-a072-d88e519926c8}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>142.72949</x>
+                <y>611.68884</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="InsertAdditionalPackageSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_InsertAdditionalPackageSolveIssueSuccess</element>
+            <guid>{c6528509-4e91-4205-b908-b416f07b8324}</guid>
+            <label>Insert Additional Package Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>440.4818</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{2436fbc1-c87c-48bd-aa06-5288d44abd86}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.338867</x>
+                <y>603.33826</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.dataFechamento = new Date();
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCESS");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{080da77f-56d6-4998-858a-a78e3a5206b0}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>125.55615</x>
+        <y>299.37833</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("INSERIR_PACOTE_ADICIONAL");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE"){
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar VoIP - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <guid>{0cd7b4c6-ae5c-4adc-bb38-56f0937d5126}</guid>
+  <highlight>70</highlight>
+  <label>Insert Franchise Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process>

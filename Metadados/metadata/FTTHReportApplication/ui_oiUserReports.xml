@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<userInterface name="FTTHReportApplication.oiUserReports">
+  <extends>ui_com.conceptwave.system.Application</extends>
+  <label>Oi User Reports</label>
+  <metaVersion>3</metaVersion>
+  <worklist>findDoc_cwf_pm.BaseWorklistFinder</worklist>
+  <vformList>
+    <vform name="Forms" type="frmui">
+      <extends>ui_com.conceptwave.system.Application/frmui_Forms</extends>
+      <overlayList>
+        <overlay name="Menu" type="exov">
+          <base>ui_com.conceptwave.system.Application/frmui_Forms/exov_Menu</base>
+          <extends>ui_com.conceptwave.system.Application/frmui_Forms/exov_Menu</extends>
+          <label>Menu</label>
+          <overrideList>
+            <override name="HorizontalLayoutForMenuItems" type="elext">
+              <elementList>
+                <element name="reportMenu" type="elmnu">
+                  <icon>/cwf/MenuIconSearch.gif</icon>
+                  <label>Relatorios</label>
+                  <elementList>
+                    <element name="pesquisaOS" type="elmnu">
+                      <clickMethod type="varPath">
+                        <variablePathList>
+                          <variablePath>ui_FTTHReportApplication.oiUserReports/usrActionMethod_pesquisaOS</variablePath>
+                        </variablePathList>
+                      </clickMethod>
+                      <label>Pesquisa OS</label>
+                    </element>
+                    <element name="relatorioPSR" type="elmnu">
+                      <clickMethod type="varPath">
+                        <variablePathList>
+                          <variablePath>ui_FTTHReportApplication.oiUserReports/usrActionMethod_psrReport</variablePath>
+                        </variablePathList>
+                      </clickMethod>
+                      <label>Relatório de PSR</label>
+                    </element>
+                    <element name="generateReportErrorActivation" type="elmnu">
+                      <clickMethod type="varPath">
+                        <variablePathList>
+                          <variablePath>ui_FTTHReportApplication.oiUserReports/usrActionMethod_activationError</variablePath>
+                        </variablePathList>
+                      </clickMethod>
+                      <label>Gerar Relatório OS - Erro na Ativação</label>
+                    </element>
+                    <element name="relatorioCPE" type="elmnu">
+                      <clickMethod type="varPath">
+                        <variablePathList>
+                          <variablePath>ui_FTTHReportApplication.oiUserReports/usrActionMethod_cpeReport</variablePath>
+                        </variablePathList>
+                      </clickMethod>
+                      <label>Relatorio de CPE</label>
+                    </element>
+                  </elementList>
+                </element>
+                <element name="changePasssword" type="elmnu">
+                  <clickMethod type="varPath">
+                    <variablePathList>
+                      <variablePath>ui_FTTHReportApplication.oiUserReports/usrActionMethod_changingPassword</variablePath>
+                    </variablePathList>
+                  </clickMethod>
+                  <icon>/cwf/key.gif</icon>
+                  <label>Trocar Senha</label>
+                </element>
+                <element name="SelectApplication" type="elmnu">
+                  <menuAccel type="mAccelP"/>
+                  <clickMethod type="varPath">
+                    <variablePathList>
+                      <variablePath>ui_FTTHReportApplication.oiUserReports/usrActionMethod_selectApplication</variablePath>
+                    </variablePathList>
+                  </clickMethod>
+                  <icon>/cwfv/window_next.png</icon>
+                  <label>Select Application</label>
+                  <menuType>5</menuType>
+                  <showDown>true</showDown>
+                  <showRollOver>true</showRollOver>
+                </element>
+                <element name="Logout" type="elmnu">
+                  <menuAccel type="mAccelP"/>
+                  <clickMethod type="varPath">
+                    <variablePathList>
+                      <variablePath>ui_FTTHReportApplication.oiUserReports/usrActionMethod_logout</variablePath>
+                    </variablePathList>
+                  </clickMethod>
+                  <icon>/cwfv/exit.png</icon>
+                  <label>Logout</label>
+                  <menuType>5</menuType>
+                  <showDown>true</showDown>
+                  <showRollOver>true</showRollOver>
+                </element>
+              </elementList>
+            </override>
+          </overrideList>
+        </overlay>
+        <overlay name="Page" type="expg">
+          <base>ui_com.conceptwave.system.Application/frmui_Forms/pg_Page</base>
+          <extends>ui_com.conceptwave.system.Application/frmui_Forms/pg_Page</extends>
+          <label>Page</label>
+          <stylesheet>/cwf/css/cwf.css</stylesheet>
+          <title>Oi User Reports</title>
+          <visible type="varPath">
+            <variablePathList>
+              <variablePath>ui_FTTHReportApplication.oiUserReports/permMethod_oiUserReportsView</variablePath>
+            </variablePathList>
+          </visible>
+        </overlay>
+      </overlayList>
+    </vform>
+  </vformList>
+  <methodList>
+    <method name="pesquisaOS" type="usrActionMethod">
+      <userInterface>findScript_FTTHReportApplication.researchReportSearchOS</userInterface>
+      <valueType>findScript_FTTHReportApplication.researchReportSearchOS</valueType>
+    </method>
+    <method name="psrReport" type="usrActionMethod">
+      <userInterface>findSql_FTTHReportApplication.reportPSRFinder</userInterface>
+      <valueType>findSql_FTTHReportApplication.reportPSRFinder</valueType>
+    </method>
+    <method name="selectApplication" type="usrActionMethod">
+      <script>UserProfile.selectApp();</script>
+    </method>
+    <method name="logout" type="usrActionMethod">
+      <script>UserProfile.logout();</script>
+    </method>
+    <method name="oiUserReportsView" type="permMethod"/>
+    <method name="activationError" type="usrActionMethod">
+      <form>findSql_FTTHReportApplication.errorActivationReportFnd/ui_UserInterface/frmui_Forms/exov_Default</form>
+      <userInterface>findSql_FTTHReportApplication.errorActivationReportFnd</userInterface>
+      <valueType>findSql_FTTHReportApplication.errorActivationReportFnd</valueType>
+    </method>
+    <method name="changingPassword" type="usrActionMethod">
+      <showInPopup>true</showInPopup>
+      <userInterface>doc_cwf_up.chgPwdDoc</userInterface>
+      <valueType>doc_cwf_up.chgPwdDoc</valueType>
+    </method>
+    <method name="cpeReport" type="usrActionMethod">
+      <userInterface>findSql_FTTHReportApplication.reportCPEFinder</userInterface>
+      <valueType>findSql_FTTHReportApplication.reportCPEFinder</valueType>
+    </method>
+  </methodList>
+</userInterface>

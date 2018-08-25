@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.SuspendVagoVMPHandleErrorTask_cwr1">
+  <activity name="SuspendVagoVMPHandleErrorTaskStart" type="seqActivity">
+    <guid>{ef1f6f0b-8b6c-4511-bea2-45f2ed4138bf}</guid>
+    <label>Suspend Vago VMP Handle Error Task Start</label>
+    <x>79.57588</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendVagoVMPHandleError" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVagoVMPHandleError</element>
+        <guid>{8e965aa5-9168-4c6b-86aa-e7741df14fe7}</guid>
+        <label>Suspend Vago VMP Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>85.84033</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{771c83d4-e060-440c-a0f6-391d61419d79}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="SuspendVagoVMPHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVagoVMPHandleErrorIssue</element>
+                <guid>{8a8b8321-d373-47ef-b11b-668b7cf464d2}</guid>
+                <label>Suspend Vago VMP Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>155.9082</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="SuspendVagoVMPHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_SuspendVagoVMPHandleErrorResend</element>
+                <guid>{5ecb764c-2a12-453e-b9fc-48cb35f60678}</guid>
+                <label>Suspend Vago VMP Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+                <x>31.158691</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+                      activityId = '%' + activityId;
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{40a23d79-8658-47c9-bff5-dfe718c3011e}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Suspend Vago VMP Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.SuspendVagoVMPHandleErrorTask</process>
+  <type>Sub-flow</type>
+</process__revision>

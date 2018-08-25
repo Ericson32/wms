@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.getIdActivity">
+  <label>Get ID Activity</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="activityId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var statusActivity;
+    var searchDoc = new Document("FTTHCommon:Activity");
+    var docResult;
+
+    searchDoc.orderId = orderId;
+    searchDoc.activityId = activityId;
+    searchDoc.indCancelamento = FTTHCommon.isCancelOrder(orderId);
+    statusActivity = Finder.runSearch ("FTTHCommon.statusActivityFinder", searchDoc);
+    docResult = statusActivity.start;
+
+    if(docResult == null){
+        return null;
+    }
+    return docResult.activityId;
+  ]]></script>
+</script>

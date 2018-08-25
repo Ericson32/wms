@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.UpdateOrderProcess">
+  <label>Update Order Process</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Update Order Interface Script');
+
+    var msgLogDoc = UserProfile.getMsgLogDoc();
+    if(msgLogDoc != null){
+        msgLogDoc.userData1 = requisicao.idPedido;
+        msgLogDoc.userData2 = requisicao.correlationID;
+        msgLogDoc.save();
+    }
+
+    var errorMsg;
+    var isReschedule = false;
+
+    for (var i = 0; i < requisicao.acessos.acesso.length; i++) {
+        var currentItem = requisicao.acessos.acesso[i];
+
+        for (var j = 0; j < currentItem.atributos.atributo.length; j++) {
+            var atributoAcesso = currentItem.atributos.atributo[j];
+
+            if (atributoAcesso.nome == 'DataInstalacao' || atributoAcesso.nome == 'DataRetirada') {
+                isReschedule = true;
+            }
+        }
+    }
+
+
+    if(isReschedule) {
+        Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Reschedule', requisicao);
+    } else {
+        errorMsg = "Não foi possível determinar o tipo de ordem suplementar presente na OS com o número " + requisicao.correlationID;
+        var ds = FTTHOrderManagementInterface.CreateDSErro(requisicao.correlationID, requisicao.idPedido, errorMsg);
+        Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+    }
+  ]]></script>
+</script>

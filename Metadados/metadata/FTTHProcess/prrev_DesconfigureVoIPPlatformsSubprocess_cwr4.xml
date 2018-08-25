@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DesconfigureVoIPPlatformsSubprocess_cwr4">
+  <activity name="DesconfigureVoIPStart" type="seqActivity">
+    <guid>{3bb1417f-928b-4fa3-a752-ab44796ba987}</guid>
+    <label>Desconfigure VoIP Start</label>
+    <x>74.330666</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureVoIPVMPSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.DesconfigureVoIPVMPSubprocess_cwr6</element>
+        <guid>{e32c4055-a7f5-49ef-803d-97ebcbd044b5}</guid>
+        <label>Desconfigure VoIP VMP Subprocess</label>
+        <x>75.0</x>
+        <y>124.760925</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "DESCONFIGURAR_VOIP_VMP";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="DesconfigureVoIPIMSSubprocess" type="subflowActivity">
+        <element>prrev_FTTHProcess.DesconfigureVoIPIMSSubprocess_cwr6</element>
+        <guid>{bd53b0de-0caa-4777-911d-3265c7cade68}</guid>
+        <label>Desconfigure VoIP IMS Subprocess</label>
+        <x>75.0</x>
+        <y>250.86444</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "DESCONFIGURAR_VOIP_IMS";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="BundleChangeConfiguration" type="seqActivity">
+        <guid>{034205e8-0fa7-4e4f-853e-6ef6eef5a568}</guid>
+        <label>Bundle Change Configuration</label>
+        <x>81.25879</x>
+        <y>376.968</y>
+        <childList>
+          <child name="BundleChange" type="switchActivity">
+            <guid>{90e21b46-46e3-4a5c-be34-9122400b1880}</guid>
+            <label>Bundle Change</label>
+            <x>89.33496</x>
+            <y>471.72888</y>
+            <childList>
+              <child name="No" type="caseActivity">
+                <guid>{a0abf1ae-53d9-408e-93ea-a567229a8a14}</guid>
+                <label>No</label>
+                <x>139.35254</x>
+                <y>583.1312</y>
+              </child>
+              <child name="Yes" type="caseActivity">
+                <guid>{4962c6f8-1f55-4ba6-a7f7-803e1e879fcb}</guid>
+                <label>Yes</label>
+                <x>70.29109</x>
+                <y>571.7289</y>
+                <childList>
+                  <child name="DesconfigureVoIPSequence" type="seqActivity">
+                    <guid>{99035e9b-84b0-498e-beeb-de6905f08c8c}</guid>
+                    <label>DesconfigureVoIPSequence</label>
+                    <x>9.045502</x>
+                    <y>585.4818</y>
+                    <childList>
+                      <child name="DesconfigureVoIPAPCSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHProcess.DesconfigureVoIPAPCSubprocess_cwr6</element>
+                        <guid>{94e8a305-3856-45aa-9a94-ba7e42a7c8dc}</guid>
+                        <label>Desconfigure VoIP APC Subprocess</label>
+                        <x>30.0</x>
+                        <y>679.8324</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var atividade = "DESCONFIGURAR_VOIP_APC";
+                              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              return result;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="DesconfigureVoIPHDMSubprocess" type="subflowActivity">
+                        <element>prrev_FTTHProcess.DesconfigureVoIPHDMSubprocess_cwr6</element>
+                        <guid>{27147ef1-9643-4ef6-8387-61822c73b186}</guid>
+                        <label>Desconfigure VoIP HDM Subprocess</label>
+                        <x>30.0</x>
+                        <y>805.9359</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var atividade = "DESCONFIGURAR_VOIP_HDM";
+                              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              return result;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderSolicitacoes = new Finder('FTTHCommon.RequestFinder');
+                      orderSolicitacoes.searchDocument.cwOrderId = process.processOrderId;
+                      var orderSolicitacoesResult = orderSolicitacoes.search();
+                      for (var x=0; x<orderSolicitacoesResult.length; x++) {
+                          switch(orderSolicitacoesResult[x].requestId) {
+                              case ('MUDANCA_PACOTE') :
+                                  return true;
+                          }
+                      }
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      configura&#231;&#227;o de infra de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <label>Desconfigure VoIP Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DesconfigureVoIPPlatformsSubprocess</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

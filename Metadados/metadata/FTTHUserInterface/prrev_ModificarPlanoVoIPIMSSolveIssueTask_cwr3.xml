@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ModificarPlanoVoIPIMSSolveIssueTask_cwr3">
+  <activity name="startModificarPlanoVoIPIMSSolveIssue" type="seqActivity">
+    <guid>{34c893d4-a56a-4a92-a54f-56deaa6a3899}</guid>
+    <label>Modificar Plano VoIP IMS Solve Issue</label>
+    <x>86.426956</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ModificarPlanoVoIPIMSSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ModificarPlanoVoIPIMSSolveIssue</element>
+        <guid>{f74dfe54-f93d-41a8-bbfe-125a39c1057e}</guid>
+        <label>Modificar Plano VoIP IMS Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>86.02051</x>
+        <y>130.64142</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{42f0146a-dad6-4e39-b87d-1e641da00aad}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>31.519043</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ModificarPlanoVoIPIMSSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ModificarPlanoVoIPIMSSolveIssueChangeIssue</element>
+            <guid>{635a747e-7543-401a-b8e9-c645613a7719}</guid>
+            <label>Modificar Plano VoIP IMS Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>156.53467</x>
+            <y>412.54962</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{7665058d-a833-4aae-b4fb-20725149aa0e}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>139.71777</x>
+                <y>591.10724</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("MODIFICAR_PLANO_VOIP_IMS");
+                  //var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCESS")
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ModificarPlanoVoIPIMSSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_ModificarPlanoVoIPIMSSolveIssueSuccess</element>
+            <guid>{e14bf08c-f210-4a36-bb95-c41758b8a829}</guid>
+            <label>Modificar Plano VoIP IMS Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>419.9002</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{67ea9abc-5606-4f93-bad4-5102d8e7a4e7}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>33.33496</x>
+                <y>582.75665</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.dataFechamento = new Date();
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("MODIFICAR_PLANO_VOIP_IMS");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCESS");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{76a5c24f-969c-46e8-9ef3-09738f815063}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>123.54834</x>
+        <y>278.7967</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("MODIFICAR_PLANO_VOIP_IMS");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+          {
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <label>Modificar Plano VoIP IMS Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ModificarPlanoVoIPIMSSolveIssueTask</process>
+  <revision>3</revision>
+  <type>Sub-flow</type>
+</process__revision>

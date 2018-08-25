@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateOrderInterfaceScript">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel por:
+    </p>
+    <p style="margin-top: 0">
+      - Identificar o tipo de OS recebido;
+    </p>
+    <p style="margin-top: 0">
+      - Mapear os elementos recebidos para o DB do WMS;
+    </p>
+    <p style="margin-top: 0">
+      - Definir e startar o processo correspondente ao tipo de ordem recebido;
+    </p>
+    <p style="margin-top: 0">
+      - Validar o XML recebido;
+    </p>
+    <p style="margin-top: 0">
+      - Valida se todos os campos obrigat&#243;rios foram recebidos;
+    </p>
+  ]]></description>
+  
+  <label>Create Order Interface Script</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Requisi&amp;#231;&amp;#227;o enviada pelo OM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Order Interface Script');
+    var msgLogDoc = UserProfile.getMsgLogDoc();
+    if(msgLogDoc != null){
+        msgLogDoc.userData1 = requisicao.idPedido;
+        msgLogDoc.userData2 = requisicao.correlationID;
+        msgLogDoc.save();
+    }
+
+    var submitRequest = true;
+    var isUpdatedOS = false;
+
+    var errorMsg = FTTHCommon.detailDSErrors(requisicao,"requisicao");
+
+    if(errorMsg == "")
+    {
+        //var searchOSNumberDoc = new Document("FTTHOrderManagementInterface:OrderHeaderSearch");
+        //searchOSNumberDoc.numeroOS = requisicao.correlationID;
+        //searchOSNumberDoc.numeroPedido = requisicao.idPedido;
+        var resultOSNumberDoc = FTTHCommon.getLatestVersion(requisicao.idPedido);
+        //var resultOSNumberDoc = Finder.runSearch("FTTHOrderManagementInterface:OSNumberFinder", searchOSNumberDoc);
+
+        if (resultOSNumberDoc) {
+            if (requisicao.operacoes.operacao[0].operacao == 'trocaNumeroFTTH' && resultOSNumberDoc.versao != null && (parseInt(resultOSNumberDoc.versao) <= parseInt(requisicao.versao))){
+                submitRequest = true;
+            }else if(resultOSNumberDoc.versao != null && resultOSNumberDoc.versao == requisicao.versao) {
+                submitRequest = false;
+                errorMsg = "Já existe OS com o número " + requisicao.correlationID + " e a versão " + requisicao.versao;
+
+            } else if ((requisicao.versao == null) || (parseInt(resultOSNumberDoc.versao) > parseInt(requisicao.versao))) {
+                submitRequest = false;
+                errorMsg = "A versão " + requisicao.versao + " da OS " + requisicao.correlationID + " não é válida.";
+            } else {
+                if (resultOSNumberDoc.estadoTramitacao != "Em tratamento de pendência")
+                {
+                    submitRequest = false;
+                    errorMsg = "O estado da tramitação da OS não é de pendência: (" + resultOSNumberDoc.estadoTramitacao + ")";
+                } else {
+                    resultOSNumberDoc.versao = requisicao.versao;
+                    resultOSNumberDoc.save();
+                    isUpdatedOS = true;
+                }
+            }
+        }
+
+
+    } else {
+        submitRequest = false;
+        errorMsg = "Requisicao inválida! Erros: \n" + errorMsg;
+    }
+
+    if(submitRequest == true) {
+        if (isUpdatedOS == false) {
+
+            Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Submit', requisicao);
+        } else {
+            //Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Update', requisicao);
+            Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Reschedule', requisicao);
+        }
+    } else {
+        var ds = FTTHOrderManagementInterface.CreateDSErro(requisicao.correlationID, requisicao.idPedido, errorMsg);
+        Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Error', ds);
+    }
+
+    var output = new DataStructure('FTTHCommon.serviceOrderSyncResponse');
+    output.code = '0';
+    output.description = 'Mensagem Recebida com Sucesso';
+    return output;
+  ]]></script>
+</script>

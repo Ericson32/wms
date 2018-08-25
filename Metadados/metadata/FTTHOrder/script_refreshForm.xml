@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.refreshForm">
+  <label>Refresh Form</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="model" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        AUTHOR:         Marcos Souza - marcossouza@br.ibm.com
+        DATE:           26/01/2018
+        DESCRIPTION:    Script Responsável pelo refresh dos campos do formulário.
+                        Preenchendo com os valores armazenados na base de dados.
+    */
+
+    var equipment = Document.readDoc(model.metadata.toString(), model.cwDocId);
+
+    var tabname;
+
+    if(equipment){
+        if(equipment.metadataType == "FTTHOrder:BaseEquipmentData"){
+            tabname = model.tabname;
+            equipment.tabname = tabname;
+            equipment.copyToDocument(model, false, false);
+        } else{
+            equipment.copyToDocument(model, false, false);
+        }
+    }
+  ]]></script>
+</script>

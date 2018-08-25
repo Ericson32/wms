@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHInventorySAPInterface.CreateInventorySAPMessage">
+  <label>Create Inventory SAP Message</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="output" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    var countManualActivity = order.ManualActivityData.length - 1;
+    var acao = null;
+    var doc = null;
+    var finderResult;
+    var equipmentBaseType = false;
+
+
+    output.COD_PSR = order.ManualActivityData[countManualActivity].ManualActivityData.codigoPSR;
+    //fazer o finder para buscar a UF da PSR acima
+    output.UF = finderResult.uf;
+    //
+    var doc = FTTHInventorySAPInterface.defineEquipmentToProcess(order.OrderHeader.cwOrderId);
+    if (doc == null){
+        doc = FTTHInventorySAPInterface.defineBaseEquipmentToProcess(order.OrderHeader.cwOrderId);
+        equipmentBaseType = true;
+    }
+    //após descobrir qual o equipamento deve ser atualizado setar o valor para em processamento para identificar que esse é o ducmente sendo tratado no momento
+    doc.statusAcao = 'em processamento';
+    doc.save();
+
+    if(equipmentBaseType)
+        output.SERIAL = doc.numeroSerieHomeGateway;
+    else output.SERIAL = doc.numeroSerieSetTopBox;
+
+    if(acao == 'Atualizar' && doc.atividade == 'INSTALAR_EQUIPAMENTO_CLIENTE'){
+        output.COD_OPER = 2; //ativo
+    }else if(acao == 'Atualizar' && doc.atividade == 'RETIRAR_EQUIPAMENTO_CLIENTE'){
+        if(equipmentBaseType){
+            if(doc.foiDevolvidoHomeGateway == 1)
+                output.COD_OPER = 3; //Disponível Reserva
+            else output.COD_OPER = 10; //Extraviado
+        }
+            if(equipmentBaseType){
+                if(doc.foiDevolvidoSetTopBox == 1)
+                    output.COD_OPER = 3; //Disponível Reserva
+                else output.COD_OPER = 10; //Extraviado
+            }
+    }
+
+    //verificar com a equipe SAP quem é esse campo
+    //output.MATNR =
+
+    return output;
+  ]]></script>
+</script>

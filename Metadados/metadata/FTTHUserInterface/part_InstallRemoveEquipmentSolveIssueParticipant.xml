@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHUserInterface.InstallRemoveEquipmentSolveIssueParticipant">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Esse participant representa a pessoa respons&#225;vel por realizar as
+      atividades manuais de pend&#234;ncia da Instala&#231;&#227;o/Retirada de Equipamento.
+    </p>
+  ]]></description>
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M1DT0H0M0S</length>
+  </duration>
+  <guid>{0ce33cb2-9645-48eb-8623-6042128f8412}</guid>
+  <interface>iface_FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface</interface>
+  <label>Install Remove Equipment Solve Issue Participant</label>
+  <metaVersion>3</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface/oper_InstallRemoveEquipmentSolveIssueSuccess</operation>
+      <tasksList>
+        <tasks>InstallRemoveEquipmentSolveIssueTask</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+            var matriculaUsuario = Global.trim(userDoc.profileId);
+            var nomeUsuario = Global.trim(userDoc.userName);
+
+            var msg = FTTHCommon.mandatoryFieldsManualActivities("Fechar Pendência", worklistOrder, worklistItem.workItemDocument.Operation);
+            if(msg != null){
+                var doc = new Document ("FTTHCommon.MandatoryMessage");
+                doc.fields = msg;
+                return doc;
+            }
+            else{
+                var countManageIssue = worklistOrder.IssueData.length;
+                var i;
+                for(i = countManageIssue - 1; i >= 0; i--){
+                   if((worklistOrder.IssueData[i].IssueData.operationWorklist == worklistItem.workItemDocument.Operation) && (worklistOrder.IssueData[i].IssueData.flagIssueStatus == 0)){
+                       worklistOrder.IssueData[i].IssueData.flagIssueStatus = 1;
+                       worklistOrder.IssueData[i].IssueData.dataFechamento = new Date();
+                       worklistOrder.IssueData[i].IssueData.matriculaUsuarioFechamento = matriculaUsuario;
+                       worklistOrder.IssueData[i].IssueData.nomeUsuarioFechamento = nomeUsuario;
+                       worklistOrder.save();
+                   }
+               }
+            }
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            try{
+                var userId = Global.getUserId();
+                var userDoc = UserProfile.getUserProfile(userId);
+            } catch(e){
+                Global.logError("Usuário não encontrado. (FTTHUserInterface.installRemoveEquipmentParticipant/action)");
+            }
+            var ord = this.processOrder;
+            var count = ord.IssueData.length;
+
+            ord.IssueData[count -1].IssueData.dataFechamento = new Date();
+            ord.save();
+
+            Global.logInfo("Atividade Manual finalizada com sucesso.");
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface/oper_InstallRemoveEquipmentSolveIssueChangeIssue</operation>
+      <tasksList>
+        <tasks>InstallRemoveEquipmentSolveIssueTask</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            //var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem, idItens);
+            var doc = FTTHCommon.ParticipantIssueConfirmation("INSTALAR_REMOVER_EQUIPAMENTO", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem, idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>manualActivity</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

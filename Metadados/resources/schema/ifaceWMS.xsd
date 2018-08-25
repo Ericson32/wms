@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema targetNamespace="http://oi.com.br/ifaceWMS"
+		xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:ifaceWMS="http://oi.com.br/ifaceWMS"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+
+
+
+	<annotation>
+		<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Namespace referente &amp;#224; Interface com o WMS.
+&lt;/p&gt;</documentation>
+		<appinfo>
+			<label>WMS Interface</label>
+		</appinfo>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<simpleType name="endereco_id">
+		<annotation>
+			<documentation>endereco_id</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="acaoType">
+		<annotation>
+			<documentation>acaoType</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<enumeration value="adicionar">
+				<annotation>
+					<documentation>adicionar</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="remover">
+				<annotation>
+					<documentation>remover</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="modificar">
+				<annotation>
+					<documentation>modificar</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="-">
+				<annotation>
+					<documentation>-</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="acaoPlanoType">
+		<annotation>
+			<documentation>acaoPlanoType</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<enumeration value="adicionar">
+				<annotation>
+					<documentation>adicionar</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="remover">
+				<annotation>
+					<documentation>remover</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="-">
+				<annotation>
+					<documentation>-</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<!-- Structures -->
+
+	<complexType name="listaEnderecos">
+		<annotation>
+			<documentation>listaEnderecos</documentation>
+		</annotation>
+			<sequence>
+				<element name="endereco" minOccurs="0" maxOccurs="unbounded" type="ifaceWMS:endereco"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="atributo">
+		<annotation>
+			<documentation>atributo</documentation>
+		</annotation>
+			<sequence>
+				<element name="nome" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="valor" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="contatoType">
+		<annotation>
+			<documentation>contatoType</documentation>
+		</annotation>
+			<sequence>
+				<element name="nome" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="numeroDocumento" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="dataNascimento" minOccurs="0" maxOccurs="1" type="xsd:dateTime"/>
+				<element name="nomeMae" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="sexo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="email" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="telefoneContato1" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="telefoneContato2" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="telefoneContato3" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<element name="requisicao" type="ifaceWMS:requisicao"/>
+
+	<complexType name="requisicao">
+		<annotation>
+			<documentation>requisicao</documentation>
+		</annotation>
+			<sequence>
+				<element name="correlationID" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idPedido" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idMensagem" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="nomeBundle" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoBundle" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idCatalogo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="timestamp" minOccurs="1" maxOccurs="1" type="xsd:dateTime"/>
+				<element name="operacoes" minOccurs="1" maxOccurs="1" type="ifaceWMS:listaDeOperacoesType"/>
+				<element name="listaEnderecos" minOccurs="1" maxOccurs="1" type="ifaceWMS:listaEnderecos"/>
+				<element name="contato" minOccurs="1" maxOccurs="1" type="ifaceWMS:contatoType"/>
+				<element name="acessos" minOccurs="1" maxOccurs="1" type="ifaceWMS:acessosType"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="acessoType">
+		<annotation>
+			<documentation>acessoType</documentation>
+		</annotation>
+			<sequence>
+				<element name="idCatalogo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idAtivo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="nome" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoProduto" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="acao" minOccurs="1" maxOccurs="1" type="ifaceWMS:acaoType"/>
+				<element name="idEndereco" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="idEnderecoAntigo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="plano" minOccurs="1" maxOccurs="2" type="ifaceWMS:planoType"/>
+				<element name="bloqueios" minOccurs="1" maxOccurs="1" type="ifaceWMS:bloqueiosType"/>
+				<element name="atributos" minOccurs="0" maxOccurs="1" type="ifaceWMS:listaDeAtributos"/>
+				<element name="servicos" minOccurs="1" maxOccurs="1" type="ifaceWMS:servicos"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="acessosType">
+		<annotation>
+			<documentation>acessosType</documentation>
+		</annotation>
+			<sequence>
+				<element name="acesso" minOccurs="1" maxOccurs="unbounded" type="ifaceWMS:acessoType"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="listaDeOperacoesType">
+		<annotation>
+			<documentation>listaDeOperacoesType</documentation>
+		</annotation>
+			<sequence>
+				<element name="operacao" minOccurs="1" maxOccurs="unbounded" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="listaDeAtributos">
+		<annotation>
+			<documentation>listaDeAtributos</documentation>
+		</annotation>
+			<sequence>
+				<element name="atributo" minOccurs="0" maxOccurs="unbounded" type="ifaceWMS:atributo"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="servico">
+		<annotation>
+			<documentation>servico</documentation>
+		</annotation>
+			<sequence>
+				<element name="idCatalogo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="nome" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoProduto" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="acao" minOccurs="1" maxOccurs="1" type="ifaceWMS:acaoType"/>
+				<element name="atributos" minOccurs="1" maxOccurs="1" type="ifaceWMS:listaDeAtributos"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="servicos">
+		<annotation>
+			<documentation>servicos</documentation>
+		</annotation>
+			<sequence>
+				<element name="servico" minOccurs="0" maxOccurs="unbounded" type="ifaceWMS:servico"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="planoType">
+		<annotation>
+			<documentation>planoType</documentation>
+		</annotation>
+			<sequence>
+				<element name="idCatalogo" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="nome" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="acao" minOccurs="1" maxOccurs="1" type="ifaceWMS:acaoPlanoType"/>
+				<element name="listaDeAtributos" minOccurs="1" maxOccurs="1" type="ifaceWMS:listaDeAtributos"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="bloqueio">
+		<annotation>
+			<documentation>bloqueio</documentation>
+		</annotation>
+			<sequence>
+				<element name="acao" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="idCatalogo" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="endereco">
+		<annotation>
+			<documentation>endereco</documentation>
+		</annotation>
+			<sequence>
+				<element name="id" minOccurs="1" maxOccurs="1" type="ifaceWMS:endereco_id"/>
+				<element name="tipoLogradouro" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="nomeLogradouro" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="numero" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoComplemento1" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="complemento1" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoComplemento2" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="complemento2" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="tipoComplemento3" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+				<element name="complemento3" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="codigoLocalidade" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="localidade" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="bairro" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="cidade" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="estado" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="pontoDeReferencia" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="cep" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="bloqueiosType">
+		<annotation>
+			<documentation>bloqueiosType</documentation>
+		</annotation>
+			<sequence>
+				<element name="bloqueio" minOccurs="0" maxOccurs="1" type="ifaceWMS:bloqueio"/>
+			</sequence>
+		</complexType>
+
+	<!-- Documents -->
+
+</schema>

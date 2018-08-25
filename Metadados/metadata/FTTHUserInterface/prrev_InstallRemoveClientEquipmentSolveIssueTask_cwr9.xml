@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.InstallRemoveClientEquipmentSolveIssueTask_cwr9">
+  <activity name="InstallRemoveEquipmentSolveIssueTaskStart" type="seqActivity">
+    <guid>{473cd011-b6d7-4ea8-97c1-1fc1c8d677b0}</guid>
+    <label>Install Remove Equipment Solve IssueTask Start</label>
+    <x>85.74491</x>
+    <y>30.0</y>
+    <childList>
+      <child name="InstallRemoveEquipmentSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface/oper_InstallRemoveEquipmentSolveIssueTask</element>
+        <guid>{268ba27b-52b1-47ab-94ed-4eb1098d416d}</guid>
+        <label>Install Remove Equipment Solve IssueTask</label>
+        <participant>part_FTTHUserInterface.InstallRemoveEquipmentSolveIssueParticipant</participant>
+        <x>89.34863</x>
+        <y>130.64142</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{fc8b5673-4d62-4ebd-81e7-e90eb756c799}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>33.51123</x>
+            <y>300.84845</y>
+            <childList>
+              <child name="InstallRemoveEquipmentSolveIssueChangeIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface/oper_InstallRemoveEquipmentSolveIssueChangeIssue</element>
+                <guid>{d0d95a92-4fa1-4646-bb81-3ac44c3ac772}</guid>
+                <label>Install Remove Equipment Solve Issue - Change Issue</label>
+                <participant>part_FTTHUserInterface.InstallRemoveEquipmentSolveIssueParticipant</participant>
+                <x>157.8628</x>
+                <y>456.65314</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="InstallRemoveEquipmentSolveIssueSuccess" type="opActivity">
+                <element>iface_FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface/oper_InstallRemoveEquipmentSolveIssueSuccess</element>
+                <guid>{a0221a86-5497-458a-a78d-9a42ea4f9edc}</guid>
+                <label>Install Remove Equipment Solve Issue - Success</label>
+                <participant>part_FTTHUserInterface.InstallRemoveEquipmentSolveIssueParticipant</participant>
+                <x>29.0</x>
+                <y>463.00372</y>
+                <childList>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{1180eb8f-8aa1-46c3-b213-2c94e43b7395}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>34.331055</x>
+                    <y>626.86017</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          issueDoc.flagIssueStatus = 1;
+                          issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+
+                      if (process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+                           var activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+                      }else {
+                          if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+                              activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                          } else{
+                              var activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                          }
+                      }
+
+                      //19/06/2018 - Correção para nova verificação do rollout - Alinhamento com marcos, antonio e jayce
+                      var status = Global.getConfigVariable("ACTIVITY_STATUS_NEW");
+                      /*
+                      if(issueDoc.codigoPendencia.refData.codPendencia == '7032'){
+                          var status = Global.getConfigVariable("ACTIVITY_STATUS_NEW");
+                      }else{
+                          var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                      }
+                      */
+                      //end 19/06/2018
+
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InstallRemoveEquipmentSolveIssueParticipant" type="participantActivity">
+        <guid>{ad165db4-85f0-4549-b2a0-52c5c50cc078}</guid>
+        <label>Install Remove Equipment Solve Issue Participant</label>
+        <participant>part_FTTHUserInterface.InstallRemoveEquipmentSolveIssueParticipant</participant>
+        <x>125.54053</x>
+        <y>286.14728</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = "INSTALAR_EQUIPAMENTO_CLIENTE";
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE"){
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo gerenciamento da atividade manual
+      &quot;Instalar/Remover Equipamento - Pend&#234;ncia&quot;. Por algum motivo (t&#233;cnico ou
+      cliente) o equipamento n&#227;o p&#244;de ser instalado e por esse motivo a
+      pend&#234;ncia que foi aberta deve ser tratada e fechada para que o fluxo
+      continue.
+    </p>
+    <p style="margin-top: 0">
+      A atividade manual pode ser finalizada apenas com Sucesso.
+    </p>
+  ]]></description>
+  <label>Install and Remove Equipment Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.InstallRemoveClientEquipmentSolveIssueTask</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

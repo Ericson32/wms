@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.SuspendVoIPSolveIssueTask">
+  <activity name="SuspendVoIPSolveIssueTaskStart" type="seqActivity">
+    <guid>{8fa3df0f-341f-4695-9c37-d2499cb87e11}</guid>
+    <label>Suspend VoIP Solve Issue Task Start</label>
+    <x>82.81875</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendVoIPSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendVoIPSolveIssue</element>
+        <guid>{88b5d67b-1bc1-4ca3-9563-5b6ada808d22}</guid>
+        <label>Suspend VoIP Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>85.68359</x>
+        <y>130.64142</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{9754f876-2916-4c45-980e-5e3aaccd7ba3}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>30.845215</x>
+        <y>256.74493</y>
+        <childList>
+          <child name="SuspendVoIPSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendVoIPSolveIssueChangeIssue</element>
+            <guid>{5653cb03-ecc8-41b1-84c1-74fd38d3c222}</guid>
+            <label>Suspend VoIP Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>156.08545</x>
+            <y>397.84845</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_VOIP");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="SuspendVoIPSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendVoIPSolveIssueSuccess</element>
+            <guid>{3c6a1e32-50f5-409c-9a26-c25a6618e448}</guid>
+            <label>Suspend VoIP Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>405.19904</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_VOIP");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{904a1a5a-0e46-4349-8d6f-744489de217b}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>122.87451</x>
+        <y>264.09552</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Bloquear VoIP - Erro tenha sido
+      finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual ser&#225;
+      gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <guid>{a51afd7e-f630-42b9-8785-ea17e76336fa}</guid>
+  <highlight>22</highlight>
+  <label>Suspend VoIP Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ModificarPlanoVoIPVMPHandleErrorTask">
+  <activity name="ModificarPlanoVoIPVMPHandleError" type="seqActivity">
+    <guid>{5eba8df4-9248-4d8b-95a1-9ed4454148dd}</guid>
+    <label>Start Modificar Plano VoIP VMP Handle Error</label>
+    <x>84.289444</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ModificarPlanoVoIPVMPSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ModificarPlanoVoIPVMPHandleError</element>
+        <guid>{9dc889b9-dd92-427b-ba18-37773821a119}</guid>
+        <label>ModificarPlanoVoIP VMP Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>63.347656</x>
+        <y>130.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{27e738ff-7d33-462f-b013-e25cdf9754b9}</guid>
+        <label>Wait Manual Activity</label>
+        <x>32.01123</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ModificarPlanoVoIPVMPHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ModificarPlanoVoIPVMPHandleErrorIssue</element>
+            <guid>{031f1691-4c65-4875-8076-01e01104ac2f}</guid>
+            <label>Modificar Plano VoIP VMP Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>157.3706</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("MODIFICAR_PLANO_VOIP_VMP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ModificarPlanoVoIPVMPHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ModificarPlanoVoIPVMPHandleErrorResend</element>
+            <guid>{dd2a2e2d-d76c-4a06-837b-545e66bfe016}</guid>
+            <label>Modificar Plano VoIP VMP Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>30.0</x>
+            <y>412.54962</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("MODIFICAR_PLANO_VOIP_VMP");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{da445e51-d3e5-42d4-8957-f1a0eb96f39d}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>123.38428</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("MODIFICAR_PLANO_VOIP_VMP");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{7990a8c3-08c5-421a-8da0-a16a9d7a718b}</guid>
+  <label>Modificar Plano VoIP IMS Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

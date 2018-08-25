@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.ChangePendencyFromClient">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel pela troca de pend&#234;ncia de cliente para qualquer
+      outra.
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      As informa&#231;&#227;oes da nova pend&#234;ncia sempre vir&#227;o do Siebel
+    </p>
+  ]]></description>
+  <label>ChangePendencyFromClient</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="pendencia" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc1 = new Document ("FTTHCommon:Issues");
+    searchDoc1.cwDocId = null;
+    searchDoc1.codPendencia = pendencia;
+        //Como é uma troca de pendencia o worklist é igual o da pendencia anterior
+    if (order.IssueData[order.IssueData.count - 2].IssueData.operationWorklist != null) {
+        if(order.IssueData[order.IssueData.count - 2].IssueData.operationWorklist.search("SolveIssue") != -1 ) {
+            searchDoc1.atividadePendencia = order.IssueData[order.IssueData.count - 2].IssueData.operationWorklist;
+        } else {
+            searchDoc1.atividade = order.IssueData[order.IssueData.count - 2].IssueData.operationWorklist;
+        }
+    }
+
+    var dadosPendenciaResult  = Finder.runSearch ("FTTHCommon.IssuesFinder", searchDoc1);
+    if(dadosPendenciaResult.size > 0){
+
+        /*
+        var activityId = order.IssueData[order.IssueData.length - 1].IssueData.nomeAtividade;
+
+        if (order.IssueData == null) {
+            order.createOrderItemByPath("IssueData");
+        }
+        order.IssueData.newInstance();
+        order.IssueData[order.IssueData.count - 1].IssueData.codigoPendencia = dadosPendenciaResult[0].cwDocId;
+        order.IssueData[order.IssueData.count - 1].IssueData.observacaoAbertura = "Abertura via Troca de Pendência";
+        order.IssueData[order.IssueData.count - 1].IssueData.dataAbertura = new Date();
+        order.IssueData[order.IssueData.count - 1].IssueData.nomeAtividade = activityId;
+        order.IssueData[order.IssueData.count - 1].IssueData.matriculaUsuarioAbertura = "";
+        order.IssueData[order.IssueData.count - 1].IssueData.nomeUsuarioAbertura = "";
+        order.IssueData[order.IssueData.count - 1].IssueData.idItem = order.ProductData.idPromocao;
+    */
+        //MS - marcossouza@br.ibm.com - 04/12/2017 - Setando a dataFechamento da pendencia que foi fechada
+        order.IssueData[order.IssueData.count - 2].IssueData.dataFechamento = new Date();
+        //end MS
+
+    /*
+        if (dadosPendenciaResult[0].possuiListaIDAtivo){
+            order.IssueData[order.IssueData.count - 1].IssueData.associatedItens = 'YES';
+        } else order.IssueData[order.IssueData.count - 1].IssueData.associatedItens = 'NO';
+    */
+    }else{
+         throw "Não existe pendencia para o codigo " + pendencia + " na atividade " + order.IssueData[order.IssueData.count - 2].IssueData.operationWorklist;
+    }
+    /*
+    var codPendenciasResult;
+    codPendenciasResult = Finder.runSearch ("FTTHCommon.IssuesFinder", searchDoc1);
+    if(codPendenciasResult != null){
+        var resultFinderStart = codPendenciasResult.start;
+        order.IssueData[order.IssueData.count - 1].IssueData.operationWorklist = resultFinderStart.atividadePendencia;
+    }
+    */
+    order.save();
+  ]]></script>
+</script>

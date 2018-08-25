@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.DeleteAdditionalPackageSolveIssueTask_cwr1">
+  <activity name="startDeleteAdditionalPackageSolveIssue" type="seqActivity">
+    <guid>{4552d015-a26a-46b9-8f75-f0dfa9ac1ab1}</guid>
+    <label>Start Delete Additional Package Solve Issue</label>
+    <x>90.02227</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DeleteAdditionalPackageSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DeleteAdditionalPackageSolveIssue</element>
+        <guid>{2df0df67-426f-42db-902b-67c05291f1a1}</guid>
+        <label>Delete Additional Package Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>87.024414</x>
+        <y>136.52188</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{c5815ef4-752c-4210-838e-4f0268039b31}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.526855</x>
+        <y>292.02774</y>
+        <childList>
+          <child name="DeleteAdditionalPackageSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DeleteAdditionalPackageSolveIssueChangeIssue</element>
+            <guid>{4bcbecd8-9f05-4d2f-ab83-a9d140f10d38}</guid>
+            <label>Delete Additional Package Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>157.87321</x>
+            <y>433.13126</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="DeleteAdditionalPackageSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_DeleteAdditionalPackageSolveIssueSuccess</element>
+            <guid>{42f03b36-07b6-4cd1-b851-30901cf3c0c9}</guid>
+            <label>Delete Additional Package Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>440.48187</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{10985ec5-e7ef-46be-a6ec-7586ed9dea61}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.338867</x>
+                <y>603.3384</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCESS");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{ba94c5e7-5bc7-410b-9836-d83f9fbc2c35}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>125.55615</x>
+        <y>299.37833</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("REMOVER_PACOTE_ADICIONAL");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE"){
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Configurar VoIP - Erro tenha
+      sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade manual
+      ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Insert Franchise Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.DeleteAdditionalPackageSolveIssueTask</process>
+  <type>Sub-flow</type>
+</process__revision>

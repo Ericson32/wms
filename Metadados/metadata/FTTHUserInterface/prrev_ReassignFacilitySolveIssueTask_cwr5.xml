@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ReassignFacilitySolveIssueTask_cwr5">
+  <activity name="ReassignFacilitySolveIssueTaskStart" type="seqActivity">
+    <guid>{77904108-0d8a-4d52-afb8-f2645c0c2920}</guid>
+    <label>Reassign Facility Solve Issue Task Start</label>
+    <x>85.484764</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReassignFacilitySolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_AssignFacilitySolveIssue</element>
+        <guid>{0f2b3d78-01da-48ca-bbf4-edaca1a3c85e}</guid>
+        <label>Reassign Facility Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>87.0166</x>
+        <y>130.64142</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{5090c388-4f9d-4513-9da6-548f051f9979}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.51123</x>
+        <y>271.4461</y>
+        <childList>
+          <child name="ReassignFacilitySolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_AssignFacilityHandleSolveIssueChangeIssue</element>
+            <guid>{5bc1efc9-b0c7-4a8f-bbb6-d1fd692db510}</guid>
+            <label>Reassign Facility Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+            <x>157.8628</x>
+            <y>412.54962</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{541665d9-02b6-4d02-859a-0560e62bd6e4}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>142.70605</x>
+                <y>576.40607</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ReassignFacilitySolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_AssignFacilityHandleSolveIssueSuccess</element>
+            <guid>{13a40fa1-0587-4971-86b5-de5a35352851}</guid>
+            <label>Reassign Facility Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+            <x>30.0</x>
+            <y>419.9002</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{04f883be-ab60-4cb7-8455-2d41ae39e5b1}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.331055</x>
+                <y>568.0555</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventorySolveIssue" type="participantActivity">
+        <guid>{fb900e8b-f1c6-44f5-b6cc-334fd51dc2de}</guid>
+        <label>Inventory Solve Issue</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>125.54053</x>
+        <y>278.7967</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActAfter" type="action">
+        <category>script</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("REDESIGNAR_FACILIDADE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+          if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE"){
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual  Designar Facilidades - Erro
+      tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade
+      manual ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Reassign Facility Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ReassignFacilitySolveIssueTask</process>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process__revision>

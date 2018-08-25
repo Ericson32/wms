@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ExecuteJumperBASubprocess_cwr4">
+  <activity name="JumperBAStart" type="seqActivity">
+    <guid>{339851b8-c294-4953-ac83-e999e6fce714}</guid>
+    <label>Jumper BA Start</label>
+    <x>258.58243</x>
+    <y>916.32227</y>
+    <childList>
+      <child name="BAOpeningAutomaticTaskStart" type="seqActivity">
+        <guid>{6c3c8be0-6d76-4ed7-b8c4-3266e7a25a1c}</guid>
+        <label>BA Opening Automatic Task Start</label>
+        <x>418.3067</x>
+        <y>1018.0235</y>
+        <childList>
+          <child name="BAOpenningSendOperation" type="opActivity">
+            <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAJumperOpeningOperation</element>
+            <guid>{cfc86515-8147-4cb3-8206-2b92d34644f5}</guid>
+            <label>BA Opening Send Operation</label>
+            <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+            <x>208.34552</x>
+            <y>1118.6648</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  /*
+                       AUTHOR:    Marcos Souza
+                   */
+
+                  //MS - marcossouza@br.ibm.com - PRJ14008 - 01/08/2017
+                  var msg = FTTHClickInterface.createBAOpenningRequestMessageScript(process.processOrder, document, process.id,  Global.getConfigVariable('ACTIVITY_BA_JUMPER'), this.activityData);
+                  //end MS
+
+                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Open BA Jumper Automatic Task", "Open BA Jumper Send Operation", "cwOnProcActBefore", msg.toXML());
+                  var messageDoc = new Document("cwf_pm:messageLog");
+                  messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                  messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                  messageDoc.userData3 = this.process.processOrder.order.id;
+                  UserProfile.setMsgLogDoc(messageDoc);
+
+                  //Reinserindo código removido nos commits
+
+                    var atividade = Global.getConfigVariable("REALIZAR_JUMPER");
+                    var sistema = Global.getConfigVariable("CLICK_SYSTEM");
+
+                    try{
+                        var syncResp = Global.invokeInterface("FTTHClickWorkForceManager:WorkForceManagerPortType", "createOrUpdateTask", msg)[0];
+
+                        if(syncResp && syncResp.operationReturn){
+                            //Status da atividade
+                            var status = FTTHCommon.defineStatusAutomaticActivity(syncResp.operationReturn.code, Global.getConfigVariable("CLICK_SYSTEM"));
+
+                            FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                            FTTHCommon.saveEvent(this.process.processOrder.id,
+                                         sistema,
+                                         atividade,
+                                         status,
+                                         syncResp.operationReturn.code,
+                                         syncResp.operationReturn.description,
+                                         this.process.id,
+                                         Global.getConfigVariable("SYNC_REQUEST"));
+
+                            FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+
+
+                            var ord = process.processOrder;
+
+                            //convertendo string para number
+                            var returnCode = syncResp.operationReturn.code;
+                            try{
+                                returnCode = Number(returnCode);
+                            } catch(e){
+                                //se der erro, o valor não é alterado
+                            }
+
+                            var erroCampo = false;
+
+                            try{
+                                if(returnCode == 0){
+                                    ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.numeroBA = syncResp.workOrderItem.id;
+                                    ord.save();
+
+                                    // se no retorno da mensagem, não houver o número BA, setar erro
+                                    if(!syncResp.workOrderItem.id){
+                                         erroCampo = true;
+                                    }
+
+                                    //ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.observacao = syncResp.workOrderItem.id; //verificar onde recebemos essa info
+                                }
+                            } catch(e){
+                                //se erro, o número do BA não recebido
+                                erroCampo = true;
+                            }
+
+                            if (erroCampo){
+                                status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+                                FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                                 FTTHCommon.saveEvent(this.process.processOrder.id,
+                                 sistema,
+                                 atividade,
+                                 "CLICK ERROR",
+                                 "-1",//syncResp.operationReturn.code,
+                                 "Campo obrigatório 'numeroBA' não recebido do CLICK",//syncResp.operationReturn.description,
+                                 this.process.id,
+                                 Global.getConfigVariable("SYNC_REQUEST"));
+
+                            }
+
+                            ord.save();
+                        } else{
+                            FTTHCommon.log(this.process.processOrder.id, this.process.id, "Open BA Jumper Automatic Task", "Open BA Jumper Send Operation", "cwOnProcActBefore", "Interface com CLICK não pode ser invocada");
+
+                            FTTHCommon.saveEvent(this.process.processOrder.id,
+                                 sistema,
+                                 atividade,
+                                 "TIMEOUT",
+                                 "-1",//syncResp.operationReturn.code,
+                                 "CLICK FORA",//syncResp.operationReturn.description,
+                                 this.process.id,
+                                 Global.getConfigVariable("SYNC_REQUEST"));
+
+                            var status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+
+                            FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                            FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+                        }
+
+                    } catch(e){
+                        var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+                        var LOG_ACTIVITY = "Criação ou Atulização de BA de Jumper";
+                        var LOG_SCRIPT = "BAOpeningSendOperation";
+                        var ONT_OPERATION = "BAOpeningSendOperation";
+                        var LOG_MSG = "Erro ao invocar interface para criação ou atualização de BA do CLICK";
+
+                        FTTHCommon.log(null, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+
+                        FTTHCommon.log(this.process.processOrder.id, this.process.id, "Open Jumper BA Automatic Task", "Open Jumper BA Send Operation", "cwOnProcActBefore", syncResp);
+
+                        FTTHCommon.saveEvent(this.process.processOrder.id,
+                             sistema,
+                             atividade,
+                             "TIMEOUT EXCP",
+                             "-1",//syncResp.operationReturn.code,
+                             "TIMEOUT EXCP",//syncResp.operationReturn.description,
+                             this.process.id,
+                             Global.getConfigVariable("SYNC_REQUEST"));
+
+
+                        var status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+
+                        FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                        FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+
+                        return null;
+                    }
+
+                  //Feito para o CANCELAMENTO
+                  var statusActivity = FTTHCommon.getStatusActivity(this.process.processOrder.id, atividade);
+
+                  if (statusActivity == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, Global.getConfigVariable("ACTIVITY_RETURN_WAIT"));
+                      FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+                  }
+
+                  //return msg;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="CheckNeedToResend" type="seqActivity">
+            <guid>{109be1d1-b784-4ef7-8781-d83ce084ec27}</guid>
+            <label>Check Need To Resend</label>
+            <x>205.34592</x>
+            <y>1259.4695</y>
+            <childList>
+              <child name="verificaFechamentoWorklist" type="scriptActivity">
+                <guid>{98f58996-ddcf-463b-b507-893ec394e169}</guid>
+                <label>Verifica Fechamento Worklist</label>
+                <x>402.93985</x>
+                <y>1354.2305</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ord = this.process.processOrder;
+                      var orderId = ord.OrderHeader.cwOrderId;
+                      var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                      var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+
+
+                      if(result != Global.getConfigVariable("ACTIVITY_RETURN_WAIT")){
+                          //pegar a worklist
+                          var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+                          searchDoc.OrderId = orderId;
+
+                          var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+                          if(worklist)
+                          {
+                              for(var i = 0; i < worklist.length; i += 1)
+                              {
+                                  Process.cancelWorklistItem(worklist[i], null);
+                              }
+                          }
+                          //Process.performWorklistAction(Document wDoc, Document mDoc, String operation, Boolean close, Order order, Object cObj)
+                          //Process.performWorklistAction(worklistDoc, null, "finalizarComPendenciaFixo", false, ord, confirm);
+                      }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="CheckNeedToResend" type="switchActivity">
+                <guid>{363d85bd-7423-4749-8bce-674bb89e12ec}</guid>
+                <label>Check Need To Resend</label>
+                <x>535.4092</x>
+                <y>30.0</y>
+                <childList>
+                  <child name="Yes" type="caseActivity">
+                    <guid>{a496755c-44cf-4a67-9373-11e41dfcd256}</guid>
+                    <label>Yes</label>
+                    <x>110.13564</x>
+                    <y>330.0</y>
+                    <childList>
+                      <child name="ResendToStart" type="repeatActivity">
+                        <element>prrev_FTTHProcess.ExecuteJumperBASubprocess_cwr4/seqActivity_JumperBAStart/seqActivity_BAOpeningAutomaticTaskStart</element>
+                        <guid>{2c79ad5d-edf6-4f34-b909-db376380301a}</guid>
+                        <label>Resend To Start</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("REALIZAR_JUMPER"), Global.getConfigVariable("CLICK_SYSTEM"));
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>537.40814</x>
+                        <y>647.0635</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          return (!(FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("REALIZAR_JUMPER"), Global.getConfigVariable("CLICK_SYSTEM"))));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="No" type="caseActivity">
+                    <guid>{d7d62d05-c85c-487c-9a05-80501b659721}</guid>
+                    <label>No</label>
+                    <x>65.93436</x>
+                    <y>130.0</y>
+                    <childList>
+                      <child name="SucessOrError" type="switchActivity">
+                        <guid>{b95f07cf-4559-4b95-b465-9b33a841d254}</guid>
+                        <label>Sucess Or Error?</label>
+                        <x>500.6908</x>
+                        <y>260.8047</y>
+                        <childList>
+                          <child name="Success" type="caseActivity">
+                            <guid>{8e5053c6-4a75-4dde-a22b-990514ae146e}</guid>
+                            <label>Success</label>
+                            <x>65.93436</x>
+                            <y>230.0</y>
+                            <childList>
+                              <child name="NotifySequence" type="seqActivity">
+                                <guid>{c7875f1c-261d-4fbe-9bae-9f56d210aca5}</guid>
+                                <label>NotifySequence</label>
+                                <x>445.85977</x>
+                                <y>426.60938</y>
+                                <childList>
+                                  <child name="waitingBAClosing2" type="choiceActivity">
+                                    <guid>{2e889825-baf1-42c6-97c7-b089e6dfbbc9}</guid>
+                                    <label>Waiting BA Closing</label>
+                                    <x>284.10098</x>
+                                    <y>37.350586</y>
+                                    <childList>
+                                      <child name="jumperSuccess" type="opActivity">
+                                        <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAExternalClosingSuccess</element>
+                                        <guid>{0939fc9e-5111-4382-a39a-892c36315f04}</guid>
+                                        <label>Jumper External Close Success</label>
+                                        <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+                                        <x>407.33923</x>
+                                        <y>246.10352</y>
+                                        <methodList>
+                                          <method name="cwOnProcActAfter" type="action">
+                                            <category>script</category>
+                                            <system>true</system>
+                                            <script><![CDATA[
+                                              var ord = this.process.processOrder;
+                                              var orderId = ord.OrderHeader.cwOrderId;
+                                              var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                                              var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                                                      var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                                                      FTTHCommon.setStatusActivity(this.process.processOrder.id, activityId, status);
+                                            ]]></script>
+                                          </method>
+                                        </methodList>
+                                      </child>
+                                      <child name="jumperExternalCloseError" type="opActivity">
+                                        <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAExternalClosingIssue</element>
+                                        <guid>{12cd22a5-b524-4010-b06c-a8decd9cf5cd}</guid>
+                                        <label>Jumper External Close Error</label>
+                                        <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+                                        <x>298.65958</x>
+                                        <y>253.4541</y>
+                                        <methodList>
+                                          <method name="cwOnProcActAfter" type="action">
+                                            <category>script</category>
+                                            <system>true</system>
+                                            <script><![CDATA[
+                                              var ord = this.process.processOrder;
+                                              var orderId = ord.OrderHeader.cwOrderId;
+                                              var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData;
+                                              var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity.nomeAtividade, 1);
+
+                                                  var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+                                                  var LOG_ACTIVITY = "Encerramento externo de BA de Jumper";
+                                                  var LOG_SCRIPT = "JumperExternalCloseError";
+                                                  var ONT_OPERATION = "JumperExternalCloseError";
+                                                  var LOG_MSG = "Erro ao executar script que invoca interface para encerramento externo de BA de Jumper";
+
+                                                  FTTHCommon.log(null, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+
+                                              var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+                                              FTTHCommon.setStatusActivity(this.process.processOrder.id, activityId, status);
+                                            ]]></script>
+                                          </method>
+                                        </methodList>
+                                      </child>
+                                      <child name="jumperBAClickSuccess" type="opActivity">
+                                        <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAAutomaticClosingSuccess</element>
+                                        <guid>{4d3d4ba5-1c95-4697-ac56-77840c659617}</guid>
+                                        <label>Jumper BA Click Success</label>
+                                        <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+                                        <x>161.35547</x>
+                                        <y>253.4541</y>
+                                        <methodList>
+                                          <method name="cwOnProcActAfter" type="action">
+                                            <category>script</category>
+                                            <system>true</system>
+                                            <script><![CDATA[
+                                              var ord = this.process.processOrder;
+                                              var orderId = ord.OrderHeader.cwOrderId;
+                                              var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                                              var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                                              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+                                              FTTHCommon.setStatusActivity(orderId, activityId, status);
+                                            ]]></script>
+                                          </method>
+                                        </methodList>
+                                      </child>
+                                      <child name="jumperBAClickError" type="opActivity">
+                                        <element>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAAutomaticClosingIssue</element>
+                                        <guid>{29636e44-2585-443a-8c57-fb30b8cc37f6}</guid>
+                                        <label>Jumper BA Click Error</label>
+                                        <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+                                        <x>50.0</x>
+                                        <y>260.8047</y>
+                                        <methodList>
+                                          <method name="cwOnProcActAfter" type="action">
+                                            <category>script</category>
+                                            <system>true</system>
+                                            <script><![CDATA[
+                                              var ord = this.process.processOrder;
+                                              var orderId = ord.OrderHeader.cwOrderId;
+                                              var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+                                              var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+                                              if (!("IssueData" in ord)){
+
+                                              }
+                                              if(FTTHCommon.getStatusActivity(orderId, activityId) !=  Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR")){
+                                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+                                                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                                              }
+                                            ]]></script>
+                                          </method>
+                                        </methodList>
+                                      </child>
+                                    </childList>
+                                  </child>
+                                  <child name="issueOrSuccess2" type="switchActivity">
+                                    <guid>{c3c99d01-7923-40ca-a01e-c21a061e44bb}</guid>
+                                    <label>Issue or Success?</label>
+                                    <x>219.44434</x>
+                                    <y>416.9082</y>
+                                    <childList>
+                                      <child name="yes" type="caseActivity">
+                                        <guid>{d541380a-6792-48a6-a85c-39686419dfc3}</guid>
+                                        <label>Issue</label>
+                                        <x>187.61865</x>
+                                        <y>815.41406</y>
+                                        <childList>
+                                          <child name="issueSequence" type="seqActivity">
+                                            <guid>{2b03b025-f79c-4119-8877-24f43b494bfb}</guid>
+                                            <label>Issue Sequence</label>
+                                            <x>259.36993</x>
+                                            <y>530.66113</y>
+                                            <childList>
+                                              <child name="ExecuteJumperBAHandleIssueSubprocess" type="subflowActivity">
+                                                <element>prrev_FTTHHandleIssueProcess.ExecuteJumpertBAHandleIssueSubprocess_cwr12</element>
+                                                <guid>{55586170-9d00-4b98-83e9-7602ca10f3ad}</guid>
+                                                <label>Execute Jumper BA Handle Issue Subprocess</label>
+                                                <x>258.11035</x>
+                                                <y>625.0117</y>
+                                              </child>
+                                              <child name="resendToBAOpening" type="repeatActivity">
+                                                <element>prrev_FTTHProcess.ExecuteJumperBASubprocess_cwr4/seqActivity_JumperBAStart</element>
+                                                <guid>{aba49166-313b-4160-9f41-a5e2febe33bc}</guid>
+                                                <label>Resend To BA Opening</label>
+                                                <x>260.4453</x>
+                                                <y>780.5176</y>
+                                              </child>
+                                            </childList>
+                                          </child>
+                                        </childList>
+                                        <methodList>
+                                          <method name="cwOnProcActCond" type="action">
+                                            <category>cond</category>
+                                            <system>true</system>
+                                            <script><![CDATA[
+                                              var ord = this.process.processOrder;
+                                              var orderId = ord.OrderHeader.cwOrderId;
+                                              var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                                              var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                                              //if(FTTHCommon.getStatusActivity(orderId, activityId) ==  Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR") ){
+                                              if(FTTHCommon.getStatusActivity(orderId, activityId) ==  Global.getConfigVariable("ACTIVITY_RETURN_ISSUE") ){
+                                                  return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, activityId, Global.getConfigVariable("CLICK_SYSTEM")));
+                                              }
+
+                                              return false;
+                                            ]]></script>
+                                          </method>
+                                        </methodList>
+                                      </child>
+                                      <child name="no" type="caseActivity">
+                                        <guid>{41374c3e-6616-4b52-96af-b704e26b6054}</guid>
+                                        <label>Success</label>
+                                        <x>174.44336</x>
+                                        <y>528.31055</y>
+                                      </child>
+                                    </childList>
+                                  </child>
+                                </childList>
+                              </child>
+                            </childList>
+                            <methodList>
+                              <method name="cwOnProcActCond" type="action">
+                                <category>cond</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var ord = this.process.processOrder;
+                                  var orderId = ord.OrderHeader.cwOrderId;
+                                  var activity = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+
+                                  var activityId = FTTHCommon.getActivityNameOrConfigVariable(activity, 1);
+
+                                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+
+
+                                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT")){
+                                      return true;
+                                  }
+                                  return false;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                          <child name="Error" type="caseActivity">
+                            <guid>{1f27f0be-7666-45d8-9a2d-8b92ce28ca15}</guid>
+                            <label>Error</label>
+                            <x>65.93436</x>
+                            <y>230.0</y>
+                            <childList>
+                              <child name="HandleErrorStart" type="seqActivity">
+                                <guid>{ffa429c5-3495-4bac-852e-0033ee7e04d2}</guid>
+                                <label>Handle Error Start</label>
+                                <x>412.70905</x>
+                                <y>530.66113</y>
+                                <childList>
+                                  <child name="ExecuteBAJumperHandleError" type="subflowActivity">
+                                    <element>prrev_FTTHUserInterface.ExecuteJumperBAHandleErrorTask_cwr1</element>
+                                    <guid>{26473e50-4579-4798-b3b1-9c3f76c780b4}</guid>
+                                    <label>Execute BA Jumper Handle Error</label>
+                                    <x>416.0397</x>
+                                    <y>632.3623</y>
+                                  </child>
+                                  <child name="IssueOrResend" type="switchActivity">
+                                    <guid>{6de02264-21a2-4b6a-9ee9-00b305886151}</guid>
+                                    <label>Issue Or Resend?</label>
+                                    <x>423.3727</x>
+                                    <y>787.86816</y>
+                                    <childList>
+                                      <child name="Resend" type="caseActivity">
+                                        <guid>{d1878d3a-e50e-48dd-9674-9d4139d14c23}</guid>
+                                        <label>Resend</label>
+                                        <x>304.0825</x>
+                                        <y>1600.9316</y>
+                                        <childList>
+                                          <child name="RepeatToStart" type="repeatActivity">
+                                            <element>prrev_FTTHProcess.ExecuteJumperBASubprocess_cwr4/seqActivity_JumperBAStart/seqActivity_BAOpeningAutomaticTaskStart</element>
+                                            <guid>{aa34f20f-6b9b-416e-a03a-4b72a4c91401}</guid>
+                                            <label>Repeat To Start</label>
+                                            <x>419.3737</x>
+                                            <y>906.6211</y>
+                                          </child>
+                                        </childList>
+                                      </child>
+                                    </childList>
+                                  </child>
+                                </childList>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="ClickManualActivity" type="participantActivity">
+            <guid>{0d969941-eba1-4906-951e-6e1eae298bea}</guid>
+            <label>ClickManualActivity</label>
+            <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+            <x>206.43994</x>
+            <y>271.4461</y>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+              if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return false;
+              return true;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ClickManualActivity" type="participantActivity">
+        <guid>{2efa75cf-1a53-43a9-9f70-ab8780a0c300}</guid>
+        <label>Click Manual Activity</label>
+        <participant>part_FTTHUserInterface.ClickManualActivity</participant>
+        <x>118.100975</x>
+        <y>30.0</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          /*
+           Script para a criação do formulário de atividade de campo.
+           Ele devera ser executado apenas uma vez
+           */
+
+          var activityId;
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+          //Define ponto de não retorno
+          //process.processOrder.OrderHeader.permiteCancelamento = false;
+          activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+
+
+          var ord = process.processOrder;
+          if (ord.ManualActivityData == null) {
+              ord.createOrderItemByPath("ManualActivityData");
+          }
+          var psrIns = ord.ManualActivityData.newInstance();
+
+
+          var nomeAtividade = FTTHCommon.getActivityNameOrConfigVariable(activityId, 2);
+          psrIns.ManualActivityData.nomeAtividade = nomeAtividade;
+          /*
+          if(activityId == Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Instalar Equipamento";
+          else if(activityId == Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Remover Equipamento";
+          else if(activityId == Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Instalar/Remover Equipamento";
+          */
+          psrIns.ManualActivityData.operationWorklist = "FTTHUserInterface.ClickManualActivityInterface/BAJumperOpeningOperation";
+          psrIns.ManualActivityData.dataAbertura = new Date();
+          psrIns.ManualActivityData.dataAgendamento = ord.OrderHeader.dataAgendamento;
+          ord.save();
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <label>Execute Jumper BA Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ExecuteJumperBASubprocess</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

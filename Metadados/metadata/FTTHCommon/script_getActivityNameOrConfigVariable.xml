@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.getActivityNameOrConfigVariable">
+  <label>getActivityNameOrConfigVariable</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="activity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="type" type="rifp">
+      <type>dtype_com.conceptwave.system.Integer</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+             AUTHOR:        MS - marcossouza@br.ibm.com
+
+             DESCRIPTION:   Script responsável pelo DE/PARA de variavel de ambiente
+                            para nomeAtividade
+
+             PARAMETERS:    activity - nomeAtividade ou configVariable
+                            type - 1-> (nomeAtividade)    2->(configVariable)
+    */
+
+    var activityId, activityName;
+
+    if(type == 1){
+        switch(activity){
+            case "Instalar Equipamento":
+                activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                break;
+            case  "Remover Equipamento":
+                activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                break;
+            case "Instalar/Remover Equipamento":
+                activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+                break;
+            case "Instalar Jumper":
+                activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+                break;
+        }
+
+        return activityId;
+    } else if(type == 2){
+        switch(activity){
+            case Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE"):
+                activityName = "Instalar Equipamento";
+                break;
+            case Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE"):
+                activityName = "Remover Equipamento";
+                break;
+            case Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE"):
+                activityName = "Instalar/Remover Equipamento";
+                break;
+            case Global.getConfigVariable("REALIZAR_JUMPER"):
+                activityName = "Instalar Jumper";
+                break;
+        }
+
+        return activityName;
+    } else if(type == 3){
+        switch(activity){
+            case Global.getConfigVariable("TIPO_ORDEM_INSTALACAO"):
+                activityName = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                break;
+            case Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO"):
+                activityName = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+                break;
+            case Global.getConfigVariable("TIPO_ORDEM_RETIRADA"):
+                activityName = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                break;
+            case "TIPO_ORDEM_REPARO":
+                activityName = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                break;
+        }
+        return activityName;
+    }
+  ]]></script>
+</script>

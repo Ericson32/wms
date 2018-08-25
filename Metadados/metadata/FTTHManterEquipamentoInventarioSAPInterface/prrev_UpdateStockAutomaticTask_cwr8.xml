@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHManterEquipamentoInventarioSAPInterface.UpdateStockAutomaticTask_cwr8">
+  <activity name="UpdateStockAutomaticTaskStart" type="seqActivity">
+    <guid>{7ff6ff15-153a-4f08-bf5b-48ff8414d10e}</guid>
+    <label>Update Stock Automatic Task Start</label>
+    <x>85.84121</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateStockSendOperation" type="opActivity">
+        <element>iface_FTTHManterEquipamentoInventarioSAPInterface.ManterEquipamentoInventariadoOSB/oper_ManterEquipamentoInventariado</element>
+        <guid>{163dff12-d552-4097-9773-3bd56d15265f}</guid>
+        <label>Update Stock Send Operation</label>
+        <participant>part_FTTHManterEquipamentoInventarioSAPInterface.InventorySAPSenderParticipant</participant>
+        <x>197.39258</x>
+        <y>146.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_ACTIVITY = "Update Stock Automatic Task";
+              var LOG_SCRIPT = Global.getConfigVariable("CWONPROCACTBEFORE");
+
+              var msg  = new DataStructure("FTTHManterEquipamentoInventarioSAP:ManterEquipamentoInventariadoRequest");
+
+              var searchDoc = new Document("FTTHOrder:CPEValidationStatus");
+              searchDoc.cwDocId = null;
+              searchDoc.cwOrderId = this.process.processOrder.id;
+              searchDoc.statusStock = "pendente";
+
+              var equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+              /* 20171016 - accd@br.ibm.com - validando se var existe antes de acessar index */
+              var doc = equipments.start ? equipments[0] : null;
+
+              if(!doc){
+                  searchDoc.statusStock = 'em processamento';
+                  equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+                  doc = equipments.start ? equipments[0] : null;
+              }
+
+              var isOriginal = doc ? doc.isOriginal : null;
+
+              //fazer finder para buscar equipamentos "em processamento"
+              //buscar em TBI_EQUIPAMENTO_BASE (verificar sem é ONT ou HGW) e em TBI_EQUIPAMENTO_PONTA
+              //setar equipmentType
+              var equipmentType = doc ? doc.equipmentType : null;
+              //true faz consulta no SAP, a consulta já foi realizada na atividade manual
+              var validateCPE = false;
+              //cwDocId do equipamento que foi retornado no FINDER
+              var cwDocId = doc ? doc.fkEquipment : null;
+
+              //variavel msg que foi passada como parametro, está sendo preechida no metodo abaixo.
+              //this.activityData só consegue ser preenchido ao ser passado como parametro
+              var codigoOp = FTTHManterEquipamentoInventarioSAPInterface.createMessageToSAPInterface(equipmentType, this.process.processOrder, validateCPE,  this.activityData, cwDocId, null, null, isOriginal);
+              //setando activityData o valor da mensagem
+              msg = this.activityData;
+              //atualizando o status
+              if(doc){
+                  doc.statusStock = 'em processamento';
+                  doc.save();
+              }
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+              LOG_ACTIVITY, "Update Stock Send Operation", Global.getConfigVariable("CWONPROCACTBEFORE") , msg.toXML());
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Update Stock Automatic Task", "Update Stock Send Operation", Global.getConfigVariable("CWONPROCACTBEFORE") , this.activityData.toXML());
+              //FTTHCommon.logMessageUserData(this.process.processOrder, UserProfile.getMsgLogDoc());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.ResponseControl.code,  Global.getConfigVariable("SAP_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("ATUALIZAR_ESTOQUE"), status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,  Global.getConfigVariable("SAP_SYSTEM"), Global.getConfigVariable("ATUALIZAR_ESTOQUE"), status, this.activityData.ResponseControl.code, this.activityData.ResponseControl.detail, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,  Global.getConfigVariable("SAP_SYSTEM"), Global.getConfigVariable("ATUALIZAR_ESTOQUE"));
+
+              //MS - atualizando o status da grid - 11/01/2018
+
+              var descRetorno = (this.activityData.ResponseControl.reason) ? this.activityData.ResponseControl.reason : this.activityData.ResponseControl.detail;
+
+              var statusCPE = this.activityData.ResponseControl.code == 0 ? "Sucesso" : "Erro";
+              //adicionando na grid de troca cpe de reparo no SGFT
+              var validateDoc = this.process.processDocument;
+              if(validateDoc && validateDoc.userId){
+                  FTTHOrder.insertIntoChangeCPEGrid(validateDoc.orderId,
+                      validateDoc.tipoEquipamentoNovo,
+                      validateDoc.idAtivoNovo,
+                      validateDoc.numeroSerieEquipamentoNovo,
+                      validateDoc.numeroSerieEquipamentoOriginal,
+                      "Atualizar Estoque",
+                      new Date(),
+                      "Sucesso",
+                      new Date(),
+                      statusCPE,
+                      this.activityData.ResponseControl.code,
+                      descRetorno,//this.activityData.ResponseControl.reason,
+                      validateDoc.userId);
+              }
+              //end adiÇão na grid
+
+
+
+
+              var searchDoc = new Document("FTTHOrder:CPEValidationStatus");
+              searchDoc.cwDocId       = null;
+              searchDoc.cwOrderId     = this.process.processOrder.id;
+              searchDoc.statusStock     = "em processamento";
+
+              var equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+              if(equipments && equipments.length > 0)
+              {
+                  var doc = equipments[0];
+              }
+
+              //atualizando status do equipamento atualizado
+              if(this.activityData.ResponseControl.code == 0){
+
+                  /*
+                  //fazer finder pra buscar o item "processando"
+                  var equipmentType = doc.equipmentType;
+                  var cwDocId = doc.fkEquipment;
+
+                  var isONT = (equipmentType == "ONT") ? true : false;
+
+                  if(equipmentType == "STB"){
+                      var equipmentDoc =  new Document('FTTHOrder:BaseEquipmentData');
+                      doc = FTTHInventorySAPInterface.defineEquipmentToProcess(this.process.processOrder.id , cwDocId);
+                  } else{// equipmentType = ONT || equipmentType == HGW
+                      var equipmentDoc =  new Document('FTTHOrder:EquipmentData');
+                      doc = FTTHInventorySAPInterface.defineBaseEquipmentToProcess(this.process.processOrder.id , cwDocId);
+                  }
+                  */
+                  if(doc){
+                      doc.statusStock = 'processado';
+                      doc.save();
+                  }
+
+                  var equipmentToRemove = new Document('FTTHOrder:EquipmentDataBATime');
+                  equipmentToRemove.statusAcao = 'em processamento';
+                  equipmentToRemove.cwOrderId = this.process.processOrder.id;
+                  equipmentToRemove.cwDocId = null;
+                  var equipmentBATimeFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentBATimeFinder', equipmentToRemove);
+                  if(equipmentBATimeFinder && equipmentBATimeFinder.length > 0)
+                  {
+                      equipmentBATimeFinder[0].statusAcao = 'Removido';
+                      equipmentBATimeFinder[0].save();
+                  }
+              }
+              //Tratamento do reenvio de exlusão de ponto adicional para o caso de ocorrer algum erro no SAP
+              else{
+                  if(doc){
+                      doc.statusStock = 'pendente';
+                      doc.save();
+                  }
+                  var equipmentToRemove = new Document('FTTHOrder:EquipmentDataBATime');
+                  equipmentToRemove.statusAcao = 'em processamento';
+                  equipmentToRemove.cwOrderId = this.process.processOrder.id;
+                  equipmentToRemove.cwDocId = null;
+                  var equipmentBATimeFinder = Finder.runSearch('FTTHManterEquipamentoInventarioSAPInterface.EquipmentBATimeFinder', equipmentToRemove);
+                  if(equipmentBATimeFinder && equipmentBATimeFinder.length > 0)
+                  {
+                      equipmentBATimeFinder[0].statusAcao = 'A Remover';
+                      equipmentBATimeFinder[0].save();
+                  }
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{3407025d-795a-4396-baa4-a7d97c6fb5ea}</guid>
+        <label>exceptionHandler</label>
+        <x>49.999996</x>
+        <y>160.34258</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("ATUALIZAR_ESTOQUE") , Global.getConfigVariable("SAP_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="CheckResend2" type="seqActivity">
+        <guid>{1dd31501-4787-4267-bdac-0bd61f801945}</guid>
+        <label>Check Resend</label>
+        <x>248.22212</x>
+        <y>311.14728</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{2c3e27c8-8a59-4035-9539-234b8626b3bb}</guid>
+            <label>Check Need To Resend</label>
+            <x>178.39029</x>
+            <y>427.54962</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{c78c7e0b-9ca9-42ce-b664-1a7f4ca54e95}</guid>
+                <label>Yes</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          return FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("ATUALIZAR_ESTOQUE"), Global.getConfigVariable("SAP_SYSTEM"));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHManterEquipamentoInventarioSAPInterface.UpdateStockAutomaticTask_cwr8/seqActivity_UpdateStockAutomaticTaskStart</element>
+                    <guid>{425a5417-b77b-46f8-9043-a9d2e8ecf8b4}</guid>
+                    <label>Resend To Start</label>
+                    <x>87.954254</x>
+                    <y>553.65314</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{b1023831-7c1b-4a94-8ecf-7f322424328a}</guid>
+                <label>No</label>
+                <x>198.65347</x>
+                <y>561.0037</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(this.process.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("ATUALIZAR_ESTOQUE"), Global.getConfigVariable("SAP_SYSTEM")));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="UpdateStockAutomaticTaskComplete" type="completeActivity">
+            <guid>{770a00f1-c2e7-4d9d-88dd-983f527992f1}</guid>
+            <label>Update Stock Automatic Task Complete</label>
+            <x>187.96793</x>
+            <y>665.0555</y>
+          </child>
+        </childList>
+      </child>
+      <child name="InventorySAPSenderParticipant" type="participantActivity">
+        <guid>{419faef6-a2c6-4531-95a7-0b0bb77ba6ea}</guid>
+        <label>Inventory SAP Sender Participant</label>
+        <participant>part_FTTHManterEquipamentoInventarioSAPInterface.InventorySAPSenderParticipant</participant>
+        <x>87.70572</x>
+        <y>286.74493</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId =  Global.getConfigVariable("ATUALIZAR_ESTOQUE");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Atualizar
+      estoque. Inicialmente o fluxo envia para o sistema de Invent&#225;rio uma
+      solicita&#231;&#227;o de atualiza&#231;&#227;o dos equipamentos caso n&#227;o obtenha resposta em
+      um intervalo de tempo pr&#233; determinado, ser&#227;o feitas mais algumas
+      retentativas. A quantidade de retentativas e o tempo de espera ser&#227;o
+      configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <document>doc_FTTHClickInterface.ValidateEquipmentDoc</document>
+  <label>Update Stock Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHManterEquipamentoInventarioSAPInterface.UpdateStockAutomaticTask</process>
+  <revision>8</revision>
+  <type>User</type>
+</process__revision>

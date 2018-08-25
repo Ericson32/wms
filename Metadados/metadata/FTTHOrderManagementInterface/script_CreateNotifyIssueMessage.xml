@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.CreateNotifyIssueMessage">
+  <label>Create Notify Issue Message</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="docNotificacao" type="rifp">
+      <type>doc_FTTHOrderManagementInterface.IssueNotification</type>
+    </parameter>
+    <parameter name="response" type="rifp">
+      <type>dstruct_FTTHOrderManagementInterface.response</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Create Notify Issue Message');
+    Global.logInfo('Msg:' + docNotificacao.descricaoPendencia);
+    var msg = response;
+
+    if (docNotificacao.listaIdItens) {
+        var listaIds = new Array();
+        listaIds = docNotificacao.listaIdItens.split(",");
+    }
+
+    //Construir a msg que vai po OMS
+    msg.idMensagem = docNotificacao.numeroPedido;
+    msg.correlationId = docNotificacao.numeroOS;
+
+    if(docNotificacao.tipoPendencia == 'cliente'){
+        msg.status = '-3';
+    }else{
+        msg.status = '-2';
+    }
+
+    msg.descricao = 'Pendência ' + docNotificacao.tipoPendencia;
+    msg.timestampExecucao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+
+    var doc = Document.readDoc("FTTHCommon.Issues",docNotificacao.codigoPendencia);
+
+    msg.pendencia.atividade = docNotificacao.atividadePendencia;
+    msg.pendencia.codigo = doc.codPendencia;
+    msg.pendencia.descricao = docNotificacao.descricaoPendencia;
+    msg.pendencia.tipo = docNotificacao.tipoPendencia;
+    msg.pendencia.dataAbertura = docNotificacao.dataAbertura;
+    msg.pendencia.dataFechamento = docNotificacao.dataFechamento;
+    msg.pendencia.status = docNotificacao.statusPendencia;
+    //msg.pendencia.idAtivo = docNotificacao.idItem;
+
+    // CR PEND - enviar lista de idsAtivos
+    if(listaIds){
+        for (var i=0; i<listaIds.length; i++){
+            msg.pendencia.listaIdsAtivos.idAtivo[i] = listaIds[i];
+        }
+    } else{
+        //enviar a lista só com um item, no caso de nao haver uma lista de itens associados ah pendencia
+        msg.pendencia.listaIdsAtivos.idAtivo[0] = docNotificacao.idItem;
+    }
+
+    // Operacoes ...
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+
+    ops.cwOrderId = docNotificacao.numeroOS;
+    ops.indCancelamento = 0;
+
+    var parameters = Finder.runSearch('FTTHOrderManagementInterface:OrderParametersFinder', ops);
+
+    for (var i = 0; i < parameters.size; i++) {
+        var param = parameters[i];
+        msg.operacoes.operacao[i].operacao = param.operacao; //CR2 : msg.operacoes.operacao[i] -> msg.operacoes.operacao[i].operacao
+    }
+    return msg;
+  ]]></script>
+</script>

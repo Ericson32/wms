@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.LiberateFacilitySubprocess_cwr6">
+  <activity name="LiberateFacilityStart" type="seqActivity">
+    <guid>{52d90da1-60b3-4419-9793-b16e48440bee}</guid>
+    <label>Liberate Facility Start</label>
+    <x>27.071484</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="LiberateFacilityAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.LiberateFacilityAutomaticTask</element>
+        <guid>{25aa6cb3-3ff3-43c3-9ba2-e018df254c9b}</guid>
+        <label>Liberate Facility Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{17c726e6-2024-48d3-a9fe-e9aff1c3bd2c}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{1de3816b-3763-4a77-b310-5e2632c13eca}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("LIBERAR_FACILIDADE");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{8b2684fc-2f5b-48d0-bea4-7b50dcb3eb88}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{39de1236-1f7b-401b-b7f3-e2bd8ecc4032}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="HandleErrorTask" type="seqActivity">
+                    <guid>{91f87ead-ee90-4574-b2a3-a7082ba2252c}</guid>
+                    <label>Handle Error Task</label>
+                    <x>120.79732</x>
+                    <y>726.175</y>
+                    <childList>
+                      <child name="LiberateFacilityHandleErrorTask" type="subflowActivity">
+                        <element>prrev_FTTHUserInterface.LiberateFacilityHandleErrorTask_cwr4</element>
+                        <guid>{7f4eeab5-e4d4-4761-990a-9b21b3cb546e}</guid>
+                        <label>Liberate Facility Handle Error Task</label>
+                        <x>160.5719</x>
+                        <y>818.175</y>
+                      </child>
+                    </childList>
+                  </child>
+                  <child name="CheckErrorHandling2" type="switchActivity">
+                    <guid>{7fdb8d77-ce72-460b-b15b-b98b03efd7c6}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{c6dd3fd1-bfe6-4da5-a70b-8ac03dd44b7d}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{b740ff53-fa20-4373-b913-2b3ce18b01c8}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="LiberateFacilitySolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHUserInterface.LiberateFacilitySolveIssueTask_cwr1</element>
+                                <guid>{b3526ad8-8ce3-4efd-bb56-9fb36f470f64}</guid>
+                                <label>Liberate Facility Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.LiberateFacilitySubprocess_cwr6/seqActivity_LiberateFacilityStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{5dd76691-9f3d-4012-8f5d-d47412b787f7}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("LIBERAR_FACILIDADE");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{a40842ef-e9e6-4d19-96d8-1aaf98e31738}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.LiberateFacilitySubprocess_cwr6/seqActivity_LiberateFacilityStart</element>
+                            <guid>{947cbd9c-bcf8-4429-9e1d-34272c38be77}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Liberar Facilidades&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de libera&#231;&#227;o de facilidades. Caso a
+      Rede retorne algum erro, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de libera&#231;&#227;o de facilidade para o sistema de rede.
+      Ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Liberar Facilidade - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Liberate Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.LiberateFacilitySubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

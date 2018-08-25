@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask_cwr11">
+  <activity name="ValidateCPEAutomaticTaskStart" type="seqActivity">
+    <guid>{04ce32c3-4ba5-4ecc-8ed9-3a198408a849}</guid>
+    <label>Validate CPE Automatic Task Start</label>
+    <x>90.91477</x>
+    <y>717.9498</y>
+    <childList>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{e50f5519-5a52-4846-93bb-2f646b2306c5}</guid>
+        <label>exceptionHandler</label>
+        <x>73.30208</x>
+        <y>846.02344</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("ATUALIZAR_ESTOQUE") , Global.getConfigVariable("SAP_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="checkBypassSap" type="switchActivity">
+        <guid>{5c4daa6c-f458-4a35-bbf7-72a0152a0834}</guid>
+        <label>Check Bypass Sap</label>
+        <x>139.38786</x>
+        <y>30.0</y>
+        <childList>
+          <child name="off" type="caseActivity">
+            <guid>{4ed04de9-0a9d-43b9-963b-381664c47b06}</guid>
+            <label>OFF</label>
+            <x>81.33333</x>
+            <y>156.10352</y>
+            <childList>
+              <child name="ValidateCPESendOperation" type="opActivity">
+                <element>iface_FTTHManterEquipamentoInventarioSAPInterface.ManterEquipamentoInventariadoOSB/oper_ManterEquipamentoInventariado</element>
+                <guid>{82961cc8-ab7a-4327-9388-d94c735ae141}</guid>
+                <label>Validate CPE Send Operation</label>
+                <participant>part_FTTHManterEquipamentoInventarioSAPInterface.InventorySAPSenderParticipant</participant>
+                <x>124.45074</x>
+                <y>171.10352</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      /*
+                          Marcos Souza - marcossouza@br.ibm.com - PRJ 11255 - 20/06/2017
+                          script responsável pelo envio da mensagem para o SAP e o recebimento da resposta de sua interface síncrona.
+                       */
+                      var requisicao = this.process.processDocument;
+                      var validateCPE = true;
+                      var request = new DataStructure("FTTHManterEquipamentoInventarioSAP:ManterEquipamentoInventariadoRequest");
+                      var ordem = this.process.processOrder;
+                      var searchDoc = new Document("FTTHReportApplication:PSR");
+
+
+                      var doc;
+                      var equipmentType = null;
+                      if(this.process.processDocument.tipoEquipamentoOriginal == "STB" || this.process.processDocument.tipoEquipamentoNovo == "STB"){
+                          equipmentType = "STB";
+                          doc = FTTHManterEquipamentoInventarioSAPInterface.defineEquipmentToProcess(this.process.processOrder.order , this.process.processOrder.order.id);
+                      }else{
+                          if(this.process.processDocument.tipoEquipamentoOriginal == "ONT" || this.process.processDocument.tipoEquipamentoNovo == "ONT"){
+                              equipmentType = "ONT";
+                          }else{
+                              equipmentType = "HGW";
+                          }
+                          doc = FTTHManterEquipamentoInventarioSAPInterface.defineBaseEquipmentToProcess(this.process.processOrder.order , this.process.processOrder.order.id);
+                      }
+
+                      var codOperacao = FTTHManterEquipamentoInventarioSAPInterface.getOperationToSAP(true, equipmentType, doc);
+
+                      request.Ator.sistema = "OM-R";
+
+                      /*
+                      //Removendo a ida no SAP do equipamento que está sendo removido
+                      //TODO::verificar a questao de equipamento novo e original
+                      if(requisicao.numeroSerieEquipamentoOriginal){
+                          request.GrupoRequest.SERIAL = requisicao.numeroSerieEquipamentoOriginal;
+                          request.GrupoRequest.MATNR = requisicao.codMaterialOriginal;
+
+                      } else
+                      */
+                      if(requisicao.numeroSerieEquipamentoNovo){
+                          request.GrupoRequest.SERIAL = requisicao.numeroSerieEquipamentoNovo;
+                          request.GrupoRequest.MATNR = requisicao.codMaterialNovo;
+
+                      }
+
+                      request.GrupoRequest.COD_OPER = "1"; //apenas para consulta no SAP
+                      request.GrupoRequest.COD_PSR = requisicao.codPSR;
+
+                      searchDoc.codigoPSR = request.GrupoRequest.COD_PSR;
+                      var result = Finder.runSearch("FTTHReportApplication:PSRFinder", searchDoc);
+                      request.GrupoRequest.UF = result[0].uf;
+
+                      //Mensagem para o SAP via Participant.
+                      this.activityData.Ator = request.Ator;
+                      this.activityData.GrupoRequest = request.GrupoRequest;
+
+                      var messageDoc = new Document("cwf_pm:messageLog");
+                      messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                      messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                      messageDoc.userData3 = this.process.processOrder.order.id;
+                      UserProfile.setMsgLogDoc(messageDoc);
+
+                      return request;
+                    ]]></script>
+                  </method>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      FTTHCommon.log(this.process.processOrder.id, this.process.id, "Validate Equipment Automatic Task", "Validate Equipment Send Operation", Global.getConfigVariable("CWONPROCACTBEFORE") , this.activityData.toXML());
+                      var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.ResponseControl.code,  Global.getConfigVariable("SAP_SYSTEM"));
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), status);
+                      FTTHCommon.saveEvent(this.process.processOrder.id,  Global.getConfigVariable("SAP_SYSTEM"), Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), status, this.activityData.ResponseControl.code, this.activityData.ResponseControl.reason, this.process.id, Global.getConfigVariable("SYNC_REQ_RESP"));
+
+                      //----------Fim Header ----------//
+                      var documentoRequest = recuperarDocumentoRequest(this.process.processDocument);
+
+                      var statusSucesso  = Global.getCodeDescription("FTTHOrder:statusCPE", "SUC"); // Status SUCESSO in statusCPE enumeration
+                      var statusInsucesso = Global.getCodeDescription("FTTHOrder:statusCPE", "INS"); // Status INSUCESSO in statusCPE enumeration
+                      var descriptionIns  = "Erro ao atualizar o SAP - ";  // description of status INSUCESSO
+                      var descriptionSuc  = "Equipamento Atualizado no SAP com sucesso"; // description of status SUCESSO
+
+                      var statusClick = status;
+                      var ord = this.process.processOrder;
+                      var description = "";
+                      var status = "";
+                      var isONT = (documentoRequest.tipoEquipamento == "ONT") ? true : false;
+                      var isSTB = (documentoRequest.tipoEquipamento == "STB") ? true : false;
+
+                      //Verificando o retorno do SAP
+                      var isSAP = false;
+                      var codOperacao = "Consulta";
+
+                      switch(this.activityData.ResponseControl.code){
+                          case '0':
+                              isSAP = true;
+                              description = descriptionSuc;
+                              status = statusSucesso;
+                              break;
+                          case '1':
+                              //erro da mensagem do OM
+                              description = descriptionIns + "Erro na informação originada do Sistema OM";
+                              status = statusInsucesso;
+                              break;
+                          case '2':
+                              //Erro de processamento SAP
+                              description = descriptionIns + "Erro de processamento SAP";
+                              status = statusInsucesso;
+                              break;
+                          default:
+                              //codigo de retorno invalido
+                              //mensagem = "Código de retorno do SAP não é válido";
+                              break;
+                      }
+                      //Fim da consulta SAP
+
+                      var descRetorno = (this.activityData.ResponseControl.reason) ? this.activityData.ResponseControl.reason : this.activityData.ResponseControl.detail;
+
+                      //MS - atualizando o status da grid - 11/01/2018
+                      var statusCPE = this.activityData.ResponseControl.code == 0 ? "Sucesso" : "Erro";
+                      //adicionando na grid de troca cpe de reparo no SGFT
+                      var validateDoc = this.process.processDocument;
+                      if(validateDoc.userId){
+                          FTTHOrder.insertIntoChangeCPEGrid(validateDoc.orderId,
+                              validateDoc.tipoEquipamentoNovo,
+                              validateDoc.idAtivoNovo,
+                              validateDoc.numeroSerieEquipamentoNovo,
+                              validateDoc.numeroSerieEquipamentoOriginal,
+                              "Validação de CPE",
+                              new Date(),
+                              "Sucesso",
+                              new Date(),
+                              statusCPE,
+                              this.activityData.ResponseControl.code,
+                              descRetorno,//this.activityData.ResponseControl.reason,
+                              validateDoc.userId);
+                      }
+                      //end adiÇão na grid
+
+
+
+
+
+
+
+                      //Preenchendo o equipamento para salvar ou atualizar na base de dados.
+                      var searchDoc;
+                      var result;
+                      var equipamento;
+
+                      if(isSTB){
+                           if(!documentoRequest.idAtivo && this.process.processDocument.operacao == 'Associar CPE')
+                           {
+                               if(isSAP)
+                               {
+                                    var addPonto = new Document("FTTHOrder:EquipmentData");
+                                    addPonto.cwOrderId = ord.id;
+                                    addPonto.isSAP = isSAP;
+                                    addPonto.atividade = 'INSTALAR_EQUIPAMENTO_CLIENTE';
+                                    addPonto.numeroSerieSetTopBox = documentoRequest.nSerieEquip;
+                                    addPonto.save();
+                                    return;
+                               }
+                               else{
+                                   return;
+                               }
+                           }
+                           searchDoc = new Document("FTTHOrder:EquipmentData");
+                           searchDoc.cwOrderId = ord.id;
+                           searchDoc.idAtivo = documentoRequest.idAtivo;
+
+                           result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                      } else{
+                           searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                           searchDoc.cwOrderId = ord.id;
+                           searchDoc.idAtivo = documentoRequest.idAtivo;
+                           searchDoc.cwDocId = null;
+                           searchDoc.statusAcao = null;
+                           searchDoc.codOperacao = null;
+                           searchDoc.isSAP = null;
+                           searchDoc.isNETWIN = null;
+                           searchDoc.codOperacaoHGW = null;
+                           searchDoc.isSAPHGW = null;
+                           searchDoc.isNETWINHGW = null;
+                           searchDoc.flgValidado = null;
+                           result = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                      }
+
+                      if(result && result.length > 0){
+                          equipamento = result[0];
+                      } else{
+                          updateOrderActivityClick(ord.id, "Associar CPE", statusClick);
+                          updateOrderActivityClick(ord.id, "Trocar CPE", statusClick);
+                          return null;
+                      }
+
+                      if(documentoRequest.acao == "adicionar"){
+                          description = description + " - Código: " + this.activityData.ResponseControl.code + " Descrição: " + this.activityData.ResponseControl.reason;
+                          var statusStock = "-";
+                          codOperacao = "Ativo";
+                          FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equipamento.cwDocId, documentoRequest.tipoEquipamento, statusStock);
+                      } else {
+                          codOperacao = "Disponível Reserva";
+                      }
+
+                      if(isSTB){
+                          equipamento.isSAP = isSAP;
+                          equipamento.codOperacao = codOperacao;
+                          equipamento.numeroSerieSetTopBox = documentoRequest.nSerieEquip;
+                          equipamento.nomeCPE = buscarNomeCPE(documentoRequest.codMaterial);
+                          equipamento.codEquipamento = documentoRequest.codMaterial;
+                          equipamento.motivoSetTopBox = documentoRequest.motivoEquipamento;
+
+
+                      } else{
+                          if(isONT){
+                              equipamento.isSAP = isSAP;
+                              equipamento.codOperacao = codOperacao;
+
+                              equipamento.numeroSerieONT = documentoRequest.nSerieEquip;
+                              equipamento.nomeCPE = buscarNomeCPE(documentoRequest.codMaterial);
+                              equipamento.codEquipamento = documentoRequest.codMaterial;
+                              //equipamento.motivoONT = documentoRequest.motivoEquipamento;
+
+                          } else{
+                              equipamento.isSAPHGW = isSAP;
+                              equipamento.codOperacaoHGW = codOperacao;
+                              equipamento.numeroSerieHomeGateway = documentoRequest.nSerieEquip;
+                              equipamento.nomeCPEHGW = buscarNomeCPE(documentoRequest.codMaterial);
+                              equipamento.codEquipamentoHGW = documentoRequest.codMaterial;
+                              //equipamento.motivoHomeGateway = documentoRequest.motivoEquipamento;
+                          }
+                      }
+                      if( status == statusSucesso){
+                      equipamento.save();
+                      }
+
+                      updateOrderActivityClick(ord.id, "Associar CPE", statusClick);
+                      updateOrderActivityClick(ord.id, "Trocar CPE", statusClick);
+                      //fim da execucao.....
+
+
+                      function updateOrderActivityClick(cwOrderId, operacao, status){
+                          var searchDocActivityClick = new Document('FTTHCommon:ActivityClick');
+                          searchDocActivityClick.cwOrderId = cwOrderId;
+                          searchDocActivityClick.activityClickId = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+                          searchDocActivityClick.operacao = operacao;
+                          var resultActivityClick = Finder.runSearch("FTTHCommon.activityClickFinder", searchDocActivityClick);
+
+                          if (resultActivityClick && resultActivityClick.length > 0 && resultActivityClick[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                              resultActivityClick[0].endDate = new Date();
+                              resultActivityClick[0].status = status;
+                              resultActivityClick[0].save();
+                          }
+                      }
+
+
+                      function  buscarNomeCPE(codigoMaterial){
+                          var searchDoc = new Document("FTTHReportApplication:registerCPE");
+                          searchDoc.cwDocId = null;
+                          searchDoc.isTV = null;
+
+                          searchDoc.codigoMaterial = codigoMaterial;
+                          var pointEquipment = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+
+                          return pointEquipment.length > 0 ? pointEquipment[0].nomeCPE:'';
+                      }
+
+
+                      function recuperarDocumentoRequest(documentoT){
+                          var isOriginal = (documentoT.numeroSerieEquipamentoOriginal) ? true : false;
+
+                          //removendo a ida no SAP no caso de retirada de equipamento
+                          isOriginal = false;
+
+                          var request = {
+                                      isSAP : null,
+                                      codOperacao : null,
+
+                                      nSerieEquip : null,
+                                      nomeCPE : null,
+                                      motivoEquipamento : null,
+                                      acao : null,
+                                      idAtivo : null,
+                                      tipoEquipamento : null,
+                                      codMaterial : null };
+
+                          if(isOriginal){
+                              request.nSerieEquip = documentoT.numeroSerieEquipamentoOriginal;
+                              request.isSAP = '';
+                              request.codOperacao = '';
+                              request.nomeCPE = buscarNomeCPE(documentoT.codMaterialOriginal);
+                              //request.motivoEquipamento = documentoT.motivoEquipamentoOriginal;
+                              request.acao = documentoT.acaoOriginal;
+                              request.idAtivo = documentoT.idAtivoOriginal;
+                              request.tipoEquipamento = documentoT.tipoEquipamentoOriginal;
+                              request.codMaterial = documentoT.codMaterialOriginal;
+
+                          }else{
+                              request.nSerieEquip = documentoT.numeroSerieEquipamentoNovo;
+                              request.isSAP = '' ;
+                              request.codOperacao = '' ;
+                              request.nomeCPE = buscarNomeCPE(documentoT.codMaterialNovo);
+                              //request.motivoEquipamento = documentoT.motivoEquipamentoNovo;
+                              request.acao = documentoT.acaoNovo;
+                              request.idAtivo = documentoT.idAtivoNovo;
+                              request.tipoEquipamento = documentoT.tipoEquipamentoNovo;
+                              request.codMaterial = documentoT.codMaterialNovo
+
+                          }
+
+
+                          return request;
+                      }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="on" type="caseActivity">
+            <guid>{a46e66bd-8937-43bd-a7e3-74e8624b39ca}</guid>
+            <label>ON</label>
+            <x>166.22221</x>
+            <y>156.10352</y>
+            <childList>
+              <child name="executeBypassSap" type="scriptActivity">
+                <guid>{ea30f49b-56a9-44bc-bece-57cd19c7d10f}</guid>
+                <label>Execute Bypass SAP</label>
+                <x>30.0</x>
+                <y>171.10352</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var responseCode = '0';
+                      var responseReason = 'Bypass SAP ativado - atualização equipamento no SAP ignorada';
+
+                      var status = FTTHCommon.defineStatusAutomaticActivity(responseCode
+                      ,Global.getConfigVariable('SAP_SYSTEM'));
+
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id
+                      ,Global.getConfigVariable('VALIDAR_EQUIPAMENTO')
+                      ,status);
+
+                      FTTHCommon.saveEvent(this.process.processOrder.id
+                      ,Global.getConfigVariable('SAP_SYSTEM')
+                      ,Global.getConfigVariable('VALIDAR_EQUIPAMENTO')
+                      ,status
+                      ,responseCode
+                      ,responseReason
+                      ,this.process.id
+                      ,Global.getConfigVariable('SYNC_REQ_RESP'));
+
+                      //----------Fim Header ----------//
+
+                      var documentoRequest = recuperarDocumentoRequest(this.process.processDocument);
+                      var statusClick = status;
+                      var ord = this.process.processOrder;
+                      var description = "Equipamento Atualizado no SAP com sucesso"; // description of status SUCESSO
+                      var status = Global.getCodeDescription("FTTHOrder:statusCPE", "SUC"); // Status SUCESSO in statusCPE enumeration
+                      var isONT = (documentoRequest.tipoEquipamento == "ONT") ? true : false;
+                      var isSTB = (documentoRequest.tipoEquipamento == "STB") ? true : false;
+
+                      var isSAP = true;
+                      var codOperacao = "Consulta";
+                      var validateDoc = this.process.processDocument;
+                      if(validateDoc.userId){
+                          FTTHOrder.insertIntoChangeCPEGrid(validateDoc.orderId,
+                          validateDoc.tipoEquipamentoNovo,
+                          validateDoc.idAtivoNovo,
+                          validateDoc.numeroSerieEquipamentoNovo,
+                          validateDoc.numeroSerieEquipamentoOriginal,
+                          "Validação de CPE",
+                          new Date(),
+                          "Sucesso",
+                          new Date(),
+                          "Sucesso",
+                          responseCode,
+                          responseReason,
+                          validateDoc.userId);
+                      }
+
+                      //Preenchendo o equipamento para salvar ou atualizar na base de dados.
+                      var searchDoc;
+                      var result;
+                      var equipamento;
+
+                      if(isSTB){
+                          if(!documentoRequest.idAtivo && this.process.processDocument.operacao == 'Associar CPE')
+                          {
+                              if(isSAP)
+                              {
+                                  var addPonto = new Document("FTTHOrder:EquipmentData");
+                                  addPonto.cwOrderId = ord.id;
+                                  addPonto.isSAP = isSAP;
+                                  addPonto.atividade = 'INSTALAR_EQUIPAMENTO_CLIENTE';
+                                  addPonto.numeroSerieSetTopBox = documentoRequest.nSerieEquip;
+                                  addPonto.save();
+                                  return;
+                              }
+                              else{
+                                  return;
+                              }
+                          }
+                          searchDoc = new Document("FTTHOrder:EquipmentData");
+                          searchDoc.cwOrderId = ord.id;
+                          searchDoc.idAtivo = documentoRequest.idAtivo;
+
+                          result = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+                      } else{
+                          searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+                          searchDoc.cwOrderId = ord.id;
+                          searchDoc.idAtivo = documentoRequest.idAtivo;
+                          searchDoc.cwDocId = null;
+                          searchDoc.statusAcao = null;
+                          searchDoc.codOperacao = null;
+                          searchDoc.isSAP = null;
+                          searchDoc.isNETWIN = null;
+                          searchDoc.codOperacaoHGW = null;
+                          searchDoc.isSAPHGW = null;
+                          searchDoc.isNETWINHGW = null;
+                          searchDoc.flgValidado = null;
+                          result = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+                      }
+
+                      if(result && result.length > 0){
+                          equipamento = result[0];
+                      } else{
+                          updateOrderActivityClick(ord.id, "Associar CPE", statusClick);
+                          updateOrderActivityClick(ord.id, "Trocar CPE", statusClick);
+                          return null;
+                      }
+
+                      if(documentoRequest.acao == "adicionar"){
+                          description = description + " - Código: " + responseCode + " Descrição: " + responseReason;
+                          var statusStock = "-";
+                          codOperacao = "Ativo";
+                          FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equipamento.cwDocId, documentoRequest.tipoEquipamento, statusStock);
+                      } else {
+                          codOperacao = "Disponível Reserva";
+                      }
+
+                      if(isSTB){
+                          equipamento.isSAP = isSAP;
+                          equipamento.codOperacao = codOperacao;
+                          equipamento.numeroSerieSetTopBox = documentoRequest.nSerieEquip;
+                          equipamento.nomeCPE = buscarNomeCPE(documentoRequest.codMaterial);
+                          equipamento.codEquipamento = documentoRequest.codMaterial;
+                          equipamento.motivoSetTopBox = documentoRequest.motivoEquipamento;
+
+
+                      } else{
+                          if(isONT){
+                              equipamento.isSAP = isSAP;
+                              equipamento.codOperacao = codOperacao;
+
+                              equipamento.numeroSerieONT = documentoRequest.nSerieEquip;
+                              equipamento.nomeCPE = buscarNomeCPE(documentoRequest.codMaterial);
+                              equipamento.codEquipamento = documentoRequest.codMaterial;
+                              //equipamento.motivoONT = documentoRequest.motivoEquipamento;
+
+                          } else{
+                              equipamento.isSAPHGW = isSAP;
+                              equipamento.codOperacaoHGW = codOperacao;
+                              equipamento.numeroSerieHomeGateway = documentoRequest.nSerieEquip;
+                              equipamento.nomeCPEHGW = buscarNomeCPE(documentoRequest.codMaterial);
+                              equipamento.codEquipamentoHGW = documentoRequest.codMaterial;
+                              //equipamento.motivoHomeGateway = documentoRequest.motivoEquipamento;
+                          }
+                      }
+                      equipamento.save();
+
+                      updateOrderActivityClick(ord.id, "Associar CPE", statusClick);
+                      updateOrderActivityClick(ord.id, "Trocar CPE", statusClick);
+
+
+                      /*** Save Bypass SAP - Begin ***/
+                      var requisicao = this.process.processDocument;
+
+                      var searchDoc = new Document("FTTHReportApplication:PSR");
+                      searchDoc.codigoPSR = requisicao.codPSR ? requisicao.codPSR : null
+
+                      var result = Finder.runSearch("FTTHReportApplication:PSRFinder", searchDoc);
+
+                      var parametro = {
+                          cwOrderId: ord.id
+                          ,UF: result.length > 0 ? result[0].uf : null
+                          ,COD_PSR: requisicao.codPSR ? requisicao.codPSR : null
+                          ,COD_OPER: '1'
+                          ,MATNR: requisicao.codMaterialNovo ? requisicao.codMaterialNovo : null
+                          ,SERIAL: requisicao.numeroSerieEquipamentoNovo ? requisicao.numeroSerieEquipamentoNovo: null
+                      };
+
+                      try{
+                          FTTHManterEquipamentoInventarioSAPInterface.saveBypassSAP(parametro);
+                      }
+                      catch(err){
+                          Global.logError('ValidateCPEAutomaticTask - Erro ao executar o Bypass do SA. Detalhe: ' + err);
+                      }
+                      /*** Save Bypass SAP - End ***/
+
+                      //----------Metodos ----------//
+                      function updateOrderActivityClick(cwOrderId, operacao, status){
+                          var searchDocActivityClick = new Document('FTTHCommon:ActivityClick');
+                          searchDocActivityClick.cwOrderId = cwOrderId;
+                          searchDocActivityClick.activityClickId = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+                          searchDocActivityClick.operacao = operacao;
+                          var resultActivityClick = Finder.runSearch("FTTHCommon.activityClickFinder", searchDocActivityClick);
+
+                          if (resultActivityClick && resultActivityClick.length > 0 && resultActivityClick[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                              resultActivityClick[0].endDate = new Date();
+                              resultActivityClick[0].status = status;
+                              resultActivityClick[0].save();
+                          }
+                      }
+
+                      function  buscarNomeCPE(codigoMaterial){
+                          var searchDoc = new Document("FTTHReportApplication:registerCPE");
+                          searchDoc.cwDocId = null;
+                          searchDoc.isTV = null;
+
+                          searchDoc.codigoMaterial = codigoMaterial;
+                          var pointEquipment = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+
+                          return pointEquipment.length > 0 ? pointEquipment[0].nomeCPE:'';
+                      }
+
+                      function recuperarDocumentoRequest(documentoT){
+                          var isOriginal = (documentoT.numeroSerieEquipamentoOriginal) ? true : false;
+
+                          //removendo a ida no SAP no caso de retirada de equipamento
+                          isOriginal = false;
+
+                          var request = {
+                              isSAP : null,
+                              codOperacao : null,
+
+                              nSerieEquip : null,
+                              nomeCPE : null,
+                              motivoEquipamento : null,
+                              acao : null,
+                              idAtivo : null,
+                              tipoEquipamento : null,
+                              codMaterial : null };
+
+                              if(isOriginal){
+                                  request.nSerieEquip = documentoT.numeroSerieEquipamentoOriginal;
+                                  request.isSAP = '';
+                                  request.codOperacao = '';
+                                  request.nomeCPE = buscarNomeCPE(documentoT.codMaterialOriginal);
+                                  //request.motivoEquipamento = documentoT.motivoEquipamentoOriginal;
+                                  request.acao = documentoT.acaoOriginal;
+                                  request.idAtivo = documentoT.idAtivoOriginal;
+                                  request.tipoEquipamento = documentoT.tipoEquipamentoOriginal;
+                                  request.codMaterial = documentoT.codMaterialOriginal;
+
+                              }else{
+                                  request.nSerieEquip = documentoT.numeroSerieEquipamentoNovo;
+                                  request.isSAP = '' ;
+                                  request.codOperacao = '' ;
+                                  request.nomeCPE = buscarNomeCPE(documentoT.codMaterialNovo);
+                                  //request.motivoEquipamento = documentoT.motivoEquipamentoNovo;
+                                  request.acao = documentoT.acaoNovo;
+                                  request.idAtivo = documentoT.idAtivoNovo;
+                                  request.tipoEquipamento = documentoT.tipoEquipamentoNovo;
+                                  request.codMaterial = documentoT.codMaterialNovo
+
+                              }
+
+
+                              return request;
+                      }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[return FTTHCommon.parseBoolean(Global.getConfigVariable('IS_BYPASS_SAP_ON'));]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="CheckResend2" type="seqActivity">
+        <guid>{a9557a51-3d85-4bcf-8b87-8d7a52a34980}</guid>
+        <label>Check Resend</label>
+        <x>32.86276</x>
+        <y>336.60938</y>
+        <childList>
+          <child name="CheckNeedToResend" type="switchActivity">
+            <guid>{d848db74-e3d7-4430-b942-cb483fceca63}</guid>
+            <label>Check Need To Resend</label>
+            <x>95.76845</x>
+            <y>453.01172</y>
+            <childList>
+              <child name="Yes" type="caseActivity">
+                <guid>{77c78432-5b1a-4ec2-9fce-8d0c3b5c03fb}</guid>
+                <label>Yes</label>
+                <schedule type="sched">
+                  <duration type="dur">
+                    <methodList>
+                      <method name="cwOnDuration" type="action">
+                        <system>true</system>
+                        <script><![CDATA[
+                          FTTHActivationInterface.checkTimetoResend(process.processOrder.OrderHeader.cwOrderId, Global.getConfigVariable("ATUALIZAR_ESTOQUE"), Global.getConfigVariable("SAP_SYSTEM"));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </duration>
+                </schedule>
+                <x>110.13564</x>
+                <y>330.0</y>
+                <childList>
+                  <child name="ResendToStart" type="repeatActivity">
+                    <element>prrev_FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask_cwr11/seqActivity_ValidateCPEAutomaticTaskStart</element>
+                    <guid>{ec687923-8bcd-41ba-b309-f0f0e1d8af7d}</guid>
+                    <label>Resend To Start</label>
+                    <x>80.4273</x>
+                    <y>579.11523</y>
+                  </child>
+                </childList>
+              </child>
+              <child name="No" type="caseActivity">
+                <guid>{e5b9c1ad-5025-46b3-9053-2882a2edd17e}</guid>
+                <label>No</label>
+                <x>204.68393</x>
+                <y>586.4658</y>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      return (FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("VALIDAR_EQUIPAMENTO"), Global.getConfigVariable("SAP_SYSTEM")));
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+          <child name="UpdateStockAutomaticTaskComplete" type="completeActivity">
+            <guid>{17367a66-b75f-41bd-a3be-9a528ec28db4}</guid>
+            <label>Update Stock Automatic Task Complete</label>
+            <x>193.99838</x>
+            <y>690.5176</y>
+          </child>
+        </childList>
+      </child>
+      <child name="InventorySAPSenderParticipant" type="participantActivity">
+        <guid>{6098f070-d0d6-4c87-9a59-f596eeee6775}</guid>
+        <label>Inventory SAP Sender Participant</label>
+        <participant>part_FTTHManterEquipamentoInventarioSAPInterface.InventorySAPSenderParticipant</participant>
+        <x>134.34634</x>
+        <y>312.20703</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+          var activityId = Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId =  Global.getConfigVariable("VALIDAR_EQUIPAMENTO");
+          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Validar
+      Equipamento no SAP. Inicialmente o fluxo envia para o sistema de
+      Invent&#225;rio uma solicita&#231;&#227;o de valida&#231;&#227;o dos equipamentos caso n&#227;o
+      obtenha resposta em um intervalo de tempo pr&#233; determinado, ser&#227;o feitas
+      mais algumas retentativas. A quantidade de retentativas e o tempo de
+      espera ser&#227;o configur&#225;veis pelo usu&#225;rio.
+    </p>
+  ]]></description>
+  <document>doc_FTTHClickInterface.ValidateEquipmentDoc</document>
+  <label>Validate CPE Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHManterEquipamentoInventarioSAPInterface.ValidateCPEAutomaticTask</process>
+  <revision>11</revision>
+  <type>User</type>
+</process__revision>

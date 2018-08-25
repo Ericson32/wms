@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHSGFTInterface.ProcessActivityTicketClosing">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script que atua no recebimento do fechamento do BA.
+    </p>
+  ]]></description>
+  <label>Process Activity Ticket Closing</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="asyncResp" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Resposta ass&amp;#237;ncrona de fechamento de BA enviada pelo SGFT&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dstruct_FTTHSGFTInterface.SolicitarEncerramentoBARequest</type>
+    </parameter>
+  </parameterList>
+  <useInRuleInstances>true</useInRuleInstances>
+  <script><![CDATA[
+    /*
+    funcao para tratamento dos retornos de pedido de fechamento do BA enviado pelo SGFT
+
+    parametros:
+    order                (this.process.processOrder) tipo FTTHOrder.FTTHOrder
+    processID            (this.process.id)           transacao no OM     tipo string
+    asyncResp      (this.activity)             tipo FTTHSGFTInterface.SolicitarAberturaBAAssincrona.response
+    tipo:     tipo de consulta realizada
+    SOLICITAR_ABERTURA_BA_SGFT
+    ----------------------------------------------------------
+    */
+    //Parametros de LOG
+
+     Global.logInfo('FTTHSGFTInterface::ProcessActivityTicketClosing - resposta assíncrona SGFT recebida');
+    var output = new DataStructure('FTTHEsb:ResponseControl');
+
+    if (asyncResp.DocAssoc == null || asyncResp.NumeroBA == null || asyncResp.DataEncerramento == null || asyncResp.HoraEncerramento == null || asyncResp.CodEncerramento == null){
+        var LOG_MSG = "Resposta Assíncrona não retorna todos os campos obrigatórios.";
+        Global.logInfo('FTTHSGFTInterface::ProcessActivityTicketClosing - ' + LOG_MSG );
+        //return asyncResp;
+        output.code  = "-1000";
+        output.reason = LOG_MSG;
+        output.detail = LOG_MSG;
+        return output;
+    }
+
+
+    Global.logInfo('FTTHSGFTInterface::ProcessActivityTicketClosing - procurando BA relacionado');
+    var ohs = new Document('FTTHServiceRequest:SRTicketActivityData');
+    ohs.docAssoc = asyncResp.DocAssoc;
+    ohs.numBA =  asyncResp.NumeroBA;
+    var SRAT = Finder.runSearch('FTTHSGFTInterface:getSRTicketActivityData', ohs);
+    if(SRAT.size > 0){
+        if (SRAT[0].dataEncerramento == null){
+            try{
+                var ordem = Order.getOrderById(SRAT[0].cwOrderId);
+
+
+                var msgLogDoc = UserProfile.getMsgLogDoc();
+                if(msgLogDoc != null){
+                    msgLogDoc.userData1 = asyncResp.DocAssoc;
+                    //msgLogDoc.userData2 = serviceRequest.correlationId;
+                    msgLogDoc.userData3 = SRAT[0].cwOrderId;
+                    msgLogDoc.save();
+                }
+
+
+                var isExternalActivityOpen = FTTHCommon.verifyWorklistOperation(SRAT[0].cwOrderId, "FTTHUserInterface.SGFTManualActivityInterface/SGFTBAOpenning");
+                var worklist;
+                if(isExternalActivityOpen){
+                    //pegar a worklist
+                    var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+                    searchDoc.OrderId = SRAT[0].cwOrderId;
+                    worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+                } else{
+                    output.code  = "-1000";
+                    output.reason = "Não existe BA Aberto";
+                    output.detail = "Não existe BA Aberto";
+                    return output;
+                }
+
+                SRAT[0].dataEncerramento = asyncResp.DataEncerramento;
+                SRAT[0].horaEncerramento = asyncResp.HoraEncerramento;
+                SRAT[0].codEncerramento = asyncResp.CodEncerramento;
+                SRAT[0].informacoes = asyncResp.Informacoes;
+                SRAT[0].Observacao = asyncResp.Observacao;
+                SRAT[0].descLivre = asyncResp.DescLivre;
+                SRAT[0].save();
+
+                var LOG_MSG = "Fechamento de BA realizado com sucesso";
+                Global.logInfo('FTTHSGFTInterface::ProcessActivityTicketClosing - ' + LOG_MSG );
+
+                Process.performWorklistAction(worklist[0], null, "SGFTBAAutomaticClosingSuccess", true, ordem, SRAT);
+
+                //Inserindo o codEncerramento na atividade manual
+                 var searchDoc = new Document("FTTHOrder:ManualActivityData");
+                 searchDoc.clearData();
+                 searchDoc.cwOrderId =  SRAT[0].cwOrderId;
+                 var atividadeManual = Finder.runSearch("FTTHOrder:ManualActivityDataFinder", searchDoc)[0];
+                if(atividadeManual)
+                {
+                    var ano = asyncResp.DataEncerramento.substring(0, 4);
+                    var mes = asyncResp.DataEncerramento.substring(4, 6);
+                    var dia = asyncResp.DataEncerramento.substring(6, 8);
+                    var hora = asyncResp.HoraEncerramento.substring(0, 2);
+                    var minuto = asyncResp.HoraEncerramento.substring(2, 4);
+                    atividadeManual.dataFechamento = new Date(ano + "/" + mes + "/" + dia + " " + hora + ":" + minuto);
+                    atividadeManual.codEncerramento = asyncResp.CodEncerramento;
+                    atividadeManual.save();
+                }
+
+                //03/07/2018 - Alteração de '0' para '0000' por solicitação na PKE33491
+                output.code = '0000';
+                //end 03/07/2018
+
+                output.reason ='Mensagem Recebida com Sucesso - ' + LOG_MSG;
+                output.detail = 'Mensagem Recebida com Sucesso - ' + LOG_MSG;
+                return output;
+            } catch (e) {
+                 var LOG_MSG = "Não foi possível gravar BA no banco de dados";
+                 Global.logInfo('FTTHSGFTInterface::ProcessActivityTicketClosing - ' + LOG_MSG + '. Detalhe do erro: ' + e);
+                 output.code = '-1000';
+                 output.reason = LOG_MSG;
+                 output.detail = LOG_MSG;
+                 return output;
+            }
+        } else {
+
+            var msgLogDoc = UserProfile.getMsgLogDoc();
+            if(msgLogDoc != null){
+                msgLogDoc.userData1 = asyncResp.DocAssoc;
+                //msgLogDoc.userData2 = serviceRequest.correlationId;
+                msgLogDoc.userData3 = SRAT[0].cwOrderId;
+                msgLogDoc.save();
+            }
+
+             var LOG_MSG = "O BA solicitado para fechamento foi fechado em " + SRAT[0].dataEncerramento;
+             Global.logInfo('FTTHSGFTInterface::ProcessActivityTicketClosing - ' + LOG_MSG );
+             output.code = '-1000';
+             output.reason = LOG_MSG;
+             output.detail = LOG_MSG;
+             return output;
+        }
+    } else {
+        var msgLogDoc = UserProfile.getMsgLogDoc();
+            if(msgLogDoc != null){
+                msgLogDoc.userData1 = asyncResp.DocAssoc;
+                //msgLogDoc.userData2 = serviceRequest.correlationId;
+                //msgLogDoc.userData3 = SRAT[0].cwOrderId;
+                msgLogDoc.save();
+        }
+
+
+        var LOG_MSG = "Não foi possível achar BA para realizar o fechamento";
+        Global.logInfo('FTTHSGFTInterface::ProcessActivityTicketClosing - ' + LOG_MSG );
+        output.code = '-1000';
+        output.reason = LOG_MSG;
+        output.detail = LOG_MSG;
+        return output;
+    }
+  ]]></script>
+</script>

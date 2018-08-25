@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHProcess.saveOrderData">
+  <label>Save Order Data</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ValidateEquipmentDoc" type="rifp">
+      <type>doc_FTTHClickInterface.ValidateEquipmentDoc</type>
+    </parameter>
+    <parameter name="ord" type="rifp">
+      <type>order_com.conceptwave.system.Order</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var TIPO_STB = "STB";
+    var TIPO_ONT = "ONT";
+    var TIPO_HWG = "HGW";
+    var equipResult = FTTHProcess.getProcessingEquipment(ord, ValidateEquipmentDoc);
+    //FTTHOrder.updateEquipmentLockStatus(equipResult.cwDocId, ValidateEquipmentDoc.tipoEquipamentoNovo, ord.OrderHeader.cwOrderId, false);
+
+    var equipDataNew = {
+        cwOrderId: ord.OrderHeader.cwOrderId,
+        equipmentId: equipResult.cwDocId,
+        equipmentType: ValidateEquipmentDoc.tipoEquipamentoNovo,
+        numeroSerieEquipamento: null,
+        codEquipamento: null,
+        nomeCPE: null,
+        foiDevolvido: null,
+        motivoRetirada: null,
+        flagDadoOriginal: null,
+        idAtivo: null,
+        deviceGUID: null,
+        possuiDVRIntegrado: null
+    };
+
+    var equipDataOld = {
+        cwOrderId: ord.OrderHeader.cwOrderId,
+        equipmentId: equipResult.cwDocId,
+        equipmentType: ValidateEquipmentDoc.tipoEquipamentoNovo,
+        numeroSerieEquipamento: null,
+        codEquipamento: null,
+        nomeCPE: null,
+        foiDevolvido: null,
+        motivoRetirada: null,
+        flagDadoOriginal: null,
+        idAtivo: null,
+        deviceGUID: null,
+        possuiDVRIntegrado: null
+    };
+
+
+    if(ValidateEquipmentDoc.operacao == "Associar CPE"){
+        var isOriginal = ValidateEquipmentDoc.acaoOriginal;
+
+        //02/04/2018 - Adicionando verificação para o rollback de associação CPE
+        if(ValidateEquipmentDoc.isRollback){
+            //Correção para a pke33970. Atualizando as flags de equipamento
+            if(ValidateEquipmentDoc.tipoEquipamentoNovo == TIPO_ONT){
+                equipResult.isSAP    = false;
+                equipResult.isNETWIN = false;
+            }
+            if(ValidateEquipmentDoc.tipoEquipamentoNovo == TIPO_HWG){
+                equipResult.isSAPHGW    = false;
+                equipResult.isNETWINHGW = false;
+            }
+            if(ValidateEquipmentDoc.tipoEquipamentoNovo == TIPO_HWG){
+                equipResult.isSAP    = false;
+                equipResult.isNETWIN = false;
+            }
+
+            equipResult.save();
+            //end correção pke33970
+
+            return;
+        }
+        //end 02/04/2018
+
+        //06/04/2018
+        if(!isOriginal){
+            //30/04/2018 - Limpando os dados editáveis
+            if(ValidateEquipmentDoc.tipoEquipamentoNovo == TIPO_ONT){
+                ord.EquipmentData[0].BaseEquipmentData.numeroSerieONT             = null;//ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                ord.EquipmentData[0].BaseEquipmentData.numeroSerieONT_Original    = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                ord.EquipmentData[0].BaseEquipmentData.codEquipamento             = null;//ValidateEquipmentDoc.codMaterialNovo;
+                ord.EquipmentData[0].BaseEquipmentData.codEquipamentoONT_Original = ValidateEquipmentDoc.codMaterialNovo;
+                ord.EquipmentData[0].BaseEquipmentData.nomeCPE_ONT_Original       = ord.EquipmentData[0].BaseEquipmentData.nomeCPE;
+                ord.EquipmentData[0].BaseEquipmentData.nomeCPE                    = null;//FTTHCommon.getNomeCPE( ValidateEquipmentDoc.codMaterialNovo);
+            }
+            if(ValidateEquipmentDoc.tipoEquipamentoNovo == TIPO_HWG){
+                ord.EquipmentData[0].BaseEquipmentData.numeroSerieHomeGateway     = null;//ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                ord.EquipmentData[0].BaseEquipmentData.numeroSerieHGW_Original    = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                ord.EquipmentData[0].BaseEquipmentData.codEquipamentoHGW          = null;//ValidateEquipmentDoc.codMaterialNovo;
+                ord.EquipmentData[0].BaseEquipmentData.codEquipamentoHGW_Original = ValidateEquipmentDoc.codMaterialNovo;
+                ord.EquipmentData[0].BaseEquipmentData.nomeCPE_HGW_Original       = ord.EquipmentData[0].BaseEquipmentData.nomeCPEHGW;
+                ord.EquipmentData[0].BaseEquipmentData.nomeCPEHGW                 = null;//FTTHCommon.getNomeCPE( ValidateEquipmentDoc.codMaterialNovo);
+            }
+
+            if(ValidateEquipmentDoc.tipoEquipamentoNovo == TIPO_STB){
+                for (var j = 0; j < ord.EquipmentData[0].AddPointsEquipmentData.length; j++){
+                    if(ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.idAtivo ==  ValidateEquipmentDoc.idAtivoNovo){
+                        ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.numeroSerieSetTopBox          = null;//ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                        ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.numeroSerieSetTopBox_Original = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                        ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.codEquipamento                = null;//ValidateEquipmentDoc.codMaterialNovo;
+                        ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.codEquipamento_Original       = ValidateEquipmentDoc.codMaterialNovo;
+                        ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.nomeCPE_Original              = ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.nomeCPE;
+                        ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.nomeCPE                       = null;//FTTHCommon.getNomeCPE( ValidateEquipmentDoc.codMaterialNovo);
+                        ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.deviceGUID_Original           = ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.deviceGUID;
+                        ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.deviceGUID                    = null;//ord.EquipmentData[0].AddPointsEquipmentData[j].EquipmentPointData.deviceGUID;
+                    }
+                }
+            }
+        }
+        //end 30/04/2018
+
+    //================================================== FIM ASSOCIAR CPE =======================================================
+
+    } else if (ValidateEquipmentDoc.operacao == "Trocar CPE"){
+        //setando "done" para os equipamentos que já finalizaram sua tramitação no UPDATESTOCK
+        markEquipmentsAsDone(equipResult, ord);
+        //end
+
+        //30/04/2018 - Limpando os dados editáveis
+        switch(ValidateEquipmentDoc.tipoEquipamentoOriginal){
+            case TIPO_STB:
+                equipDataOld.foiDevolvido   = equipResult.foiDevolvidoSetTopBox_Original;
+                equipDataOld.motivoRetirada = equipResult.motivoSetTopBox;
+                equipDataOld.deviceGUID     = equipResult.deviceGUID_Original;
+
+                equipResult.numeroSerieSetTopBox = null;//ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                equipResult.codEquipamento       = null;//ValidateEquipmentDoc.codMaterialNovo;
+                equipResult.nomeCPE              = null;//FTTHCommon.getNomeCPE( ValidateEquipmentDoc.codMaterialNovo);
+
+                //29/03/2018 - Unificando processo de troca (Tela/Click)
+                if(ValidateEquipmentDoc.isRollback){
+                    equipResult.numeroSerieSetTopBox_Original = ValidateEquipmentDoc.numeroSerieEquipamentoOriginal;
+                    equipResult.codEquipamento_Original       = ValidateEquipmentDoc.codMaterialOriginal;
+                    equipResult.nomeCPE_Original              = FTTHCommon.getNomeCPE(ValidateEquipmentDoc.codMaterialOriginal);
+                } else{
+                    equipResult.numeroSerieSetTopBox_Original = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                    equipResult.codEquipamento_Original       = ValidateEquipmentDoc.codMaterialNovo;
+                    equipResult.nomeCPE_Original              = FTTHCommon.getNomeCPE(ValidateEquipmentDoc.codMaterialNovo);
+                    equipResult.deviceGUID_Original           = equipResult.deviceGUID;
+                }
+                //end 29/03/2018
+                equipResult.deviceGUID                        = null;
+
+                //TODO
+                // REMOVER APOS A CONSTRUCAO DO COTU - Atualizar tabela de equipamentos com a informação da troca de equipamentos para a atualização do estoque
+                if(ValidateEquipmentDoc.operacao == "Trocar CPE"){
+                    equipResult.atividade = "INSTALAR_EQUIPAMENTO_CLIENTE";
+                }
+
+                equipResult.save();
+                ord.save();
+
+                break;
+
+            case TIPO_ONT:
+                equipDataOld.foiDevolvido   = equipResult.foiDevolvidoONT_Original;
+                equipDataOld.motivoRetirada = equipResult.motivoONT;
+
+
+                equipResult.numeroSerieONT = null;//ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                equipResult.codEquipamento = null;//ValidateEquipmentDoc.codMaterialNovo;
+                equipResult.nomeCPE        = null;//FTTHCommon.getNomeCPE(ValidateEquipmentDoc.codMaterialNovo);
+
+                //29/03/2018 - Unificando processo de troca (Tela/Click)
+                if(ValidateEquipmentDoc.isRollback){
+                    equipResult.numeroSerieONT_Original    = ValidateEquipmentDoc.numeroSerieEquipamentoOriginal;
+                    equipResult.codEquipamentoONT_Original = ValidateEquipmentDoc.codMaterialOriginal;
+                    equipResult.nomeCPE_ONT_Original       = FTTHCommon.getNomeCPE(ValidateEquipmentDoc.codMaterialOriginal);
+                } else{
+                    equipResult.numeroSerieONT_Original    = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                    equipResult.codEquipamentoONT_Original = ValidateEquipmentDoc.codMaterialNovo;
+                    equipResult.nomeCPE_ONT_Original       = FTTHCommon.getNomeCPE(ValidateEquipmentDoc.codMaterialNovo);
+
+                    //30/04/2018 - Correção do não envio da operação cessar para o NETWIN nas 2as ou mais trocas em mudança de endereço
+                    FTTHProcess.setEquipmentChangedFlag(equipResult, ValidateEquipmentDoc.tipoEquipamentoNovo, true);
+                    //end 30/04/2018
+                }
+                // end 29/03/2018
+
+                //TODO
+                // REMOVER APOS A CONSTRUCAO DO COTU - Atualizar tabela de equipamentos com a informação da troca de equipamentos para a atualização do estoque
+                if(ValidateEquipmentDoc.operacao == "Trocar CPE"){
+                    equipResult.atividade = "INSTALAR_EQUIPAMENTO_CLIENTE";
+                }
+
+                equipResult.save();
+                ord.save();
+
+                break;
+
+            case TIPO_HWG:
+                equipDataOld.foiDevolvido   = equipResult.foiDevolvidoHGW_Original;
+                equipDataOld.motivoRetirada = equipResult.motivoHomeGateway;
+
+
+                equipResult.numeroSerieHomeGateway = null;//ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                equipResult.codEquipamentoHGW      = null;//ValidateEquipmentDoc.codMaterialNovo;
+                equipResult.nomeCPEHGW             = null;//FTTHCommon.getNomeCPE(ValidateEquipmentDoc.codMaterialNovo);
+
+                //29/03/2018 - Unificando processo de troca (Tela/Click)
+                if(ValidateEquipmentDoc.isRollback){
+                    equipResult.numeroSerieHGW_Original    = ValidateEquipmentDoc.numeroSerieEquipamentoOriginal;
+                    equipResult.codEquipamentoHGW_Original = ValidateEquipmentDoc.codMaterialOriginal;
+                    equipResult.nomeCPE_HGW_Original       = FTTHCommon.getNomeCPE(ValidateEquipmentDoc.codMaterialOriginal);
+                } else{
+                    equipResult.numeroSerieHGW_Original    = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                    equipResult.codEquipamentoHGW_Original = ValidateEquipmentDoc.codMaterialNovo;
+                    equipResult.nomeCPE_HGW_Original       = FTTHCommon.getNomeCPE(ValidateEquipmentDoc.codMaterialNovo);
+
+                    //30/04/2018 - Correção do não envio da operação cessar para o NETWIN nas 2as ou mais trocas em mudança de endereço
+                    FTTHProcess.setEquipmentChangedFlag(equipResult, ValidateEquipmentDoc.tipoEquipamentoNovo, true);
+                    //end 30/04/2018
+                }
+                //end 29/03/2018
+
+                //TODO
+                // REMOVER APOS A CONSTRUCAO DO COTU - Atualizar tabela de equipamentos com a informação da troca de equipamentos para a atualização do estoque
+                if(ValidateEquipmentDoc.operacao == "Trocar CPE"){
+                    equipResult.atividade = "INSTALAR_EQUIPAMENTO_CLIENTE";
+                }
+
+                equipResult.save();
+                ord.save();
+
+                break;
+            }
+            //end 30/04/2018
+    }
+
+    equipResult.save();
+    ord.save();
+
+    //11/04/2018 - Tratamento de reparo no SGFT
+    var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+    searchDoc.OrderId = ord.OrderHeader.cwOrderId;
+    var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+    var isSGFT = false;
+
+    if(worklist && worklist.length > 0){
+        isSGFT = (worklist[0].Operation == "FTTHUserInterface.SGFTManualActivityInterface/SGFTBAOpenning");
+    }
+    //end 11/04/2018
+
+    //06/04/2018 - Adicionando transação na tabela de historico de transações
+    if(!ValidateEquipmentDoc.isRollback && !isSGFT){//SGFT as transações são salvas no processo de troca
+        //realizar o update nas transações
+        var searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentTransactionsHistory");
+        searchDoc.equipmentId = equipResult.cwDocId;
+        searchDoc.tipoEquipamento = ValidateEquipmentDoc.tipoEquipamentoNovo;
+        searchDoc.updateStockAction = "adicionar";
+        searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+        var addEquips = Finder.runSearch("FTTHOrder:EquipmentTransactionsFinder", searchDoc);
+        var nAddEquips = (addEquips) ? addEquips.length : 0;
+
+        for(var i = 0; i < nAddEquips; i++){
+            addEquips[i].updateStockAction = "-";
+            addEquips[i].statusStock = "-";
+            addEquips[i].save();
+        }
+
+        equipDataNew.numeroSerieEquipamento = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+        equipDataNew.codEquipamento         = ValidateEquipmentDoc.codMaterialNovo;
+        equipDataNew.nomeCPE                = FTTHCommon.getNomeCPE( ValidateEquipmentDoc.codMaterialNovo);
+        equipDataNew.foiDevolvido           = null;
+        equipDataNew.motivoRetirada         = null;
+        equipDataNew.flagDadoOriginal       = equipResult.flagDadoOriginal;
+        equipDataNew.idAtivo                = equipResult.idAtivo;
+        if(ValidateEquipmentDoc.tipoEquipamentoNovo == TIPO_STB){
+            equipDataNew.deviceGUID             = equipResult.deviceGUID;
+            equipDataNew.possuiDVRIntegrado     = equipResult.possuiDVRIntegrado;
+        }
+
+        FTTHOrder.logEquipmentTransaction(equipDataNew, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.acaoNovo, true);
+
+        searchDoc.updateStockAction = "remover";
+        var removeEquips = Finder.runSearch("FTTHOrder:EquipmentTransactionsFinder", searchDoc);
+        var nRemoveEquips = (removeEquips) ? removeEquips.length : 0;
+
+        if(ValidateEquipmentDoc.operacao == "Trocar CPE" && nRemoveEquips == 0 && nAddEquips == 0){
+            equipDataOld.numeroSerieEquipamento = ValidateEquipmentDoc.numeroSerieEquipamentoOriginal;
+            equipDataOld.codEquipamento         = ValidateEquipmentDoc.codMaterialOriginal;
+            equipDataOld.nomeCPE                = FTTHCommon.getNomeCPE( ValidateEquipmentDoc.codMaterialOriginal);
+            equipDataOld.flagDadoOriginal       = equipResult.flagDadoOriginal;
+
+            if(ValidateEquipmentDoc.tipoEquipamentoNovo == TIPO_STB){
+                equipDataOld.idAtivo                = equipResult.idAtivo;
+                equipDataOld.possuiDVRIntegrado     = equipResult.possuiDVRIntegrado;
+            }
+
+            FTTHOrder.logEquipmentTransaction(equipDataOld, ValidateEquipmentDoc.operacao, ValidateEquipmentDoc.acaoOriginal, true);
+        }
+    }
+    //end 06/04/2018
+
+    //============================================== METHODS ========================================================
+    function markEquipmentsAsDone(equipamento, ord){
+        var fkEquipment = equipamento.cwDocId;
+        var searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:CPEValidationStatus");
+        searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+        searchDoc.fkEquipment = fkEquipment;
+        searchDoc.equipmentType = ValidateEquipmentDoc.tipoEquipamentoNovo;
+
+        var equipments = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+
+        if(equipments && equipments.length > 0){
+            for(var j = 0; j < equipments.length; j++){
+                if(equipments[j].statusStock == "processado"){
+                    equipments[j].done = true;
+                    equipments[j].save();
+                }
+            }
+        }
+    }
+  ]]></script>
+</script>

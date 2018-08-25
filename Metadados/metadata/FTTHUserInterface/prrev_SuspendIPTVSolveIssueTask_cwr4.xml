@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.SuspendIPTVSolveIssueTask_cwr4">
+  <activity name="SuspendIPTVSolveIssueTaskStart" type="seqActivity">
+    <guid>{b948eb1e-d640-4084-9e7c-92b50c87f8fb}</guid>
+    <label>Suspend IPTV Solve Issue Task Start</label>
+    <x>83.475</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SuspendIPTVSolveIssue" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendIPTVSolveIssue</element>
+        <guid>{f20011a3-cf4a-4eee-8a2e-319c115cd1d1}</guid>
+        <label>Suspend IPTV Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>86.01172</x>
+        <y>130.6414</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{2f0e7fb1-6fd4-43c5-8fb6-150f708440ea}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>31.501465</x>
+        <y>256.74493</y>
+        <childList>
+          <child name="SuspendIPTVSolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendIPTVSolveIssueChangeIssue</element>
+            <guid>{775004c4-d6c2-4d15-a6fd-f7de59d3e8e4}</guid>
+            <label>Suspend IPTV Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>156.52295</x>
+            <y>397.84845</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_IPTV");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="SuspendIPTVSolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationSolveIssueInterface/oper_SuspendIPTVSolveIssueSuccess</element>
+            <guid>{b003a918-b16e-4d0b-b5c5-ed09f803e608}</guid>
+            <label>Suspend IPTV Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+            <x>30.0</x>
+            <y>405.19904</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_IPTV");
+                  activityId = '%' + activityId;
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationSolveIssue" type="participantActivity">
+        <guid>{233d868b-d80b-4ed6-bf96-4e5ab7b53098}</guid>
+        <label>Activation Solve Issue</label>
+        <participant>part_FTTHUserInterface.ActivationSolveIssue</participant>
+        <x>123.53076</x>
+        <y>264.09552</y>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual
+    </p>
+    <p style="margin-top: 0">
+      Bloquear IPTV - Erro tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio
+      WMS, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      sucesso.
+    </p>
+  ]]></description>
+  <label>Suspend IPTV Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.SuspendIPTVSolveIssueTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

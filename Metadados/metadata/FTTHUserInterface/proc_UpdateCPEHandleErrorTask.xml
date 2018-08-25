@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.UpdateCPEHandleErrorTask">
+  <activity name="UpdateCPEHandleErrorTaskStart" type="seqActivity">
+    <guid>{05597e66-0175-4fb1-85d1-b7bebe76ff2f}</guid>
+    <label>Update CPE Handle Error Task Start</label>
+    <x>79.57588</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateCPEHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_UpdateCPEHandleError</element>
+        <guid>{45137c35-cad5-4319-81a9-85321ca5d23d}</guid>
+        <label>Update CPE Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>95.17432</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{78a5cbf0-b57d-4b20-9681-046e33d86f94}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>271.4461</y>
+            <childList>
+              <child name="UpdateCPEHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_UpdateCPEHandleErrorIssue</element>
+                <guid>{3ddb9f1e-f4d0-4cba-9c38-b488acff514d}</guid>
+                <label>Update CPE Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>162.13086</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="UpdateCPEHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_UpdateCPEHandleErrorResend</element>
+                <guid>{5d7bfc32-b64c-458a-9ee3-217f67d19472}</guid>
+                <label>Update CPE Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>47.82715</x>
+                <y>412.54962</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryHandleError" type="participantActivity">
+        <guid>{9305cb6f-ee89-4d22-bb9b-e642b7a203ab}</guid>
+        <label>Inventory Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_EQUIPAMENTO_CLIENTE");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a atualiza&#231;&#227;o de CPE autom&#225;tica n&#227;o tenha sido realizada
+      com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada
+      com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{7bb379f5-690a-4120-ad75-c6d9fcf123b0}</guid>
+  <label>Update CPE Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process>

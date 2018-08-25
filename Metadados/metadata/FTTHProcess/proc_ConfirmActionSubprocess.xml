@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.ConfirmActionSubprocess">
+  <activity name="ConfirmActionStart" type="seqActivity">
+    <guid>{61de67db-e0b7-4c54-b6bc-d45f9fca3dd1}</guid>
+    <label>Confirm Action Start</label>
+    <x>29.208984</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfirmActionAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHInventoryInterface.ConfirmActionAutomaticTask</element>
+        <guid>{196c7dd3-df6a-4cb9-a3d0-071b471306e7}</guid>
+        <label>Confirm Action Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{002ed39f-0359-4eee-940a-ac22d1acbddd}</guid>
+        <label>Check Task Result</label>
+        <x>68.31787</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{52e13913-41e6-4876-bd21-1da5bcb641fe}</guid>
+            <label>Success</label>
+            <x>36.39966</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIRMAR_DESIGNACAO");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{a339ed9a-49d8-4dea-9dc9-6ad1b33fd5cf}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{4d17e4c3-8714-45b1-8a05-b71ae07d0813}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06997</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="ConfirmActionHandleErrorTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.ConfirmActionHandleErrorTask</element>
+                    <guid>{6ef835b9-8fb9-4033-b43d-6274a666dc06}</guid>
+                    <label>Confirm Action Handle Error Task</label>
+                    <x>160.5758</x>
+                    <y>726.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{d2424a42-eea0-4cc9-953f-9bb40ad23603}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.816734</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{63d23c01-dd40-4f78-b39f-e27df55dda3f}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{ec31992a-ee49-4f35-b771-cbe66e9a9816}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.11191</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfirmActionSolveIssueTask" type="subflowActivity">
+                                <element>proc_FTTHHandleIssueProcess.ConfirmActionHandleIssueSubprocess</element>
+                                <guid>{557684cb-4504-4d85-9084-1b420bbe13e8}</guid>
+                                <label>Confirm Action Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>proc_FTTHProcess.ConfirmActionSubprocess/seqActivity_ConfirmActionStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{c8ff8f8c-f670-4f28-9920-7b1673eb45e4}</guid>
+                                <label>Repeat</label>
+                                <x>154.33154</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIRMAR_DESIGNACAO");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{bd0abe49-d7d8-4454-9e29-7de3ba4f7fe6}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>proc_FTTHProcess.ConfirmActionSubprocess/seqActivity_ConfirmActionStart</element>
+                            <guid>{fa29cf21-3e91-4256-8315-678926994984}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade autom&#225;tica &quot;Atualizar CPE&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Invent&#225;rio a solicita&#231;&#227;o de atualiza&#231;&#227;o de CPE. Caso o
+      Invent&#225;rio retorne algum erro, uma atividade manual &#233; gerada para que o
+      usu&#225;rio de tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio
+      poder&#225; finalizar a atividade com reenvio, nesse caso o sistema enviar&#225;
+      uma nova solicita&#231;&#227;o de atualiza&#231;&#227;o de CPE para o sistema de Invent&#225;rio.
+      Ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Atualizar CPE - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <guid>{179a2b7d-781c-467d-a602-32118e03f7ea}</guid>
+  <label>Confirm Action Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process>

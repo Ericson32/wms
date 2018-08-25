@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHCommon.OpenIssuePopUp">
+  <dbSchema>ORDER</dbSchema>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Document respons&#225;vel pelo pop up que dever&#225; ser criado no momento em que
+      a atividade manual &#233; finalizada com pend&#234;ncia.
+    </p>
+  ]]></description>
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{7bbe679e-03c2-48aa-b5ee-346c96856d40}</guid>
+  <label>Open Issue Pop Up</label>
+  <metaVersion>3</metaVersion>
+  <variableList>
+    <variable name="operationWorklist" type="leaf">
+      <label>operationWorklist</label>
+      <valueType>dtype_FTTHCommon.operationWorklist</valueType>
+    </variable>
+    <variable name="possuiIdAtivoAssociado" type="leaf">
+      <label>Boolean</label>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+    </variable>
+    <variable name="idItem" type="leaf">
+      <label>String</label>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+    </variable>
+    <variable name="atividade" type="leaf">
+      <label>Atividade</label>
+      <valueType>dtype_FTTHCommon.atividade</valueType>
+    </variable>
+    <variable name="codPendencia" type="leaf">
+      <label>Codigo de Pendencia</label>
+      <valueType>dtype_FTTHCommon.codigoPendencia</valueType>
+    </variable>
+    <variable name="descPendencia" type="leaf">
+      <label>Descricao da Pendencia</label>
+      <propertyElement type="elslct">
+        <sorted>false</sorted>
+      </propertyElement>
+      <valueType>dtype_FTTHCommon.descricaoPendencia</valueType>
+    </variable>
+    <variable name="tipoPendencia" type="leaf">
+      <label>Tipo de Pendencia</label>
+      <propertyElement type="elslct">
+        <sorted>false</sorted>
+      </propertyElement>
+      <valueType>dtype_FTTHCommon.tipoPendencia</valueType>
+    </variable>
+    <variable name="ba" type="leaf">
+      <label>BA</label>
+      <valueType>dtype_FTTHCommon.BA</valueType>
+    </variable>
+    <variable name="ars" type="leaf">
+      <label>A.R.S.</label>
+      <valueType>dtype_FTTHCommon.ARS</valueType>
+    </variable>
+    <variable name="dataAbertura" type="leaf">
+      <label>Data de Abertura</label>
+      <valueType>dtype_FTTHCommon.dataAbertura</valueType>
+    </variable>
+    <variable name="matriculaUsuario" type="leaf">
+      <label>Matricula do Usuario</label>
+      <valueType>dtype_FTTHCommon.matriculaUsuario</valueType>
+    </variable>
+    <variable name="nomeUsuario" type="leaf">
+      <label>Nome do Usuario</label>
+      <valueType>dtype_FTTHCommon.nomeUsuario</valueType>
+    </variable>
+    <variable name="observacao" type="leaf">
+      <label>Observacao</label>
+      <valueType>dtype_FTTHCommon.observacao</valueType>
+    </variable>
+    <variable name="cwOrderId" type="leaf">
+      <key>1</key>
+      <label>System order ID</label>
+      <valueType>dtype_cwf.cwOrderId</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="validaPopUp" type="crule">
+      <severity>information</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        var campo;
+        var msg = null;
+        var i;
+        var camposObrigatoriosResult;
+        var searchDoc = new Document("FTTHCommon:MandatoryFields");
+
+        var pendenciasQueNaoPermitemCancelamento = ['7001','7003','7008','7009','7015','7019'];
+        var ordem = Order.getOrderById(this.cwOrderId, false);
+
+        if(ordem.OriginalData){
+            var motivoRetirada = ordem.OriginalData[0].ProductData.motivoRetirada;
+            if(motivoRetirada == 'Ação de Cobrança'){
+                var issueDoc = Document.readDoc("FTTHCommon.Issues",this.getValueByName('codPendencia'));
+                var codigoPendencia = String(issueDoc.codPendencia);
+                if (codigoPendencia != null && pendenciasQueNaoPermitemCancelamento.indexOf(codigoPendencia) > -1){
+                    Global.showUserMessage('A pendência ' + codigoPendencia + ' não pode ser inserida. '+
+                    'Não é permitido o cancelamento de uma Ordem de Retirada por motivo de inadimplência (Ação de Cobrança)!');
+                    return true;
+                }
+            }
+        }
+
+        searchDoc.nomeAtividade = "Abrir Pendência";
+        camposObrigatoriosResult  = Finder.runSearch ("FTTHCommon.MandatoryFieldsFinder", searchDoc);
+
+        for (i = 0; i < camposObrigatoriosResult.length; i++){
+                campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+            if(this.getValueByName(campo) == null){
+                    msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+            }
+        }
+
+        if(msg == null){
+            FTTHCommon.ParticipantIssueAction(this);
+            Global.confirmOK();
+        } else{
+            Global.showUserMessage(msg);
+        }
+            return true;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHCommon.OpenIssuePopUp</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="VerticalLayout" type="elvlt">
+                <elementList>
+                  <element name="GridLayout" type="elgrd">
+                    <colWidths>200px</colWidths>
+                    <numOfCols>5</numOfCols>
+                    <elementList>
+                      <element name="issueData" type="elhdr">
+                        <label>Dados da Abertura de Pendência</label>
+                      </element>
+                      <element name="atividade" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_atividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="codPendencia" type="elslct">
+                        <columnSpan>3</columnSpan>
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <label>Pendência (Código - Descrição - Tipo)</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_codPendencia</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="descPendencia" type="elslct">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_descPendencia</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <visible type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </visible>
+                      </element>
+                      <element name="tipoPendencia" type="elslct">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_tipoPendencia</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <visible type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </visible>
+                      </element>
+                      <element name="dataAbertura" type="eldate">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_dataAbertura</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="matriculaUsuario" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_matriculaUsuario</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="nomeUsuario" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_nomeUsuario</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="observacao" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_observacao</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="ars" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_ars</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="ba" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_ba</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="idItem1" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <label>Item ID</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/leaf_idItem</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                  <element name="GridLayout1" type="elgrd">
+                    <numOfCols>2</numOfCols>
+                    <elementList>
+                      <element name="CancelButton" type="elbtn">
+                        <clickMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uimthd_onCancel</variablePath>
+                          </variablePathList>
+                        </clickMethod>
+                        <label>Cancel</label>
+                      </element>
+                      <element name="OKButton" type="elbtn">
+                        <clickMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenIssuePopUp/ui_UserInterface/uimthd_onSubmit</variablePath>
+                          </variablePathList>
+                        </clickMethod>
+                        <label>OK</label>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</base>
+            <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfSave" type="elmnu">
+                <clickMethod type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.DocumentUserInterface/usrActionMethod_save</variablePath>
+                  </variablePathList>
+                </clickMethod>
+                <icon>/cwf/MenuIconSave.gif</icon>
+                <label>Save</label>
+                <tooltip>Save</tooltip>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>doc_com.conceptwave.system.Document/ui_UserInterface/uivar_model</variablePath>
+                    <variablePath>doc_com.conceptwave.system.Document/permMethod_cwfSaveView</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="hl1" type="elhlt">
+                <alignment>left,center</alignment>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="onSubmit" type="uimthd">
+        <valueType>ui_com.conceptwave.system.Window</valueType>
+        <script><![CDATA[
+          var campo;
+          var msg = null;
+          var i;
+          var camposObrigatoriosResult;
+          var searchDoc = new Document("FTTHCommon:MandatoryFields");
+
+          var pendenciasQueNaoPermitemCancelamento = ['7001','7003','7008','7009','7015','7019'];
+          var ordem = Order.getOrderById(this.model.cwOrderId, false);
+
+          if(ordem.OriginalData){
+              var motivoRetirada = ordem.OriginalData[0].ProductData.motivoRetirada;
+              if(motivoRetirada == 'Ação de Cobrança'){
+                  var issueDoc = Document.readDoc("FTTHCommon.Issues",this.model.getValueByName('codPendencia'));
+                  var codigoPendencia = String(issueDoc.codPendencia);
+                  if (codigoPendencia != null && pendenciasQueNaoPermitemCancelamento.indexOf(codigoPendencia) > -1){
+                      Global.showUserMessage('A pendência ' + codigoPendencia + ' não pode ser inserida. '+
+                      'Não é permitido o cancelamento de uma Ordem de Retirada por motivo de inadimplência (Ação de Cobrança)!');
+                      return true;
+                  }
+              }
+          }
+          searchDoc.nomeAtividade = "Abrir Pendência";
+          camposObrigatoriosResult  = Finder.runSearch ("FTTHCommon.MandatoryFieldsFinder", searchDoc);
+
+          for (i = 0; i < camposObrigatoriosResult.length; i++){
+              campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+              if(this.model.getValueByName(campo) == null){
+                  msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+              }
+          }
+
+          if(msg == null){
+              FTTHCommon.ParticipantIssueAction(this.model);
+
+              var userTask = UserProfile.getUserTask();
+
+              if(!(ordem && ordem.ManualActivityData && ordem.ManualActivityData.length > 0)){
+                  return Global.confirmOK();
+              }
+
+              if(!(ordem.ManualActivityData[ordem.ManualActivityData.length -1].ManualActivityData.numeroBA
+                  && (userTask == "FTTHUserInterface.ClickManualActivityInterface/BAOpenningOperation"
+                       || userTask == "FTTHUserInterface.ClickManualActivityInterface/BAJumperOpeningOperation"))){
+                  return Global.confirmOK();
+              }
+
+              //Ajustes para a correção do defeito PRJ14008#932 - 07/03/2018
+              //pegar a worklist
+              var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+              searchDoc.OrderId = this.model.cwOrderId;
+              var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+              var isSuccess = FTTHClickInterface.encerramentoExterno(worklist[0]);
+
+              if(isSuccess){
+                  return Global.confirmOK();
+              } else{
+                  this.cwChildDialogClose(this);
+
+                  return Global.STOP_UI;
+              }
+          }
+          else{
+              Global.showUserMessage(msg);
+          }
+
+          return true;
+        ]]></script>
+      </method>
+      <method name="onCancel" type="uimthd">
+        <script>return Global.STOP_UI;</script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

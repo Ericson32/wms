@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHHandleIssueProcess.createScheduleIssue">
+  <label>Create Schedule Issue</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var newPendencyDoc;
+    var userId = UserProfile.userId();
+    var userDoc = UserProfile.getUserProfile(userId);
+    var matriculaUsuario = Global.trim(userDoc.profileId);
+    var nomeUsuario = Global.trim(userDoc.userName);
+    var searchDoc1 = new Document ("FTTHCommon:Issues");
+    searchDoc1.codPendencia = "7029";
+    var dadosPendenciaResult  = Finder.runSearch ("FTTHCommon.IssuesFinder", searchDoc1);
+
+    //searchDoc.status = 'WAIT';
+
+    newPendencyDoc = new Document ("FTTHCommon.OpenIssuePopUp");
+    newPendencyDoc.atividade = "CONSULTA_AGENDAMENTO"
+    newPendencyDoc.codPendencia = dadosPendenciaResult[0].cwDocId;
+    newPendencyDoc.observacao = "CONSULTA DE AGENDAMENTO";
+    newPendencyDoc.dataAbertura = new Date();
+    newPendencyDoc.matriculaUsuario = matriculaUsuario;
+    newPendencyDoc.nomeUsuario = nomeUsuario;
+    newPendencyDoc.idItem =  order.ProductData.idPromocao;
+    newPendencyDoc.cwOrderId = order.id
+    newPendencyDoc.possuiIdAtivoAssociado = false;
+    newPendencyDoc.tipoPendencia = dadosPendenciaResult[0].tipoPendencia;
+    newPendencyDoc.descPendencia = dadosPendenciaResult[0].descPendencia;
+    var orderIssueDataDoc = FTTHCommon.ParticipantIssueAction(newPendencyDoc);
+    return orderIssueDataDoc;
+  ]]></script>
+</script>

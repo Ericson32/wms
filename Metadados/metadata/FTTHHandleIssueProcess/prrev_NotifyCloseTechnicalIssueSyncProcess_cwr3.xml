@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess_cwr3">
+  <activity name="Start" type="seqActivity">
+    <guid>{81134454-a7d1-49e1-a570-06a66523032e}</guid>
+    <label>Start</label>
+    <x>38.020508</x>
+    <y>30.0</y>
+    <childList>
+      <child name="CloseIssueSend" type="scriptActivity">
+        <guid>{b6989524-d4d0-41cf-849b-527495296a7a}</guid>
+        <label>Close Issue Send</label>
+        <x>30.0</x>
+        <y>122.0</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var ultimo =  process.processOrder.IssueData.length;
+              var issueDoc = process.processOrder.IssueData[ ultimo-2].IssueData;
+              //issueDoc.idProcesso = this.process.id;
+              issueDoc.flagIssueStatus = 1;
+              issueDoc.dataFechamento = new Date();
+              issueDoc.processIdSignal = process.id;
+              issueDoc.save();
+              Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="WaitCloseTechIssue" type="syncActivity">
+        <element>signal_FTTHHandleIssueProcess.technicalIssueChangeReady</element>
+        <guid>{772bf909-83e7-46b5-aa8e-cde140019d8f}</guid>
+        <label>Wait Close Tech Issue</label>
+        <x>30.673828</x>
+        <y>233.40234</y>
+      </child>
+    </childList>
+  </activity>
+  <label>Notify CloseTechnical Issue</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</process>
+  <revision>3</revision>
+  <type>User</type>
+</process__revision>

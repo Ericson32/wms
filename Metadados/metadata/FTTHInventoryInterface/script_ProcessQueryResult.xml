@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHInventoryInterface.ProcessQueryResult">
+  <label>Process Query Result</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processID" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="retornoConsulta" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      estrutura de retorno das consultas Fisica, Logica 1 ou 2&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHInventoryInterface.response</type>
+    </parameter>
+    <parameter name="tipo" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      fisica, logica1 ou logica2&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    funcao para tratamento dos retornos de consulta ao NetWin
+
+    parametros:
+    order                (this.process.processOrder) tipo FTTHOrder.FTTHOrder
+    processID            (this.process.id)           transacao no OM     tipo string
+    retornoConsulta      (this.activity)             tipo FTTHInventoryInterface.response
+    tipo:     tipo de consulta realizada
+    CONSULTAR_FACILIDADE_FISICA(_NOVA)
+    CONSULTAR_FACILIDADE_LOGICA_1(_NOVA)
+    CONSULTAR_FACILIDADE_LOGICA_2(_NOVA)
+    ----------------------------------------------------------
+    */
+
+
+    //MS - marcossouza@br.ibm.com - 16/12/2017 - Correção defeito PRJ14008#558
+    //28/04/2018 - Correção defeito PRJ21699#294
+    var isMudancaEndereco = false;
+    var orderType = order.OrderHeader.tipoOS;
+    //end 28/04/2018
+    var isReparo = false;
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = order.OrderHeader.cwOrderId;
+
+    var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+
+    if (orderRequest.size > 0) {
+        for (var i = 0; i < orderRequest.size; i++) {
+            var solicitacao = orderRequest[i];
+            //MS - marcossouza@br.ibm.com - PRJ17683 - 26/07/2017
+            if(solicitacao.tipoOrdemServico == "TIPO_ORDEM_REPARO"){
+                isReparo = true;
+                break;
+            }
+            //28/04/2018 - Correção defeito PRJ21699#294
+            if(solicitacao.idSolicitacao == "MUDANCA_ENDERECO"){
+                isMudancaEndereco = true;
+            }
+            //end 28/04/2018
+        }
+    }
+    //end MS
+
+    //Parametros de LOG
+    var LOG_INTERFACE = "INVENTORY";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_INVENTORY');
+    var LOG_ACTIVITY = tipo;
+    var LOG_SCRIPT = "ProcessQueryResult";
+    var LOG_OPERATION = "Listener";
+
+    if (retornoConsulta.attributeList == null || retornoConsulta.attributeList.attribute == null || retornoConsulta.attributeList.attribute.length == 0) {
+        var LOG_MSG = "Consulta retorna a lista de atributos vazia.";
+        FTTHCommon.log( order.id, retornoConsulta.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        retornoConsulta.code='-1000';
+        retornoConsulta.description=LOG_MSG;
+        return retornoConsulta;
+    } else {
+        var searchDoc = new Document('FTTHInventoryInterface:AttributeInventory');
+        var operacao;
+        var caminhoFibra = null;
+        if (tipo.startsWith('CONSULTAR_FACILIDADE_FISICA')) {
+            operacao = 'RETORNO_FACILIDADE_FISICA';
+            if( retornoConsulta.caminhoFibra){
+                for (var i = 0; i < retornoConsulta.caminhoFibra.attributeList.attribute.length; i++) {
+                    caminhoFibra = new Document("FTTHOrder:CaminhoDaFibra");
+                    caminhoFibra.cwOrderId = order.id;
+                    caminhoFibra.valor = retornoConsulta.caminhoFibra.attributeList.attribute[i].value;
+                    caminhoFibra.campo = retornoConsulta.caminhoFibra.attributeList.attribute[i].name;
+
+                    if (tipo.endsWith('NOVA')) {
+                        caminhoFibra.flagDadoOriginal = "N";
+                    } else if (tipo.endsWith('ORIGINAL')) {
+                        caminhoFibra.flagDadoOriginal = "O";
+                    }
+                    caminhoFibra.save();
+                }
+            }
+        } else if (tipo.startsWith('CONSULTAR_FACILIDADE_LOGICA_1')) {
+            operacao = 'RETORNO_FACILIDADE_LOGICA_1';
+        } else if (tipo.startsWith('CONSULTAR_FACILIDADE_LOGICA_2')) {
+            operacao = 'RETORNO_FACILIDADE_LOGICA_2';
+        } else {
+            var LOG_MSG = "Tipo de consulta [" + tipo + "] incorreta";
+            FTTHCommon.log(order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR");
+            retornoConsulta.code='-1000';
+            retornoConsulta.description="Tipo de consulta [" + tipo + "] incorreta";
+            return retornoConsulta;
+        }
+
+        if (tipo.endsWith('NOVA')) {
+            operacao = operacao + '_NOVA';
+        } else if (tipo.endsWith('ORIGINAL')) {
+            operacao = operacao + '_ORIGINAL';
+        }
+
+        searchDoc.operacao = operacao;
+        searchDoc.idOS = order.id;
+        var atributos = Finder.runSearch('FTTHInventoryInterface:AttributeFinder', searchDoc);
+        var invalidFields = new Array();
+        if(atributos.length > 0){
+            for (var i = 0; i < retornoConsulta.attributeList.attribute.length; i++){
+                var valor = retornoConsulta.attributeList.attribute[i].value;
+                if(valor){
+                    var foundVal = false;
+                    for (var j = 0; j < atributos.length; j++){
+                        if(retornoConsulta.attributeList.attribute[i].name == atributos[j].identificadorCampo){
+                            var saida = FTTHCommon.getDocument(order,atributos[j].nomeDocumento,atributos[j].enviarDadoOriginal);
+                            saida.putValueByName(atributos[j].identificadorCampo, valor);
+                            saida.save();
+                            //28/04/2018 - correção defeito PRJ21699#294
+                            if(orderType == "TIPO_ORDEM_MODIFICACAO" && !isMudancaEndereco){
+                                if(tipo == "CONSULTAR_FACILIDADE_FISICA_ORIGINAL" && atributos[j].nomeDocumento == "Facility Data"){
+                                    var docNewFacility = FTTHCommon.getDocument(order, atributos[j].nomeDocumento, false);
+                                    if(docNewFacility){
+                                        if(atributos[j].identificadorCampo == "ICX" || atributos[j].identificadorCampo == "BSP" || atributos[j].identificadorCampo == "DGO"){
+                                            docNewFacility.putValueByName(atributos[j].identificadorCampo, valor);
+                                            docNewFacility.save();
+                                            }
+                                        }
+                                    }
+                                }
+                                //end 28/04/2018
+
+                                //MS - marcossouza@br.ibm.com - 16/12/2017 - Correção defeito PRJ14008#558
+                                if(isReparo){
+                                    if(atributos[j].nomeDocumento == "Address Data" || atributos[j].nomeDocumento == "Facility Data" || atributos[j].nomeDocumento == "Product Data") {
+                                        var docNovo = FTTHCommon.getDocument(order,atributos[j].nomeDocumento, false);
+                                        docNovo.putValueByName(atributos[j].identificadorCampo, valor);
+                                        docNovo.save();
+                                    }
+                                }
+                                //end MS
+
+                                foundVal = true;
+                                break;
+                            }
+                        }
+                        if(!foundVal){
+                            invalidFields.push(retornoConsulta.attributeList.attribute[i].name);
+                        }
+                        if(i == retornoConsulta.attributeList.attribute.length-1 && invalidFields.length > 0 ){
+                            var LOG_MSG = "Consulta com campo [" + invalidFields + "] invÃ¡lido;\n";
+                            FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                            retornoConsulta.code='-1000';
+                            retornoConsulta.description=LOG_MSG;
+                            return retornoConsulta;
+                        }
+                    }else{
+                        var LOG_MSG = "Consulta com campo [" + retornoConsulta.attributeList.attribute[i].name + "] sem valor.";
+                        FTTHCommon.log( order.id, retornoConsulta.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null, LOG_INTERFACE, LOG_NIVEL, "INFO" );
+                    }
+                }
+                order.save();
+            } else {
+                var LOG_MSG = "Ambiente sem atributos cadastrados para a operacao [" + searchDoc.operacao + "].";
+                FTTHCommon.log( order.id, retornoConsulta.correlationId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                retornoConsulta.code='-1000';
+                retornoConsulta.description=LOG_MSG;
+                return retornoConsulta;
+            }
+            var passouValidacao = true;
+            for (var i = 0; i < atributos.length; i++){
+                if(atributos[i].obrigatoriedade){
+                    //Correção j -> i
+                    var saida = FTTHCommon.getDocument(order,atributos[i].nomeDocumento,atributos[i].enviarDadoOriginal);
+                    var valor = saida.getValueByName(atributos[i].identificadorCampo);
+                    if (valor == null){
+                        var LOG_MSG = "Campo [" + atributos[i].identificadorCampo + "] obrigatório sem valor na consulta [" + tipo + "]; \n";
+                        FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                        passouValidacao = false;
+                    }
+                }
+            }
+            if(!passouValidacao){
+                retornoConsulta.code='-1000';
+                retornoConsulta.description=LOG_MSG;
+                return retornoConsulta;
+            }
+    }
+
+    var LOG_MSG = "Consulta realizada com sucesso";
+    FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null, LOG_INTERFACE, LOG_NIVEL, "DEBUG" );
+    retornoConsulta.code='0';
+    retornoConsulta.description=LOG_MSG;
+    return retornoConsulta;
+  ]]></script>
+</script>

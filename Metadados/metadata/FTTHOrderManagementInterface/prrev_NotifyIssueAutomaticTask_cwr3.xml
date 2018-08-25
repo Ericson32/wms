@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHOrderManagementInterface.NotifyIssueAutomaticTask_cwr3">
+  <activity name="NotifyIssueStart" type="seqActivity">
+    <guid>{833848a5-2dfc-42a6-8b9d-fee583edc372}</guid>
+    <label>Notify Issue Start</label>
+    <x>109.1707</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyIssueOperation" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMSenderInterface/oper_NotifyOperation</element>
+        <guid>{ea7d68c6-aa13-4b62-8b3b-ae0e6867b9b8}</guid>
+        <label>Notify Issue Operation</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>175.39258</x>
+        <y>122.0</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var docNotificacao = this.process.processDocument;
+              var msg = FTTHOrderManagementInterface.CreateNotifyIssueMessage(docNotificacao, this.activityData);
+              this.process.processDocument.pendenciaNotificada = false;
+              FTTHCommon.log(null, this.process.id, "Notify Issue", "Notify Issue Send Operation", "cwOnProcActBefore", msg.toXML());
+
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(null, this.process.id, "Notify Issue", "Notify Issue Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+              this.process.processDocument.pendenciaNotificada = true;
+              var docNotificacao = this.process.processDocument;
+              var msgLogDoc = UserProfile.getMsgLogDoc();
+              if(msgLogDoc != null) {
+                  msgLogDoc.userData1 = docNotificacao.numeroPedido;
+                  msgLogDoc.userData2 = docNotificacao.numeroOS;
+                  msgLogDoc.save();
+              }
+
+              var status;
+              if(docNotificacao.statusPendencia == "Aberta") {
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+              } else {
+                  status = Global.getConfigVariable("ACTIVITY_MANUAL");
+              }
+
+              //var ord = Order.getOrderById(docNotificacao.cwOrderId);
+
+              FTTHCommon.saveEvent(docNotificacao.cwOrderId, Global.getConfigVariable("OM_SYSTEM"), Global.getConfigVariable("NOTIFY_ISSUE"), status, this.activityData.code, this.activityData.description, this.process.id, Global.getConfigVariable("SYNC_REQUEST"));
+              //FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, Global.getConfigVariable("OM_SYSTEM"), Global.getConfigVariable("NOTIFY_ISSUE"));
+              //FTTHCommon.updateAutomaticActivityDocument(ord, Global.getConfigVariable("OM_SYSTEM"), Global.getConfigVariable("NOTIFY_ISSUE"));
+              FTTHCommon.setStatusOrder(docNotificacao.cwOrderId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="NotifyIssueComplete" type="completeActivity">
+        <guid>{7f8dc0e5-d7bb-41c6-9d8d-f0c877d59473}</guid>
+        <label>Notify Issue Complete</label>
+        <x>268.95575</x>
+        <y>248.40234</y>
+      </child>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{6a6c00c6-cef7-409b-b461-e1c6a06b832f}</guid>
+        <label>exceptionHandler</label>
+        <x>30.0</x>
+        <y>129.35059</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script>this.process.processDocument.pendenciaNotificada= false;</script>
+          </method>
+        </methodList>
+      </child>
+      <child name="OMSenderParticipant" type="participantActivity">
+        <guid>{7b930bd7-9a8e-4dc1-984e-be23a96d936e}</guid>
+        <label>OM Sender Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>102.955734</x>
+        <y>248.40234</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <document>doc_FTTHOrderManagementInterface.IssueNotification</document>
+  <label>Notify Issue Automatic Task</label>
+  <metaVersion>3</metaVersion>
+  <parentProcessDoc>true</parentProcessDoc>
+  <priority>8</priority>
+  <process>proc_FTTHOrderManagementInterface.NotifyIssueAutomaticTask</process>
+  <revision>3</revision>
+  <type>User</type>
+</process__revision>

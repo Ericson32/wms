@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.OpenBASGFTSubprocess_cwr1">
+  <activity name="BAOpeningStart" type="seqActivity">
+    <guid>{cabc9a4f-3f9e-4a0f-b5cd-a4f9492da328}</guid>
+    <label>BA Opening Start</label>
+    <x>107.1978</x>
+    <y>646.22675</y>
+    <childList>
+      <child name="BAOpeningAutomaticTaskStart" type="seqActivity">
+        <guid>{fb5f0f2c-4c3e-4db8-90d6-ac09006c0457}</guid>
+        <label>BA Opening Automatic Task Start</label>
+        <x>140.25961</x>
+        <y>755.5774</y>
+        <childList>
+          <child name="BAOpeningSendOperation" type="opActivity">
+            <element>iface_FTTHUserInterface.SGFTManualActivityInterface/oper_SGFTBAOpenning</element>
+            <guid>{5aa7d9bf-ae75-4aa9-a432-cd3718af6f2d}</guid>
+            <label>BA Opening Send Operation</label>
+            <participant>part_FTTHUserInterface.SGFTManualActivity</participant>
+            <x>161.52315</x>
+            <y>856.2188</y>
+            <childList>
+              <child name="CheckBAOpeningStatus" type="switchActivity">
+                <guid>{cdf4aef4-ec28-449d-bfe2-efe078dfd917}</guid>
+                <label>Check BA Opening Status</label>
+                <x>99.00488</x>
+                <y>997.02344</y>
+                <childList>
+                  <child name="Error" type="caseActivity">
+                    <guid>{43c9a23f-6dbe-4f70-93ed-7d0245a49d17}</guid>
+                    <label>Error</label>
+                    <x>127.35156</x>
+                    <y>489.54962</y>
+                    <childList>
+                      <child name="ErrorStart" type="seqActivity">
+                        <guid>{ee1775e2-6573-4537-a9ba-83f7facf075b}</guid>
+                        <label>Error Start</label>
+                        <x>68.60376</x>
+                        <y>1142.4476</y>
+                        <childList>
+                          <child name="verifyWorklist" type="scriptActivity">
+                            <guid>{a3e9f656-75de-4d73-9b5d-4243b00433c7}</guid>
+                            <label>Verify Worklist</label>
+                            <x>69.272705</x>
+                            <y>1253.4695</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var ord = this.process.processOrder;
+                                  var orderId = ord.OrderHeader.cwOrderId;
+
+                                  var activityId = 'SOLICITAR_ABERTURA_BA_SGFT';
+                                  var atividadeManual = ord.ManualActivityData[ord.ManualActivityData.length - 1].ManualActivityData;
+                                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                                  if(result !=  Global.getConfigVariable("ACTIVITY_RETURN_WAIT")){
+                                      //pegar a worklist
+                                      var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+                                      searchDoc.OrderId = orderId;
+
+                                      var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+                                      if(worklist){
+                                          Process.performWorklistAction(worklist[0], null, "SGFTBAAutomaticClosingIssue", false, ord, null);
+                                      }
+                                      //Se ocorreu erro ao abrir BA, a mensagem será reenviada, porém a atividade manual não pode estar como encerrada!
+                                      if(result == "OPEN_BA_ERROR")
+                                      {
+                                          atividadeManual.statusAtividade = 0;
+                                          atividadeManual.dataFechamento = null;
+                                          atividadeManual.save();
+                                      }
+                                      //Process.performWorklistAction(Document wDoc, Document mDoc, String operation, Boolean close, Order order, Object cObj)
+                                      //Process.performWorklistAction(worklistDoc, null, "finalizarComPendenciaFixo", false, ord, confirm);
+                                  }
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                          <child name="CheckTheTypeOfError" type="switchActivity">
+                            <guid>{79cc00b2-a595-4f89-a7db-69bffd29ac2e}</guid>
+                            <label>Check the type of error</label>
+                            <x>58.25708</x>
+                            <y>1379.573</y>
+                            <childList>
+                              <child name="TechnicalErrorOrFunctionalErrorWithoutBANumber" type="caseActivity">
+                                <guid>{f8cec5bf-1cd3-4d13-9be7-300aded27cfc}</guid>
+                                <label>Technical Error or Functional Error without BA number</label>
+                                <x>558.16376</x>
+                                <y>947.09924</y>
+                                <childList>
+                                  <child name="CheckNeedToResendStart" type="seqActivity">
+                                    <guid>{9bb04e3e-a887-429f-9adc-4debad71fea0}</guid>
+                                    <label>Check Need To Resend Start</label>
+                                    <x>124.34121</x>
+                                    <y>1521.6465</y>
+                                    <childList>
+                                      <child name="checkNeedToResend" type="switchActivity">
+                                        <guid>{c39c50f6-5070-4857-bd26-4c7b1138ad8f}</guid>
+                                        <label>Check Need To Resend</label>
+                                        <x>183.32932</x>
+                                        <y>30.0</y>
+                                        <childList>
+                                          <child name="yes" type="caseActivity">
+                                            <guid>{8c43940b-5d4c-422e-91f3-fe06557368f0}</guid>
+                                            <label>Yes</label>
+                                            <x>81.86963</x>
+                                            <y>629.175</y>
+                                            <childList>
+                                              <child name="Resend" type="repeatActivity">
+                                                <element>prrev_FTTHProcess.OpenBASGFTSubprocess_cwr1/seqActivity_BAOpeningStart/seqActivity_BAOpeningAutomaticTaskStart</element>
+                                                <guid>{9f715376-5f30-44ab-a517-45c720b8ba5d}</guid>
+                                                <label>Resend</label>
+                                                <x>73.871826</x>
+                                                <y>406.37027</y>
+                                              </child>
+                                            </childList>
+                                            <methodList>
+                                              <method name="cwOnProcActCond" type="action">
+                                                <category>cond</category>
+                                                <system>true</system>
+                                                <script><![CDATA[
+                                                  var ord = this.process.processOrder;
+                                                  var orderId = ord.OrderHeader.cwOrderId;
+
+                                                  var activityId = Global.getConfigVariable("SOLICITAR_ABERTURA_BA_SGFT");
+
+                                                  if(FTTHCommon.getStatusActivity(orderId, activityId) ==  Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR")){
+                                                      return (!(FTTHActivationInterface.checkRuleRetryTask(process.processOrder.OrderHeader.cwOrderId, activityId, Global.getConfigVariable("SGFT_SYSTEM"))));
+                                                  }
+
+                                                  return false;
+                                                ]]></script>
+                                              </method>
+                                            </methodList>
+                                          </child>
+                                          <child name="no" type="caseActivity">
+                                            <guid>{d2eac210-50ec-4dbe-8052-c2de6909f8f9}</guid>
+                                            <label>No</label>
+                                            <x>116.02539</x>
+                                            <y>879.33026</y>
+                                            <childList>
+                                              <child name="BAOpeningHandleErrorStart" type="seqActivity">
+                                                <guid>{1fb81e3f-f16c-4203-87bf-cca190a4fc21}</guid>
+                                                <label>BA Opening Handle Error Start</label>
+                                                <x>171.66075</x>
+                                                <y>156.10352</y>
+                                                <childList>
+                                                  <child name="BAOpeningHandleError" type="opActivity">
+                                                    <element>iface_FTTHUserInterface.SGFTHandleErrorInterface/oper_BAOpenningHandleError</element>
+                                                    <guid>{38456060-1592-458e-9347-6b31cdb3491c}</guid>
+                                                    <label>BA Opening Handle Error</label>
+                                                    <participant>part_FTTHUserInterface.SGFTHandleError</participant>
+                                                    <x>177.80217</x>
+                                                    <y>250.86441</y>
+                                                  </child>
+                                                  <child name="BAOpeningResend" type="opActivity">
+                                                    <element>iface_FTTHUserInterface.SGFTHandleErrorInterface/oper_BAOpenningHandleErrorResend</element>
+                                                    <guid>{b39200e8-040a-46ca-851e-ce2638522221}</guid>
+                                                    <label>BA Opening Resend</label>
+                                                    <participant>part_FTTHUserInterface.SGFTHandleError</participant>
+                                                    <x>199.83864</x>
+                                                    <y>517.77264</y>
+                                                    <childList>
+                                                      <child name="Resend" type="repeatActivity">
+                                                        <element>prrev_FTTHProcess.OpenBASGFTSubprocess_cwr1/seqActivity_BAOpeningStart/seqActivity_BAOpeningAutomaticTaskStart</element>
+                                                        <guid>{e57c332f-6da9-4000-8d4f-28c53805db06}</guid>
+                                                        <label>Resend</label>
+                                                        <x>214.55249</x>
+                                                        <y>643.87616</y>
+                                                      </child>
+                                                    </childList>
+                                                  </child>
+                                                </childList>
+                                              </child>
+                                            </childList>
+                                          </child>
+                                        </childList>
+                                      </child>
+                                    </childList>
+                                  </child>
+                                </childList>
+                              </child>
+                              <child name="FunctionalErrorWithBANumber" type="caseActivity">
+                                <guid>{5964d719-def2-4152-bfa1-310d6089ac71}</guid>
+                                <label>Functional Error with BA number</label>
+                                <x>464.13837</x>
+                                <y>947.09924</y>
+                                <childList>
+                                  <child name="NotifyFunctionalErrorWithBAAutomaticTaskStart" type="seqActivity">
+                                    <guid>{a2349d60-d7cc-4af2-820d-36c246b0fb6a}</guid>
+                                    <label>Notify Functional Error with BA Automatic Task Start</label>
+                                    <x>25.93496</x>
+                                    <y>1515.7661</y>
+                                    <childList>
+                                      <child name="NotifyFunctionalErrorWithBAAutomaticTask" type="subflowActivity">
+                                        <element>prrev_FTTHProcess.NotifyActivityTicketEnrichment_cwr1</element>
+                                        <guid>{a7762e69-2f9a-457a-a4ae-323a7337cec1}</guid>
+                                        <label>Notify Functional Error with BA Automatic Task</label>
+                                        <x>30.0</x>
+                                        <y>1632.0789</y>
+                                      </child>
+                                      <child name="Complete" type="completeActivity">
+                                        <guid>{a1147d80-a9f4-4c37-ab4b-9ae901eb927f}</guid>
+                                        <label>Complete</label>
+                                        <x>32.01172</x>
+                                        <y>1802.2859</y>
+                                      </child>
+                                    </childList>
+                                  </child>
+                                </childList>
+                                <methodList>
+                                  <method name="cwOnProcActCond" type="action">
+                                    <category>cond</category>
+                                    <system>true</system>
+                                    <script><![CDATA[
+                                      //Se erro tecnico ou erro funcional sem numero BA, então atividade manual, senao erro funcional com numero BA notifica CRM
+                                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                                      var activityId = Global.getConfigVariable("SOLICITAR_ABERTURA_BA_SGFT");
+                                      var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+
+                                      var hasError = (result == Global.getConfigVariable("ACTIVITY_RETURN_TECHNICAL_ERROR") || result == Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR"));
+                                      var hasBANumber = false;
+
+                                      if(hasError){
+                                          if(process.processOrder.SRTicketActivityData){
+                                              if(process.processOrder.SRTicketActivityData[0].SRTicketActivityData){
+                                                  hasBANumber = process.processOrder.SRTicketActivityData[0].SRTicketActivityData.numBA != null;
+                                              }
+                                          }
+
+                                      }
+
+                                      return hasError && hasBANumber;
+                                    ]]></script>
+                                  </method>
+                                </methodList>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                  <child name="Success" type="caseActivity">
+                    <guid>{f54aa0c2-58c5-4f37-b940-61e6e172f211}</guid>
+                    <label>Success</label>
+                    <x>30.0</x>
+                    <y>496.9002</y>
+                    <childList>
+                      <child name="NotifyBAOpeningAutomaticTaskStart" type="seqActivity">
+                        <guid>{80dbec7e-b37e-4bef-bb67-bf5436bc2fdb}</guid>
+                        <label>Notify BA Opening AutomaticTask Start</label>
+                        <x>172.88222</x>
+                        <y>1138.127</y>
+                        <childList>
+                          <child name="NotifyBAOpeningAutomaticTask" type="subflowActivity">
+                            <element>prrev_FTTHProcess.NotifyActivityTicketEnrichment_cwr1</element>
+                            <guid>{485a622e-8cd9-4fc0-bc77-d6438d6a64c0}</guid>
+                            <label>Notify BA Opening Automatic Task</label>
+                            <x>181.69041</x>
+                            <y>1238.7683</y>
+                          </child>
+                          <child name="WaitBAClosingStart" type="seqActivity">
+                            <guid>{399e0f43-5289-431a-b253-279c5f87c10c}</guid>
+                            <label>Wait BA Closing Start</label>
+                            <x>177.69783</x>
+                            <y>1387.8937</y>
+                            <childList>
+                              <child name="automaticCloseBASuccess" type="opActivity">
+                                <element>iface_FTTHUserInterface.SGFTManualActivityInterface/oper_SGFTBAAutomaticClosingSuccess</element>
+                                <guid>{91142658-ce4f-4383-84e7-e4ee78a31765}</guid>
+                                <label>Automatic Close BA Success</label>
+                                <participant>part_FTTHUserInterface.SGFTManualActivity</participant>
+                                <x>279.25854</x>
+                                <y>1505.9753</y>
+                              </child>
+                            </childList>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var activityId = Global.getConfigVariable("SOLICITAR_ABERTURA_BA_SGFT");
+                          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                          return (result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"));
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  /*
+                  AUTHOR:        Marcos Souza - marcossouza@br.ibm.com
+                  DESCRIPTION:   Script responsável pela criação do BA pelo SGFT
+                  */
+
+
+                  var msg = FTTHSGFTInterface.createMessageToSGFT(this.process.processOrder, "SOLICITAR_ABERTURA_BA_SGFT", this.process.id, this.activityData);
+
+                  //Atualizando o status da Ordem de Serviço
+                  FTTHCommon.setStatusOrder(this.process.processOrder.id, Global.getConfigVariable("ACTIVITY_AUTOMATIC"));
+
+                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Activity Ticket Opening Automatic Task", "Activity Ticket Opening Send Operation", "cwOnProcActBefore", msg.toXML());
+                  var messageDoc = new Document("cwf_pm:messageLog");
+                  messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+                  messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+                  messageDoc.userData3 = this.process.processOrder.order.id;
+                  UserProfile.setMsgLogDoc(messageDoc);
+
+                  var atividade = Global.getConfigVariable("SOLICITAR_ABERTURA_BA_SGFT");
+                  var sistema = Global.getConfigVariable("SGFT_SYSTEM");
+
+                  try{
+                      var syncResp = Global.invokeInterface("FTTHSGFTInterface:SolicitarAberturaBA", "SolicitarAberturaBA", msg)[0];
+
+                      if(syncResp && syncResp.ResponseControl){
+                          var response = FTTHSGFTInterface.ProcessResponse(this.process.processOrder, this.process.id, syncResp, 'SOLICITAR_ABERTURA_BA_SGFT');
+
+                          //Status da atividade
+                          var status = FTTHCommon.defineStatusAutomaticActivity(syncResp.ResponseControl.code, Global.getConfigVariable("SGFT_SYSTEM"));
+
+                          if (status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                              status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+                          }
+
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                          FTTHCommon.saveEvent(this.process.processOrder.id,
+                          sistema,
+                          atividade,
+                          status,
+                          syncResp.ResponseControl.code,
+                          syncResp.ResponseControl.detail,
+                          this.process.id,
+                          Global.getConfigVariable("SYNC_REQUEST"));
+
+                          FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+
+                      } else{
+                          FTTHCommon.log(this.process.processOrder.id, this.process.id, "Activity Ticket Opening Automatic Task", "Activity Ticket Opening Send Operation - mensagem recebida", "cwOnProcActBefore", "Interface com SGFT não pode ser invokada");
+
+                          FTTHCommon.saveEvent(this.process.processOrder.id,
+                          sistema,
+                          atividade,
+                          "TIMEOUT",
+                          "-1",//syncResp.operationReturn.code,
+                          "SGFT FORA",//syncResp.operationReturn.description,
+                          this.process.id,
+                          Global.getConfigVariable("SYNC_REQUEST"));
+
+                          var status = Global.getConfigVariable("ACTIVITY_RETURN_TECHNICAL_ERROR");
+
+                          if (status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                              status = Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR");
+                          }
+
+                          FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                          FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+                      }
+
+                  } catch(e){
+                      var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+                      var LOG_ACTIVITY = "Criação ou Atulização de BA";
+                      var LOG_SCRIPT = "BAOpenningSendOperation";
+                      var ONT_OPERATION = "BAOpenningSendOperation";
+                      var LOG_MSG = "Erro ao invocar interface para criação ou atualização de BA do SGFT";
+
+                      FTTHCommon.log(null, null, LOG_ACTIVITY, ONT_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, null, LOG_NIVEL, "ERROR");
+                      FTTHCommon.log(this.process.processOrder.id, this.process.id, "Activity Ticket Opening Automatic Task", "Activity Ticket Opening Send Operation - mensagem recebida", "cwOnProcActAfter", syncResp);
+
+                      FTTHCommon.saveEvent(this.process.processOrder.id,
+                      sistema,
+                      atividade,
+                      "TIMEOUT EXCP",
+                      "-1",//syncResp.operationReturn.code,
+                      "TIMEOUT EXCP",//syncResp.operationReturn.description,
+                      this.process.id,
+                      Global.getConfigVariable("SYNC_REQUEST"));
+
+
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_TECHNICAL_ERROR");
+
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, status);
+
+                      FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder, sistema, atividade);
+
+                      return null;
+                  }
+
+                  //Feito para o CANCELAMENTO
+                  var statusActivity = FTTHCommon.getStatusActivity(this.process.processOrder.id, atividade);
+
+                  if (statusActivity == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      FTTHCommon.setStatusActivity(this.process.processOrder.id, atividade, Global.getConfigVariable("ACTIVITY_RETURN_WAIT"));
+                  }
+
+
+                  return msg;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="SGFTManualActivity" type="participantActivity">
+        <guid>{0b7ecc71-6232-44ce-8b2d-ef9d94bbb814}</guid>
+        <label>SGFT Manual Activity</label>
+        <participant>part_FTTHUserInterface.SGFTManualActivity</participant>
+        <x>283.06152</x>
+        <y>1246.1189</y>
+      </child>
+      <child name="SGFTHandleError" type="participantActivity">
+        <guid>{c304bc3c-e003-455e-a752-c03e97205fd2}</guid>
+        <label>SGFT Handle Error</label>
+        <participant>part_FTTHUserInterface.SGFTHandleError</participant>
+        <x>185.98674</x>
+        <y>391.66913</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var ord = process.processOrder;
+          var orderId = ord.OrderHeader.cwOrderId;
+          var atividade;
+
+          var activityIdFisica = Global.getConfigVariable("SOLICITAR_ABERTURA_BA_SGFT");
+          var statusFisica = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+          FTTHCommon.setStatusActivity(orderId, activityIdFisica, statusFisica);
+
+
+
+          //Criando o formulário de atividade de campo
+
+
+          /*
+          Script para a criação do formulário de atividade de campo.
+          Ele devera ser executado apenas uma vez
+          */
+          var activityId;
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+          //Define ponto de não retorno
+          //process.processOrder.OrderHeader.permiteCancelamento = false;
+
+          if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+              activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+          }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+              activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+          }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+              activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+          }
+          if(result == null){
+              activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+              result = FTTHCommon.getStatusActivity(orderId, activityId);
+              if(result == null || result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                  activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+              }
+          }
+
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+
+
+          var ord = process.processOrder;
+          if (ord.ManualActivityData == null) {
+              ord.createOrderItemByPath("ManualActivityData");
+          }
+          var psrIns = ord.ManualActivityData.newInstance();
+
+
+          var nomeAtividade = FTTHCommon.getActivityNameOrConfigVariable(activityId, 2);
+          psrIns.ManualActivityData.nomeAtividade = nomeAtividade;
+
+          psrIns.ManualActivityData.operationWorklist = "FTTHProcess.InstallRemoveEquipmentManualTaskInterface/InstallRemoveEquipmentTask";
+          psrIns.ManualActivityData.dataAbertura = new Date();
+          psrIns.ManualActivityData.dataAgendamento = ord.OrderHeader.dataAgendamento;
+          ord.save();
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Open BA SGFT Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.OpenBASGFTSubprocess</process>
+  <type>Sub-flow</type>
+</process__revision>

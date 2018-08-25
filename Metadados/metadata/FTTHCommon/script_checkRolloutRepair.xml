@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.checkRolloutRepair">
+  <label>checkRolloutRepair</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="flagBSIM" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Flag BSIM&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+    </parameter>
+    <parameter name="clientAdress" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Endere&amp;#231;o do Cliente&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    //Script criado para verificar se a Ordem deve passar pelo Click ou não
+    //Pega o id da Ordem
+    
+    //Se a flagBSIM for N então ele precisa verificar se o bairro,uf e localidade estão contemplados para ser feito o Rollout
+    if(flagBSIM == "N" || ! flagBSIM) {
+        //var clientAdress = order.AddressData;
+        var searchDoc;
+        var statusActivity;
+        searchDoc = new Document("FTTHOrder:RolloutData");
+        searchDoc.uf = clientAdress.estadoLogradouro;
+        searchDoc.localidade = clientAdress.siglaLocalidade;
+        searchDoc.bairro = clientAdress.bairro;
+        searchDoc.ativo = 1;
+        statusActivity = Finder.runSearch ("FTTHReportApplication:rolloutClickFinder", searchDoc);
+        if(statusActivity.length > 0){
+            return true;
+        } else{
+            return false;
+        }
+    } else if(flagBSIM == "S") {
+        return true;
+    }
+    return false;
+  ]]></script>
+</script>

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHCommon.OpenEquipmentPopUp">
+  <dbSchema>ORDER</dbSchema>
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{8b26b9c2-a99b-43c4-89cd-9debb6dfae25}</guid>
+  
+  <label>Open Equipment PopUp</label>
+  <metaVersion>4</metaVersion>
+  <variableList>
+    <variable name="cwOrderId" type="leaf">
+      <key>1</key>
+      <label>System order ID</label>
+      <valueType>dtype_cwf.cwOrderId</valueType>
+    </variable>
+    <variable name="tipoPontoSTB" type="leaf">
+      <valueType>dtype_FTTHOrder.tipoPontoSTB</valueType>
+    </variable>
+    <variable name="errorMessage" type="leaf">
+      <valueType>dtype_FTTHOrder.errorMessage</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="validaPopUp" type="crule">
+      <severity>information</severity>
+      <type>validator</type>
+      <valueType>dtype_com.conceptwave.system.Boolean</valueType>
+      <script><![CDATA[
+        var campo;
+        var msg = null;
+        var i;
+        var camposObrigatoriosResult;
+        var searchDoc = new Document("FTTHCommon:MandatoryFields");
+
+        var pendenciasQueNaoPermitemCancelamento = ['7001','7003','7008','7009','7015','7019'];
+        var ordem = Order.getOrderById(this.cwOrderId, false);
+
+        if(ordem.OriginalData){
+            var motivoRetirada = ordem.OriginalData[0].ProductData.motivoRetirada;
+            if(motivoRetirada == 'Ação de Cobrança'){
+                var issueDoc = Document.readDoc("FTTHCommon.Issues",this.getValueByName('codPendencia'));
+                var codigoPendencia = String(issueDoc.codPendencia);
+                if (codigoPendencia != null && pendenciasQueNaoPermitemCancelamento.indexOf(codigoPendencia) > -1){
+                    Global.showUserMessage('A pendência ' + codigoPendencia + ' não pode ser inserida. '+
+                    'Não é permitido o cancelamento de uma Ordem de Retirada por motivo de inadimplência (Ação de Cobrança)!');
+                    return true;
+                }
+            }
+        }
+        searchDoc.nomeAtividade = "Abrir Pendência";
+        camposObrigatoriosResult  = Finder.runSearch ("FTTHCommon.MandatoryFieldsFinder", searchDoc);
+
+        for (i = 0; i < camposObrigatoriosResult.length; i++){
+            campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+            if(this.getValueByName(campo) == null)
+                msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+        }
+
+        if(msg == null){
+            FTTHCommon.ParticipantIssueAction(this);
+            Global.confirmOK();
+        }
+        else
+        Global.showUserMessage(msg);
+        return true;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHCommon.OpenEquipmentPopUp</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="VerticalLayout" type="elvlt">
+                <elementList>
+                  <element name="GridLayout" type="elgrd">
+                    <colWidths>200px</colWidths>
+                    <numOfCols>5</numOfCols>
+                    <elementList>
+                      <element name="EquipmentData" type="elhdr">
+                        <label>Tipos de Equipamentos STB disponíveis</label>
+                      </element>
+                      <element name="tipoPontoSTB" type="elslct">
+                        <label>Selecione o equipamento STB:</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenEquipmentPopUp/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.OpenEquipmentPopUp/leaf_tipoPontoSTB</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                  <element name="GridLayout1" type="elgrd">
+                    <numOfCols>2</numOfCols>
+                    <elementList>
+                      <element name="CancelButton" type="elbtn">
+                        <clickMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenEquipmentPopUp/ui_UserInterface/uimthd_onCancel</variablePath>
+                          </variablePathList>
+                        </clickMethod>
+                        <label>Cancel</label>
+                      </element>
+                      <element name="OKButton" type="elbtn">
+                        <clickMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.OpenEquipmentPopUp/ui_UserInterface/uimthd_onSubmit</variablePath>
+                          </variablePathList>
+                        </clickMethod>
+                        <label>OK</label>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</base>
+            <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="cwfSave" type="elmnu">
+                <clickMethod type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.DocumentUserInterface/usrActionMethod_save</variablePath>
+                  </variablePathList>
+                </clickMethod>
+                <icon>/cwf/MenuIconSave.gif</icon>
+                <label>Save</label>
+                <tooltip>Save</tooltip>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>doc_com.conceptwave.system.Document/ui_UserInterface/uivar_model</variablePath>
+                    <variablePath>doc_com.conceptwave.system.Document/permMethod_cwfSaveView</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="hl1" type="elhlt">
+                <alignment>left,center</alignment>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="onSubmit" type="uimthd">
+        <valueType>ui_com.conceptwave.system.Dialog</valueType>
+        <script><![CDATA[
+          //mpaiva 09/04/2017 - PRJ 14402
+          //Script para validação da adição de novos pontos em atividade manual
+          this.model.errorMessage = "";
+
+          var cworderid = this.model.cwOrderId;
+
+          var tipoPontoAdicional = this.model.tipoPontoSTB;
+
+          if (tipoPontoAdicional == null){
+              this.model.errorMessage = "Nenhum Item selecionado!!";
+              Global.showUserMessage(this.model.errorMessage);
+              //return
+              //this.limitExceeded("Nenhum Item selecionado!!");
+              return;
+          }
+
+          //var searchDoc = new Document("FTTHOrder.docAndOrderIdDocument");
+          //searchDoc.cwDocId = this.model.cwDocId;
+          //var result = Finder.runSearch("FTTHOrder.getOrderByDocId", searchDoc);
+
+          //var cworderid = result[0].orderId;
+
+          var ord = Order.getOrderById(cworderid);
+
+          var passouLimite = false;
+          var valorLimiteEstourado = 0;
+
+          var doc = new Document ('FTTHOrder:EquipmentData');
+
+          var qtdPontosRFOverlay       = (ord.ProductData.qtdPontosRFOverlay == null)      ? 0 :  ord.ProductData.qtdPontosRFOverlay;
+          var qtdPontosRFExtra         = (ord.ProductData.qtdPontosRFExtra == null)        ? 0 :  ord.ProductData.qtdPontosRFExtra;
+          var quantidadePontosRFTV     = (ord.ProductData.quantidadePontosRFTV == null)    ? 0 :  ord.ProductData.quantidadePontosRFTV;
+          var qtdPontosDVRGratis       = (ord.ProductData.qtdPontosDVRGratis == null)      ? 0 :  ord.ProductData.qtdPontosDVRGratis;
+          var qtdPontosDVRGratisExtra  = (ord.ProductData.qtdPontosDVRGratisExtra == null) ? 0 :  ord.ProductData.qtdPontosDVRGratisExtra;
+          var qtdPontosSTBDVRGratis    = (ord.ProductData.qtdPontosSTBDVRGratis == null)   ? 0 :  ord.ProductData.qtdPontosSTBDVRGratis;
+          var qtdPontosHDPago          = (ord.ProductData.qtdPontosHDPago == null)         ? 0 :  ord.ProductData.qtdPontosHDPago;
+          var qtdPontosHDPagoExtra     = (ord.ProductData.qtdPontosHDPagoExtra == null)    ? 0 :  ord.ProductData.qtdPontosHDPagoExtra;
+          var qtdPontosSTBHDPago       = (ord.ProductData.qtdPontosSTBHDPago == null)      ? 0 :  ord.ProductData.qtdPontosSTBHDPago;
+          var qtdPontosHDGratis        = (ord.ProductData.qtdPontosHDGratis == null)       ? 0 :  ord.ProductData.qtdPontosHDGratis;
+          var qtdPontosHDGratisExtra   = (ord.ProductData.qtdPontosHDGratisExtra == null)  ? 0 :  ord.ProductData.qtdPontosHDGratisExtra;
+          var qtdPontosSTBHDGratis     = (ord.ProductData.qtdPontosSTBHDGratis == null)    ? 0 :  ord.ProductData.qtdPontosSTBHDGratis;
+
+          ord.ProductData.qtdPontosRFOverlay       = (ord.ProductData.qtdPontosRFOverlay == null)      ? 0 :  ord.ProductData.qtdPontosRFOverlay;
+          ord.ProductData.qtdPontosRFExtra         = (ord.ProductData.qtdPontosRFExtra == null)        ? 0 :  ord.ProductData.qtdPontosRFExtra;
+          ord.ProductData.quantidadePontosRFTV     = (ord.ProductData.quantidadePontosRFTV == null)    ? 0 :  ord.ProductData.quantidadePontosRFTV;
+          ord.ProductData.qtdPontosDVRGratis       = (ord.ProductData.qtdPontosDVRGratis == null)      ? 0 :  ord.ProductData.qtdPontosDVRGratis;
+          ord.ProductData.qtdPontosDVRGratisExtra  = (ord.ProductData.qtdPontosDVRGratisExtra == null) ? 0 :  ord.ProductData.qtdPontosDVRGratisExtra;
+          ord.ProductData.qtdPontosSTBDVRGratis    = (ord.ProductData.qtdPontosSTBDVRGratis == null)   ? 0 :  ord.ProductData.qtdPontosSTBDVRGratis;
+          ord.ProductData.qtdPontosHDPago          = (ord.ProductData.qtdPontosHDPago == null)         ? 0 :  ord.ProductData.qtdPontosHDPago;
+          ord.ProductData.qtdPontosHDPagoExtra     = (ord.ProductData.qtdPontosHDPagoExtra == null)    ? 0 :  ord.ProductData.qtdPontosHDPagoExtra;
+          ord.ProductData.qtdPontosSTBHDPago       = (ord.ProductData.qtdPontosSTBHDPago == null)      ? 0 :  ord.ProductData.qtdPontosSTBHDPago;
+          ord.ProductData.qtdPontosHDGratis        = (ord.ProductData.qtdPontosHDGratis == null)       ? 0 :  ord.ProductData.qtdPontosHDGratis;
+          ord.ProductData.qtdPontosHDGratisExtra   = (ord.ProductData.qtdPontosHDGratisExtra == null)  ? 0 :  ord.ProductData.qtdPontosHDGratisExtra;
+          ord.ProductData.qtdPontosSTBHDGratis     = (ord.ProductData.qtdPontosSTBHDGratis == null)    ? 0 :  ord.ProductData.qtdPontosSTBHDGratis;
+
+
+
+
+
+          if (tipoPontoAdicional == "RF_OVERLAY"){
+              if (quantidadePontosRFTV + qtdPontosRFExtra < qtdPontosRFOverlay){
+                  ord.ProductData.qtdPontosRFExtra++;
+              } else{
+                  passouLimite = true;
+                  valorLimiteEstourado = qtdPontosRFOverlay;
+              }
+          }
+
+
+          if (tipoPontoAdicional == "STB_DVR_GRATIS"){
+              if (qtdPontosDVRGratis + qtdPontosDVRGratisExtra < qtdPontosSTBDVRGratis){
+                  ord.ProductData.qtdPontosDVRGratisExtra++;
+
+                  if (ord.EquipmentData == null){
+                      ord.addItem("EquipmentData");
+                      ord.EquipmentData.newInstance();
+                  }
+
+                  if (ord.EquipmentData[0].AddPointsEquipmentData == null){
+                      ord.EquipmentData[0].addItem("AddPointsEquipmentData");
+                      //          ord.EquipmentData[0].AddPointsEquipmentData.newInstance();
+                  }
+
+                  doc.possuiDVRIntegrado = 1;
+                  //ord.EquipmentData[0].AddPointsEquipmentData.newInstance();
+                  ord.EquipmentData[0].AddPointsEquipmentData.EquipmentPointData = doc;
+              } else{
+                  passouLimite = true;
+                  valorLimiteEstourado = qtdPontosSTBDVRGratis;
+              }
+          }
+
+          if (tipoPontoAdicional == "STB_HD_PAGO"){
+              if (qtdPontosHDPago + qtdPontosHDPagoExtra < qtdPontosSTBHDPago){
+                  ord.ProductData.qtdPontosHDPagoExtra++;
+
+
+                  if (ord.EquipmentData == null){
+                      ord.addItem("EquipmentData");
+                      ord.EquipmentData.newInstance();
+                  }
+
+                  if (ord.EquipmentData[0].AddPointsEquipmentData == null){
+                      ord.EquipmentData[0].addItem("AddPointsEquipmentData");
+                      //          ord.EquipmentData[0].AddPointsEquipmentData.newInstance();
+                  }
+
+                  doc.possuiDVRIntegrado = 0;
+                  //ord.EquipmentData[0].AddPointsEquipmentData.newInstance();
+                  ord.EquipmentData[0].AddPointsEquipmentData.EquipmentPointData = doc;
+              } else{
+                  passouLimite = true;
+                  valorLimiteEstourado = qtdPontosSTBHDPago;
+              }
+          }
+
+          if (tipoPontoAdicional == "STB_HD_GRATIS"){
+              if (qtdPontosHDGratis + qtdPontosHDGratisExtra < qtdPontosSTBHDGratis){
+                  ord.ProductData.qtdPontosHDGratisExtra++;
+
+
+                  if (ord.EquipmentData == null){
+                      ord.addItem("EquipmentData");
+                      ord.EquipmentData.newInstance();
+                  }
+
+                  if (ord.EquipmentData[0].AddPointsEquipmentData == null){
+                      ord.EquipmentData[0].addItem("AddPointsEquipmentData");
+                      //          ord.EquipmentData[0].AddPointsEquipmentData.newInstance();
+                  }
+
+                  doc.possuiDVRIntegrado = 1;
+                  //ord.EquipmentData[0].AddPointsEquipmentData.newInstance();
+                  ord.EquipmentData[0].AddPointsEquipmentData.EquipmentPointData = doc;
+              } else{
+                  passouLimite = true;
+                  valorLimiteEstourado = qtdPontosSTBHDGratis;
+              }
+          }
+
+          if(passouLimite){
+              this.model.errorMessage = "Não é possível adicionar o ponto desejado! Já existem " + valorLimiteEstourado + " no acesso do cliente!";
+              Global.showUserMessage(this.model.errorMessage);
+              this.model.cwOnDocStore();
+              //this.limitExceeded("Não é possível adicionar o ponto desejado! Já existem " + valorLimiteEstourado + " no acesso do cliente!");
+          } else{
+              ord.save();
+              this.model.errorMessage = "STB adicionado com sucesso!";
+              Global.showUserMessage(this.model.errorMessage);
+          }
+
+          //Global.confirmOK();
+          return Global.STOP_UI;
+        ]]></script>
+      </method>
+      <method name="onCancel" type="uimthd">
+        <script>return Global.STOP_UI;</script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

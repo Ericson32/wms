@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.ProcessNotification">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Processa as notificacoes recebidas do inventario
+    </p>
+  ]]></description>
+  <label>Process Notification</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      XML de Notificacao originada pela Ativa&amp;#231;&amp;#227;o/Barramento&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHActivationInterface.notification</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    * Script que valida se o executionDate é a maior data de execução da ativação e da continuidade ao processo.
+    */
+    var LOG_INTERFACE = "ACTIVATION";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+    var LOG_ACTIVITY = "TRATAMENTO_NOTIFICACAO";
+    var LOG_SCRIPT = "ProcessNotification";
+    var LOG_OPERATION = "Listener";
+    var ONT_OPERATION = "ASSOCIAR_ONT_APC";
+    var correlationID;
+    var idOrdem;
+
+    // PRJ17683 - 25/08/2017 - LUAN MORAES(luanm@br.ibm.com) e Luis Bonsaver(lbonsave@br.ibm.com) - Adaptação para resposta assíncrona do SGFT
+    if ('NumeroBA' in requisicao){//É SGFT
+
+        //MS - marcossouza@br.ibm.com - 16/12/2017 - Se SGFT, não enviar mensagem para o processo da ativação -
+        /*
+        var atividadeError  = new Document('FTTHCommon:Event');
+        var atividadeFinder = Finder.runSearch('FTTHActivationInterface.getErrorActivityFinder', atividadeError); //Finder reaproveitado
+        correlationID = atividadeFinder[0].correlationId;
+
+        var search = new Document('FTTHCommon:OperationProcess');
+        search.correlationId = correlationID;
+
+        var operatioProcessFinder = Finder.runSearch('FTTHCommon:OperationProcessFinder', search);
+        var operatioProcess = operatioProcessFinder.start;
+
+        if(operatioProcess != null)
+        Process.sendMessageToProcess(correlationID, null, operatioProcess.operation, requisicao);
+
+        */
+        //end MS
+
+    } else {
+        //É ativação
+        correlationID = requisicao.correlationId;
+        idOrdem = requisicao.messageId;
+
+        var LOG_MSG = "Preparo do sendMessageToProcess: [" + correlationID + "] [" + "FTTHActivationInterface:ActivationListenerInterface/ReceiveOperation" + "] [" + requisicao.toXML() + "]";
+        FTTHCommon.log( idOrdem, correlationID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+        LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+        var ont      = null;
+        var processo = null;
+
+
+        //MS - marcossouza@br.ibm.com - Correção PRJ14008#252 - 17/10/2017
+        // checks if operation is the same
+        requisicao.operation == ONT_OPERATION ? ont = processONTActivation(requisicao) : null;//processo = Process.getProcessInfo(correlationID);
+
+        //var ont      = processONTActivation(requisicao);
+        //var processo = Process.getProcessInfo(correlationID);
+
+        try{
+            processo = Process.getProcessInfo(correlationID);
+        } catch(e){
+            var LOG_MSG = "processo interno nao encontrado com processId [" + correlationID + "] - XML >>>" + requisicao.toXML() + "<<<";
+            FTTHCommon.log( idOrdem, correlationID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1000, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        }
+
+
+        if(!processo){
+            //if(!ont){
+                var LOG_MSG = "processo interno nao encontrado com processId [" + correlationID + "] - XML >>>" + requisicao.toXML() + "<<<";
+                FTTHCommon.log( idOrdem, correlationID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1000,
+                LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                //}
+        } else {
+            var orderId = processo.processOrderId;
+
+            var LOG_MSG = "processo = [" + processo + "] orderId [" + orderId + "]";
+            FTTHCommon.log( orderId, correlationID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+            LOG_INTERFACE, LOG_NIVEL, "DEBUG" );
+
+            var ordem = Order.getOrderById( orderId.toString() ,false);
+
+            if (ordem) var LOG_MSG = "ordem [" + orderId + "] encontrada";
+            else  var LOG_MSG = "ordem [" + orderId + "] NAO encontrada";
+            FTTHCommon.log( orderId, correlationID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null,
+            LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+
+            if(ordem.OrderHeader.dataAtivacao == null){
+                ordem.OrderHeader.dataAtivacao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+            }
+
+            if(ordem.OrderHeader.dataAtivacao < requisicao.executionDate){
+                ordem.OrderHeader.dataAtivacao = requisicao.executionDate;
+            }
+
+            ordem.save();
+
+            var search = new Document('FTTHCommon:OperationProcess');
+            search.correlationId = correlationID;
+
+            var operatioProcessFinder = Finder.runSearch('FTTHCommon:OperationProcessFinder', search);
+            var operatioProcess = operatioProcessFinder.start;
+            if(operatioProcess != null){
+                Process.sendMessageToProcess(correlationID, null, operatioProcess.operation, requisicao);
+            }
+        }
+    }
+
+    //****************** FUNCTIONS **************************************
+    function processONTActivation(requisicao){
+        var auxDate          = null;
+        var ontActivation    = null;
+        var statusSucesso    = Global.getCodeDescription("FTTHOrder:statusONT", "SUC");  // Status success
+        var statusInsucesso  = Global.getCodeDescription("FTTHOrder:statusONT", "INS");  // Status failure
+        var descriptionIns  = "Erro ao associar o ONT - ";
+        var descriptionSuc  = "ONT associado com sucesso ";
+
+        //Search all entries for orderId response
+        var fndONTActivation = new FTTHOrder.ONTActivationStatusFinder;
+        fndONTActivation.searchDocument.cwOrderId = requisicao.correlationId;
+        var result = fndONTActivation.search();
+
+        //if exist information, read first line because it is the most current
+        if(result && result.length != 0){
+            result[0].receiveDate = new Date();
+            requisicao.code == '0' ? result[0].statusONT = statusSucesso : result[0].statusONT = statusInsucesso;
+            requisicao.code == '0' ? result[0].description = descriptionSuc : result[0].description = descriptionIns +
+            " Código: " + requisicao.code + " Descrição: " + requisicao.description ;
+
+            result[0].save(); //save Document with current status
+            return true; // return true if save in table with success
+        }
+        return false; // return false if response is not to ONT_Activation
+    }
+  ]]></script>
+</script>

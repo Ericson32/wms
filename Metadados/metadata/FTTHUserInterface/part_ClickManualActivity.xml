@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHUserInterface.ClickManualActivity">
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M1DT0H0M0S</length>
+  </duration>
+  <guid>{3249841a-06a1-45cd-b812-766a39aa64c3}</guid>
+  <interface>iface_FTTHUserInterface.ClickManualActivityInterface</interface>
+  <label>Click Manual Activity</label>
+  <metaVersion>4</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAAutomaticClosingSuccess</operation>
+      <methodList>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+
+            var matriculaUsuario = "";
+            var nomeUsuario = "";
+
+            if(userDoc){
+                matriculaUsuario = Global.trim(userDoc.profileId);
+                nomeUsuario = Global.trim(userDoc.userName);
+            } else if(confirmObject){
+                matriculaUsuario = confirmObject.executionData.matriculaTecnicoClick;
+                nomeUsuario = confirmObject.executionData.nomeTecnico;
+            }
+
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+
+            if (ord.ManualActivityData[count -1].ManualActivityData.nomeAtividade != "Instalar Jumper"){
+                FTTHOrder.checkNeedToUpdateStock(ord);
+            }
+            ord.save();
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAAutomaticClosingIssue</operation>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script>return false;</script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            FTTHCommon.createBreakpoint();
+
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+
+            var matriculaUsuario = "";
+            var nomeUsuario = "";
+
+            var matriculaTecnicoClick = "";
+            if(userDoc){
+                matriculaUsuario = Global.trim(userDoc.profileId);
+                nomeUsuario = Global.trim(userDoc.userName);
+            } else if(confirmObject){
+                matriculaUsuario = confirmObject.executionData.matriculaTecnico;
+                nomeUsuario = confirmObject.executionData.nomeTecnico;
+                matriculaTecnicoClick    = confirmObject.executionData.matriculaTecnicoClick;
+            }
+
+            var atividade = ord.ManualActivityData[count -1].ManualActivityData.nomeAtividade;
+            atividade = FTTHCommon.getActivityNameOrConfigVariable(atividade, 1);
+            //encerra ativ.manual que deu errado
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaTecnicoClick;
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnicoClick = matriculaTecnicoClick;
+            ord.save();
+
+            //validando se houve o recebimento de mensagem. eliminando o erro de nullPoint
+            if(confirmObject){
+                //order.save() dentro de createNewIssue (bsilva@br.ibm.com)
+                    var isCloseBA = true;
+                    FTTHHandleIssueProcess.createNewIssue(ord, confirmObject.serviceOrderResponse.codEncerramento, atividade, confirmObject.executionData.observacao, this.workItemDocument.Operation, isCloseBA);
+            }
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAExternalClosingSuccess</operation>
+      <tasksList>
+        <tasks>BAJumperOpeningOperation</tasks>
+        <tasks>BAOpenningOperation</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+            var matriculaUsuario = Global.trim(userDoc.profileId);
+            var nomeUsuario = Global.trim(userDoc.userName);
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+
+            if (ord.ManualActivityData[count -1].ManualActivityData.nomeAtividade != "Instalar Jumper"){
+                FTTHOrder.checkNeedToUpdateStock(ord);
+            }
+            ord.save();
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var ordem = worklistOrder;
+            var msg = "";
+            var statusONT;
+            var orderId = ordem.OrderHeader.cwOrderId;
+            var atividadeManualCorrente = null;
+
+            var isMudancaEndereco;
+            var tipoOS = ordem.OrderHeader.tipoOS;
+
+            if(ordem.ManualActivityData != null){
+                atividadeManualCorrente = ordem.ManualActivityData[ordem.ManualActivityData.length - 1].ManualActivityData.nomeAtividade;
+            }
+            if(tipoOS == "TIPO_ORDEM_REPARO"){
+                 atividadeManualCorrente =  "Instalar/Remover Equipamento";
+            }
+
+            if(atividadeManualCorrente == "Instalar Equipamento"){
+                if(ordem.EquipmentData[0].BaseEquipmentData){
+                    var result = FTTHCommon.mandatoryFieldsManualActivitiesBaseEquipment("Instalar Equipamento", ordem.EquipmentData[0].BaseEquipmentData, tipoOS);
+
+                    if(result != ""){
+                        msg = "\n Formulário Dados dos Equipamento Base deve ser preenchido com os seguintes campos para a instalação: " +  result  + "\n";
+                    }
+                }
+                if(ordem.EquipmentData[0].AddPointsEquipmentData){
+                    var naoInstalado = 0;
+                    for(var i = 0; i < ordem.EquipmentData[0].AddPointsEquipmentData.length; i++){
+                        if(ordem.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData){
+                            if(ordem.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData.instalado){
+                                var result = FTTHCommon.mandatoryFieldsManualActivitiesPointEquipment("Instalar Equipamento", ordem.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData,tipoOS);
+                                if(result != ""){
+                                    msg = msg + "\n Formulário Dados dos Equipamento de Ponta " + (i + 1) + " deve ser preenchido com os seguintes campos para a instalação: " +result  + "\n";
+                                }
+                            } else{
+                                  naoInstalado++;
+                            }
+                        }
+                    }
+                    if(ordem.EquipmentData[0].AddPointsEquipmentData.length > 0 && naoInstalado == ordem.EquipmentData[0].AddPointsEquipmentData.length){
+                        msg+="\n Tem de instalar pelo menos um equipamento de ponto de IPTV\n";
+                    }
+                }
+            } else if(atividadeManualCorrente == "Remover Equipamento"){
+                if(ordem.OriginalData[0].EquipmentData != null && ordem.OriginalData[0].EquipmentData[0] != null){
+                    if(ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData){
+                        var result =  FTTHCommon.mandatoryFieldsManualActivitiesBaseEquipment("Remover Equipamento", ordem.OriginalData[0].EquipmentData[0].BaseEquipmentData, tipoOS);
+                        if(result != ""){
+                            msg = msg +"\n Formulário Dados dos Equipamento Base deve ser preenchido com os seguintes campos para a retirada: " + result  + "\n";
+
+                        }
+                    }
+                    if(ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData){
+                        for(var i = 0; i< ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length; i++){
+                            if(ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData){
+                                var result = FTTHCommon.mandatoryFieldsManualActivitiesPointEquipment("Remover Equipamento", ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData, tipoOS);
+                                if(result != ""){
+                                    msg = msg + "\n Formulário Dados dos Equipamento de Ponta " + i + " deve ser preenchido com os seguintes campos para a retirada: "  + result  + "\n";
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if(atividadeManualCorrente == "Instalar/Remover Equipamento"){
+                if(ordem.OriginalData[0].EquipmentData != null && ordem.OriginalData[0].EquipmentData[0] != null){
+                    if(ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData){
+                        for(var i = 0; i< ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData.length; i++){
+                            if(ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData){
+                                var result = FTTHCommon.mandatoryFieldsManualActivitiesPointEquipment(atividadeManualCorrente, ordem.OriginalData[0].EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData, tipoOS);
+                                if(result != ""){
+                                    msg = msg + "\n Formulário Dados dos Equipamento de Ponta " + i + " deve ser preenchido com os seguintes campos para a retirada: "  + result  + "\n";
+                                 }
+                                 }
+                        }
+                    }
+                }
+            }
+
+            if(ordem.ManualActivityData){
+                var countManualActivity = ordem.ManualActivityData.length - 1;
+                var result = FTTHCommon.mandatoryFieldsManualActivitiesDoc(atividadeManualCorrente, ordem.ManualActivityData[countManualActivity].ManualActivityData, tipoOS);
+                if(result != "") {
+                    msg = msg + "\n Formulário de atividade manual deve ser preenchido com os seguintes campos: " + result  + "\n";
+                }
+
+            }
+
+            if(tipoOS == "TIPO_ORDEM_INSTALACAO"){
+                var result = FTTHCommon.mandatoryFieldsManualActivitiesInstallationData(atividadeManualCorrente, ordem.InstallationData);
+                if(result != "")
+                    msg = msg + "\n Formulário de dados da Instalação deve ser preenchido com os seguintes campos: "  + result  + "\n";
+            }else if(tipoOS == "TIPO_ORDEM_MODIFICACAO"){
+
+                var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+                ops.cwOrderId = ordem.OrderHeader.cwOrderId;
+
+                var orderRequest = Finder.runSearch('FTTHOrderManagementInterface:OrderRequestFinder', ops);
+
+
+                if (orderRequest.size > 0) {
+                    for (var i = 0; i < orderRequest.size; i++) {
+                        var solicitacao = orderRequest[i];
+                        if(solicitacao.idSolicitacao == "MUDANCA_ENDERECO"){
+                            isMudancaEndereco = true;
+                        }
+                    }
+                }
+                if(isMudancaEndereco){
+                    var result = FTTHCommon.mandatoryFieldsManualActivitiesInstallationData(atividadeManualCorrente, ordem.InstallationData);
+                    if(result != "")
+                        msg = msg + "\n Formulário de dados da Instalação deve ser preenchido com os seguintes campos: "  + result  + "\n";
+
+                    var fndONTActivation = new FTTHOrder.ONTActivationStatusFinder;
+                    fndONTActivation.searchDocument.cwOrderId = orderId;
+                    var rs = fndONTActivation.search();
+
+                    if(rs && rs.length != 0){
+                        if(rs[0].statusONT != "SUCESSO"){
+                            msg = msg + "Troca de ONT obrigatório na mudança de endereço";
+                        }
+                    }
+                    else{
+                        msg = msg + "Troca de ONT obrigatório na mudança de endereço";
+                    }
+                }
+            }
+
+            if(msg != ""){
+                var doc = new Document ("FTTHCommon.MandatoryMessage");
+                doc.fields = msg;
+                return doc;
+            }
+
+            var docAbrirPopUp = new Document ("FTTHCommon.InstallRemoveEquipmentPopUp");
+            docAbrirPopUp.operation = worklistItem.workItemDocument.Operation;
+            docAbrirPopUp.orderId = worklistItem.workItemDocument.OrderId;
+            docAbrirPopUp.userId = worklistItem.workItemDocument.userId;
+            docAbrirPopUp.processId = worklistItem.workItemDocument.SenderId;
+
+            if(tipoOS == "TIPO_ORDEM_INSTALACAO"){
+                statusONT = FTTHCommon.getStatusActivity(orderId, Global.getConfigVariable("ASSOCIAR_ONT_APC"));
+
+                if(statusONT == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+
+                    docAbrirPopUp.pontosNaoInstalados = notInstalled();
+
+                    if(docAbrirPopUp.pontosNaoInstalados) {
+                        docAbrirPopUp.msg = "Existem ponto(s) Set-Top Box que não foram instalados. Deseja encerrar a ordem?";
+                        docAbrirPopUp.labelMsg = 'Pontos não instalados';
+                    }
+                    else {
+                        docAbrirPopUp.msg = "Equipamento está funcionando corretamente?";
+                        docAbrirPopUp.labelMsg = 'Associar ONT APC';
+                    }
+
+                    return docAbrirPopUp;
+                }
+            } else if(tipoOS == "TIPO_ORDEM_MODIFICACAO" && ordem.EquipmentData){
+
+                docAbrirPopUp.pontosNaoInstalados = notInstalled();
+
+                if(docAbrirPopUp.pontosNaoInstalados) {
+                    docAbrirPopUp.msg = "Existem ponto(s) Set-Top Box que não foram instalados. Deseja encerrar a ordem?";
+                    docAbrirPopUp.labelMsg = 'Pontos não instalados';
+                }
+                else {
+                    docAbrirPopUp.msg = "Equipamento está funcionando corretamente?";
+                    docAbrirPopUp.labelMsg = 'Associar ONT APC';
+                }
+
+                return docAbrirPopUp;
+            }
+            var isSuccess = FTTHClickInterface.encerramentoExterno(worklistItem.workItemDocument);
+
+            if(isSuccess){
+                return Global.confirmOK();
+            } else{
+                var doc = new Document ("FTTHCommon.MandatoryMessage");
+                doc.fields = "Click retornou erro ou está fora";
+
+                return doc;
+            }
+
+
+            function notInstalled() {
+                if(ordem.EquipmentData[0].AddPointsEquipmentData)    {
+                    for(var i=0; i< ordem.EquipmentData[0].AddPointsEquipmentData.length; i++)
+                        if(!ordem.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData.instalado)
+                        return true;
+                }
+                return false;
+            }
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAExternalClosingIssue</operation>
+      <tasksList>
+        <tasks>BAJumperOpeningOperation</tasks>
+        <tasks>BAOpenningOperation</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+            var doc;
+            //var doc = FTTHCommon.ParticipantIssueConfirmation("Abrir Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem, idItens);
+            if (worklistItem.workItemDocument.Operation.search("Jumper") > -1){
+                doc = FTTHCommon.ParticipantIssueConfirmation("Instalar Jumper - Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem, idItens);
+            } else {
+                doc = FTTHCommon.ParticipantIssueConfirmation("Abrir BA - Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem, idItens);
+            }
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+            var matriculaUsuario = Global.trim(userDoc.profileId);
+            var nomeUsuario = Global.trim(userDoc.userName);
+
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+
+            ord.save();
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            if(this.processOrder.OrderHeader.tipoOS != 'TIPO_ORDEM_REPARO'){
+                return true;
+            }
+            return false;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHUserInterface.ClickManualActivityInterface/oper_BAExternalClosingRepairError</operation>
+      <tasksList>
+        <tasks>BAOpenningOperation</tasks>
+      </tasksList>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            if(this.processOrder.OrderHeader.tipoOS == 'TIPO_ORDEM_REPARO'){
+                return true;
+            }
+            return false;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var ordem = worklistOrder;
+            var orderId = ordem.OrderHeader.cwOrderId;
+
+            var atividadeManualCorrente = null;
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var tipoOS = "TIPO_ORDEM_REPARO";
+            var atividadeManualCorrente =  "Instalar/Remover Equipamento";
+
+            var msg = "";
+            if(ordem.ManualActivityData){
+                var countManualActivity = ordem.ManualActivityData.length - 1;
+                var result = FTTHCommon.mandatoryFieldsManualActivitiesDoc(atividadeManualCorrente, ordem.ManualActivityData[countManualActivity].ManualActivityData, tipoOS);
+                if(result != "") {
+                    msg = "\n Formulário de atividade manual deve ser preenchido com os seguintes campos: " + result  + "\n";
+                }
+            }
+
+            if(msg != ""){
+                var doc = new Document ("FTTHCommon.MandatoryMessage");
+                doc.fields = msg;
+                return doc;
+            }
+            var doc = FTTHCommon.ParticipantCloseBAErrorConfirmation("Fechamento do BA - Error", worklistOrder, worklistItem.workItemDocument.Operation,
+                                                                        worklistItem.workItemDocument.userId, idItem, idItens);
+            return doc;
+          ]]></script>
+        </method>
+        <method name="cwOnParticipantOpAct" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var userId = Global.getUserId();
+            var userDoc = UserProfile.getUserProfile(userId);
+            var matriculaUsuario = Global.trim(userDoc.profileId);
+            var nomeUsuario = Global.trim(userDoc.userName);
+            var ord = worklistItem.processOrder;
+            var count = ord.ManualActivityData.length;
+
+            ord.ManualActivityData[count -1].ManualActivityData.dataFechamento = new Date();
+            ord.ManualActivityData[count -1].ManualActivityData.matriculaTecnico = matriculaUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.nomeTecnico = nomeUsuario;
+            ord.ManualActivityData[count -1].ManualActivityData.statusAtividade = 1;
+
+            ord.save();
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>manualActivity</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

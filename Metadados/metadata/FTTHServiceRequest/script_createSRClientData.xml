@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHServiceRequest.createSRClientData">
+  <label>Preenche Formulário de Dados do Cliente do Service Request</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="serviceRequest" type="rifp">
+      <type>dstruct_FTTHServiceRequest.serviceRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     * AUTHOR:      Marcos Souza - marcossouza@br.ibm.com - 19/07/2017 - PRJ17683
+     * DESCRIPTION: Script reponsável por criar e preencher o formulário de dados do cliente
+     */
+     Global.logInfo("--- Create SR Client Data ---");
+
+     var clientData = new Document('FTTHOrder:ClientData');
+
+     clientData.nome             = FTTHCommon.getValueAttributeFromAttributeList("nomeCliente", serviceRequest.atributos);
+     clientData.telefoneContato1 = FTTHCommon.getValueAttributeFromAttributeList("telefoneContato1", serviceRequest.atributos);
+     clientData.telefoneContato2 = FTTHCommon.getValueAttributeFromAttributeList("telefoneContato2", serviceRequest.atributos);
+     clientData.telefoneContato3 = FTTHCommon.getValueAttributeFromAttributeList("telefoneContato3", serviceRequest.atributos);
+     clientData.tipoCliente      = FTTHCommon.getValueAttributeFromAttributeList("tipoCliente", serviceRequest.atributos);
+     clientData.nomeContato      = FTTHCommon.getValueAttributeFromAttributeList("nomeContato", serviceRequest.atributos);
+     clientData.dataPromessa     = FTTHCommon.getValueAttributeFromAttributeList("dataPromessa", serviceRequest.atributos);
+     clientData.horaPromessa     = FTTHCommon.getValueAttributeFromAttributeList("horaPromessa", serviceRequest.atributos);
+     clientData.nomeRazaoSocial  = FTTHCommon.getValueAttributeFromAttributeList("NomeRazaoSocial", serviceRequest.atributos);
+     clientData.numeroDocumento  = FTTHCommon.getValueAttributeFromAttributeList("NumeroDoc", serviceRequest.atributos);
+
+     //correçào no envio do campo cpf para o SIS no dissociar_STB - 25/05/2018
+      clientData.CPF  = FTTHCommon.getValueAttributeFromAttributeList("NumeroDoc", serviceRequest.atributos);
+
+     clientData.dataPromessa     = FTTHCommon.getValueAttributeFromAttributeList("DataPromessa", serviceRequest.atributos);
+     clientData.telefoneContato  = FTTHCommon.getValueAttributeFromAttributeList("telContato", serviceRequest.atributos);
+     clientData.telefoneCliente  = FTTHCommon.getValueAttributeFromAttributeList("telCliente", serviceRequest.atributos);
+
+     /* accd@br.ibm.com - PRJ14008 - Reparo */
+     clientData.unidadeNegocio  = FTTHCommon.getValueAttributeFromAttributeList("unidadeNegocio", serviceRequest.atributos);
+     clientData.segmentoMercado = FTTHCommon.getValueAttributeFromAttributeList("segmentoMercado", serviceRequest.atributos);
+     clientData.alertaPropensao = FTTHCommon.getValueAttributeFromAttributeList("alertaPropensao", serviceRequest.atributos);
+
+     return clientData;
+  ]]></script>
+</script>

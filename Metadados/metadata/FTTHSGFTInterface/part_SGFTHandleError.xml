@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<participant name="FTTHSGFTInterface.SGFTHandleError">
+  <distributionType>Shared</distributionType>
+  <duration type="dur">
+    <length>P0Y0M1DT0H0M0S</length>
+  </duration>
+  <guid>{9f98aec7-0d25-40c1-9e69-018157e9b945}</guid>
+  <interface>iface_FTTHSGFTInterface.SGFTHandleErrorInterface</interface>
+  <label>SGFT Handle Error</label>
+  <metaVersion>4</metaVersion>
+  <operationConditionsList>
+    <operationConditions type="opco">
+      <operation>iface_FTTHSGFTInterface.SGFTHandleErrorInterface/oper_ActivityTicketOpeningErrorResend</operation>
+      <tasksList>
+        <tasks>ActivityTicketOpeningError</tasks>
+      </tasksList>
+    </operationConditions>
+    <operationConditions type="opco">
+      <operation>iface_FTTHSGFTInterface.SGFTHandleErrorInterface/oper_ActivityTicketOpeningErrorIssue</operation>
+      <methodList>
+        <method name="cwOnPartOpCond" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            var result = FTTHCommon.verifyErrorType(permissionObject.processOrder.OrderHeader.cwOrderId,  Global.getConfigVariable("SOLICITAR_ABERTURA_BA_SGFT"));
+            return result;
+          ]]></script>
+        </method>
+        <method name="cwOnPartOpConf" type="action">
+          <system>true</system>
+          <script><![CDATA[
+            //CR PEND
+            var idItem = (worklistOrder.ProductData) ? worklistOrder.ProductData.idPromocao : worklistOrder.OriginalData[0].ProductData.idPromocao;
+            var idItens = true;
+
+            var doc = FTTHCommon.ParticipantIssueConfirmation("BA SGFT - Pendência", worklistOrder, worklistItem.workItemDocument.Operation, worklistItem.workItemDocument.userId, idItem,idItens);
+            return doc;
+          ]]></script>
+        </method>
+      </methodList>
+    </operationConditions>
+  </operationConditionsList>
+  <privilege>errorActivity</privilege>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.WLTaskUserInterface</extends>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.WLTaskUserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+  </UserInterface>
+</participant>

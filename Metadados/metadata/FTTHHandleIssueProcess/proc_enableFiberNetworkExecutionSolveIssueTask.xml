@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHHandleIssueProcess.enableFiberNetworkExecutionSolveIssueTask">
+  <activity name="enableFiberNetworkExecutionSolveIssueTaskStart" type="seqActivity">
+    <guid>{862acb65-dc02-46a6-9994-48519d1f3202}</guid>
+    <label>Enable Fiber Network Execution Solve Issue Task Start</label>
+    <x>83.34317</x>
+    <y>30.0</y>
+    <childList>
+      <child name="enableFiberNetworkExecutionSolveIssueOperation" type="opActivity">
+        <element>iface_FTTHUserInterface.enableFiberNetworkSolveIssueInterface/oper_enableFiberNetworkSolveIssueTask</element>
+        <guid>{af3370dc-31ec-4da2-b998-69fc0d00f666}</guid>
+        <label>Enable Fiber Network Execution Solve Issue Operation</label>
+        <participant>part_FTTHUserInterface.enableFiberNetworkSolveIssueParticipant</participant>
+        <x>88.34375</x>
+        <y>136.52188</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{81932f51-7388-4ade-95f4-68f02e7ee497}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>34.83838</x>
+            <y>321.43008</y>
+            <childList>
+              <child name="enableFiberNetworkExecutionSolveIssueSuccess" type="opActivity">
+                <element>iface_FTTHUserInterface.enableFiberNetworkSolveIssueInterface/oper_enableFiberNetworkSolveIssueTaskSuccess</element>
+                <guid>{0ead8f40-e484-4eda-8756-844bb84ca9cd}</guid>
+                <label>Enable Fiber Network Execution Solve Issue - Success</label>
+                <participant>part_FTTHUserInterface.enableFiberNetworkSolveIssueParticipant</participant>
+                <x>159.18994</x>
+                <y>484.58533</y>
+                <childList>
+                  <child name="notifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{a16317e1-148e-49c9-8d59-9ebb26322df9}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>149.69142</x>
+                    <y>662.14294</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          issueDoc.flagIssueStatus = 1;
+                          issueDoc.dataFechamento = new Date();
+                          issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("VIABILIZAR_REDE_EXECUCAO");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                      FTTHCommon.updateEnableFiberExecutionPlan(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="enableFiberNetworkExecutionSolveIssueChangeIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.enableFiberNetworkSolveIssueInterface/oper_enableFiberNetworkSolveIssueTaskChangeIssue</element>
+                <guid>{a9eac899-b5ea-46cc-9b7a-65b09ead7c33}</guid>
+                <label>Enable Fiber Network Execution Solve Issue - Change Issue</label>
+                <participant>part_FTTHUserInterface.enableFiberNetworkSolveIssueParticipant</participant>
+                <x>31.327148</x>
+                <y>477.23474</y>
+                <childList>
+                  <child name="notifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                    <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                    <guid>{11d2c5df-4150-4342-99c3-5730710a9f82}</guid>
+                    <label>Notify Close Technical Issue Sync Process</label>
+                    <syc>true</syc>
+                    <x>30.0</x>
+                    <y>670.4935</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var activityId = Global.getConfigVariable("VIABILIZAR_REDE_EXECUCAO");
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                      FTTHCommon.updateEnableFiberExecutionPlan(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="enableFiberNetworkSolveIssueParticipant" type="participantActivity">
+        <guid>{3b91385e-67da-4f68-bb2d-bb4c57a4a095}</guid>
+        <label>Enable Fiber Network Solve Issue Participant</label>
+        <participant>part_FTTHUserInterface.enableFiberNetworkSolveIssueParticipant</participant>
+        <x>126.86766</x>
+        <y>306.7289</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{1ae677d4-2a3c-4ac6-8dc4-e53b41d73423}</guid>
+  <label>Enable Fiber Network Execution Solve Issue Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

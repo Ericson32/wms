@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHServiceRequest.createSRHeader">
+  <label>Preenche Formulário do Cabeçalho do Service Request</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="serviceRequest" type="rifp">
+      <type>dstruct_FTTHServiceRequest.serviceRequest</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+     * AUTHOR:      Marcos Souza - marcossouza@br.ibm.com - 19/07/2017 - PRJ17683
+     * DESCRIPTION: Script reponsável por criar e preencher o formulário do cabeçalho
+     */
+     Global.logInfo("--- Create SR Header ---");
+
+     var orderHeader = new Document('FTTHOrder:OrderHeader');
+
+     orderHeader.numeroOS     = serviceRequest.correlationId;
+     orderHeader.numeroPedido = FTTHCommon.getValueAttributeFromAttributeList("docAssoc", serviceRequest.atributos);
+     orderHeader.dataAbertura = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+     orderHeader.sistema      = FTTHCommon.getValueAttributeFromAttributeList("sistema", serviceRequest.atributos);
+     orderHeader.tipoInfo     = FTTHCommon.getValueAttributeFromAttributeList("tipoInfo", serviceRequest.atributos);
+     orderHeader.ufInfo       = FTTHCommon.getValueAttributeFromAttributeList("ufInfo", serviceRequest.atributos);
+     orderHeader.descProblema = FTTHCommon.getValueAttributeFromAttributeList("descProblema", serviceRequest.atributos);
+     orderHeader.codAtividade = FTTHCommon.getValueAttributeFromAttributeList("atividade", serviceRequest.atributos);
+     orderHeader.aprazado           = FTTHCommon.getValueAttributeFromAttributeList("aprazado", serviceRequest.atributos);
+
+     var dataPromessaTemp = FTTHCommon.getValueAttributeFromAttributeList("dataPromessa", serviceRequest.atributos);
+     var horaPromessaTemp = FTTHCommon.getValueAttributeFromAttributeList("horaPromessa", serviceRequest.atributos);
+
+    //30/04/2018 - setando flag para execução do updateStock utilizando a tabela de historico
+    orderHeader.flagHistoryFlow = true;
+    //end 30/04/2018
+    //Alinhado com @felipevm no slack, conforme orientacao do LEON
+    if(dataPromessaTemp){
+         var ano = dataPromessaTemp.substring(0, 4);
+         //Janeiro é o mes 0
+         var mes = dataPromessaTemp.substring(4, 6) -1;
+         var dia = dataPromessaTemp.substring(6, 8);
+        orderHeader.dataPromessa = Calendar.parseDate(Calendar.formatDate(new Date(ano, mes, dia), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+    }
+
+    if(horaPromessaTemp){
+        orderHeader.horaPromessa = horaPromessaTemp;
+    }
+
+     /* accd@br.ibm.com - PRJ14008 - Reparo */
+     orderHeader.origemPedido = FTTHCommon.getValueAttributeFromAttributeList("origemPedido", serviceRequest.atributos);
+     orderHeader.flagBSIM     = FTTHCommon.getValueAttributeFromAttributeList("flagBSIM", serviceRequest.atributos);
+
+     return orderHeader;
+  ]]></script>
+</script>

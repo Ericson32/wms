@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConsultOriginalFacilitySolveIssueTask_cwr7">
+  <activity name="ConsultOriginalFacilitySolveIssueTaskStart" type="seqActivity">
+    <guid>{95fdc668-18a8-47df-92ba-82b7b07a9ff0}</guid>
+    <label>Consult Original Facility Solve Issue Task Start</label>
+    <x>87.35508</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultOriginalFacilitySolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_ConsultOriginalFacilitySolveIssue</element>
+        <guid>{f814ab95-7def-4f81-929f-8d2224e57403}</guid>
+        <label>Consult Original Facility Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>87.0166</x>
+        <y>130.64142</y>
+      </child>
+      <child name="WaitingManualActivity" type="choiceActivity">
+        <guid>{23120ccb-68f6-429f-a098-28ad88e70fef}</guid>
+        <label>Waiting Manual Activity</label>
+        <x>33.51123</x>
+        <y>286.14728</y>
+        <childList>
+          <child name="ConsultOriginalFacilitySolveIssueChangeIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_ConsultOriginalFacilitySolveIssueChangeIssue</element>
+            <guid>{372e58c4-33ab-4a0c-a7f6-b32969f3fa76}</guid>
+            <label>Consult Original Facility Solve Issue - Change Issue</label>
+            <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+            <x>157.8628</x>
+            <y>427.2508</y>
+            <childList>
+              <child name="NotifyCloseTechnicalIssueSyncProcess" type="spawnActivity">
+                <element>proc_FTTHHandleIssueProcess.NotifyCloseTechnicalIssueSyncProcess</element>
+                <guid>{f2ced663-3b58-4dc9-a628-fbd2da3bdd1d}</guid>
+                <label>Notify Close Technical Issue Sync Process</label>
+                <syc>true</syc>
+                <x>142.70605</x>
+                <y>605.8084</y>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var atividade;
+
+
+                  var activityIdFisica = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+                  var statusFisica = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+                  FTTHCommon.setStatusActivity(orderId, activityIdFisica, statusFisica);
+                  atividade = "CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL";
+                  var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  if(resultLogica1Necessity){
+                      var activityIdLogica1 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL");
+                      var statusLogica1 = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                      FTTHCommon.setStatusActivity(orderId, activityIdLogica1, statusLogica1);
+                  }
+
+                  atividade = "CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL";
+                  var resultLogica2Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  if(resultLogica2Necessity){
+                      var activityIdLogica2 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL");
+                      var statusLogica2 = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                      FTTHCommon.setStatusActivity(orderId, activityIdLogica2, statusLogica2);
+                  }
+                  var activityId = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConsultOriginalFacilitySolveIssueSuccess" type="opActivity">
+            <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_ConsultOriginalFacilityHandleSolveIssueSuccess</element>
+            <guid>{0d0a5e86-d0a5-4f90-929e-be17146477d2}</guid>
+            <label>Consult Original Facility Solve Issue - Success</label>
+            <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+            <x>30.0</x>
+            <y>434.60138</y>
+            <childList>
+              <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                <guid>{c2e01318-bed7-472d-ab00-0fad258b5bb1}</guid>
+                <label>Notify Close Issue Automatic Task</label>
+                <x>34.331055</x>
+                <y>597.4578</y>
+                <methodList>
+                  <method name="cwOnProcActBefore" type="action">
+                    <category>before</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ultimo =  process.processOrder.IssueData.length;
+                      var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                      //issueDoc.idProcesso = this.process.id;
+                      issueDoc.flagIssueStatus = 1;
+                      issueDoc.dataFechamento = new Date();
+                      issueDoc.save();
+                      Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ord = process.processOrder;
+                  var orderId = ord.OrderHeader.cwOrderId;
+                  var atividade;
+
+
+                  var activityIdFisica = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+                  var statusFisica = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                  FTTHCommon.setStatusActivity(orderId, activityIdFisica, statusFisica);
+                  atividade = "CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL";
+                  var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  if(resultLogica1Necessity){
+                      var activityIdLogica1 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL");
+                      var statusLogica1 = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                      FTTHCommon.setStatusActivity(orderId, activityIdLogica1, statusLogica1);
+                  }
+
+                  atividade = "CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL";
+                  var resultLogica2Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                  if(resultLogica2Necessity){
+                      var activityIdLogica2 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL");
+                      var statusLogica2 = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+                      FTTHCommon.setStatusActivity(orderId, activityIdLogica2, statusLogica2);
+                  }
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventorySolveIssue" type="participantActivity">
+        <guid>{d9a82bce-f383-418e-a396-4c66581a8243}</guid>
+        <label>Inventory Solve Issue</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>125.54053</x>
+        <y>293.49786</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var ord = process.processOrder;
+          var orderId = ord.OrderHeader.cwOrderId;
+          var activityIdFisica = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+          var statusFisica = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          if(FTTHCommon.getStatusActivity(orderId, activityIdFisica) == "CHANGE")
+          {
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_CHANGE");
+          }
+
+          FTTHCommon.setStatusActivity(orderId, activityIdFisica, statusFisica);
+          if((this.process.processOrder.ProductData.identificadorHSI != null && this.process.processOrder.ProductData.identificadorHSI.trim().length > 0)){
+              var activityIdLogica1 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL");
+              var statusLogica1 = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+              FTTHCommon.setStatusActivity(orderId, activityIdLogica1, statusLogica1);
+          }
+
+
+          //VERIFICAR A REGRA DE IDENTIFICADORES DA CONSULTA LOGICA 2
+          if((this.process.processOrder.ProductData.identificadorIPTV != null && this.process.processOrder.ProductData.identificadorIPTV.trim().length > 0) ||
+             (this.process.processOrder.ProductData.identificadorVoIP != null && this.process.processOrder.ProductData.identificadorVoIP.trim().length > 0)){
+              var activityIdLogica2 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL");
+              var statusLogica2 = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+              FTTHCommon.setStatusActivity(orderId, activityIdLogica2, statusLogica2);
+          }
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Consultar Facilidades - Erro
+      tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade
+      manual ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Consult Original Facility Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConsultOriginalFacilitySolveIssueTask</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

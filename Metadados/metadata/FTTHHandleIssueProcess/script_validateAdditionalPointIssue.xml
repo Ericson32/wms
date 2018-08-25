@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHHandleIssueProcess.validateAdditionalPointIssue">
+  <label>Validate Additional Point Issue</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="action" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHHandleIssueProcess.additionalPointAction</type>
+    </parameter>
+    <parameter name="process" type="rifp">
+      <mandatory>true</mandatory>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var hasAdditionalPointToInstall = (process.processOrder.ProductData &&
+                                      ((process.processOrder.ProductData.qtdPontosRFExtra != null &&
+                                        process.processOrder.ProductData.qtdPontosRFExtra > 0) ||
+
+                                       (process.processOrder.ProductData.qtdPontosDVRGratisExtra != null &&
+                                        process.processOrder.ProductData.qtdPontosDVRGratisExtra > 0) ||
+
+                                       (process.processOrder.ProductData.qtdPontosHDGratisExtra != null &&
+                                        process.processOrder.ProductData.qtdPontosHDGratisExtra > 0) ||
+
+                                       (process.processOrder.ProductData.qtdPontosHDPagoExtra != null &&
+                                        process.processOrder.ProductData.qtdPontosHDPagoExtra > 0)));
+
+    var hasAdditionalPointToRemove = hasPointsNotInstalled();
+
+    switch(action){
+        case 'INSTALL':
+        return hasAdditionalPointToInstall;
+        case 'REMOVE':
+        return hasAdditionalPointToInstall ? false : hasAdditionalPointToRemove;
+        default:
+        return false;
+    }
+
+    function hasPointsNotInstalled(){
+        if(process.processOrder.EquipmentData && process.processOrder.EquipmentData[0].AddPointsEquipmentData){
+            for (var i = 0; i <process.processOrder.EquipmentData[0].AddPointsEquipmentData.length; i++){
+                if (!process.processOrder.EquipmentData[0].AddPointsEquipmentData[i].EquipmentPointData.instalado)
+                    return true;
+            }
+        }
+        return false;
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHHandleIssueProcess.InstallRemoveClientEquipmentHandleIssueSubprocess">
+  <activity name="InstallRemoveClientEquipmentStart" type="seqActivity">
+    <guid>{6a507eb1-02ad-4070-9216-38346d06d58c}</guid>
+    <label>Install Remove Client Equipment Start</label>
+    <x>75.66793</x>
+    <y>738.11523</y>
+    <childList>
+      <child name="OpenIssueStart" type="seqActivity">
+        <guid>{83960581-f221-4670-9067-04b375076ab9}</guid>
+        <label>Open Issue Start</label>
+        <x>76.2023</x>
+        <y>838.75665</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{bd8088f1-dd9b-436f-9182-aa0fc4fea9f7}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>173.97903</x>
+            <y>930.75665</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{7aa3fdac-4226-46fa-be85-68792512d7d3}</guid>
+        <label>Check Issue Type</label>
+        <x>166.95082</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{a3a0fdf6-3a52-4e66-b0ce-a8b333311ab3}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{8a80e842-8258-4e87-ba1e-61f081343f15}</guid>
+                <label>Technical Issue</label>
+                <x>46.66738</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="InstallRemoveClientEquipmentSolveIssueTask" type="subflowActivity">
+                    <element>proc_FTTHUserInterface.InstallRemoveClientEquipmentSolveIssueTask</element>
+                    <guid>{85365506-77d7-47d3-ab03-282ac424a3c4}</guid>
+                    <label>Install Remove Client Equipment Solve Issue Task</label>
+                    <x>45.0</x>
+                    <y>248.40234</y>
+                  </child>
+                  <child name="AnyIssueOpen" type="switchActivity">
+                    <guid>{930292fd-64ce-4143-8e4e-34e6ac13f1b6}</guid>
+                    <label>Any Issue Open?</label>
+                    <x>49.66211</x>
+                    <y>418.60938</y>
+                    <childList>
+                      <child name="Yes" type="caseActivity">
+                        <guid>{8046510b-b4ef-4279-92f2-4e0bcbdec172}</guid>
+                        <label>Yes</label>
+                        <x>201.73535</x>
+                        <y>803.99567</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>proc_FTTHHandleIssueProcess.InstallRemoveClientEquipmentHandleIssueSubprocess/seqActivity_InstallRemoveClientEquipmentStart</element>
+                            <guid>{0d490e86-9dcf-4b0d-8ef8-382078531b90}</guid>
+                            <label>Repeat To Start</label>
+                            <x>30.0</x>
+                            <y>626.7129</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                              pendencyFinder.searchDocument.cwOrderId = orderId;
+                              var pendRes = pendencyFinder.search();
+                              var status;
+                              for (var i =0;i < pendRes.length;i++){
+                                  if (pendRes[i].flagIssueStatus == 0){
+                                      return true;
+                                  }
+                              }
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="No" type="caseActivity">
+                        <guid>{5b8d5568-fe18-4c66-9eb6-863f4242475e}</guid>
+                        <label>No</label>
+                        <x>82.0166</x>
+                        <y>530.0117</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{61a54247-0335-43be-b0cc-fe4e351f5c4a}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{33e0b35c-d94e-4e16-b62a-f556f0b01355}</guid>
+                <label>Client Issue</label>
+                <x>188.4338</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{22cb57d6-f0ed-4d85-8d9a-d195acb10eed}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>171.4133</x>
+                    <y>271.4541</y>
+                  </child>
+                  <child name="OpenIssue" type="switchActivity">
+                    <guid>{b2751716-5ce2-4ec4-8c07-5baf6d192692}</guid>
+                    <label>Open Issue</label>
+                    <x>178.74826</x>
+                    <y>527.0117</y>
+                    <childList>
+                      <child name="No" type="caseActivity">
+                        <guid>{3fc194fe-bb19-4f02-83c0-fc8be121f470}</guid>
+                        <label>No</label>
+                        <x>242.44211</x>
+                        <y>634.0635</y>
+                      </child>
+                      <child name="YEs" type="caseActivity">
+                        <guid>{400a4435-cdc8-4990-bcd0-53641e2e5390}</guid>
+                        <label>Yes</label>
+                        <x>222.1842</x>
+                        <y>799.9439</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>proc_FTTHHandleIssueProcess.InstallRemoveClientEquipmentHandleIssueSubprocess/seqActivity_InstallRemoveClientEquipmentStart</element>
+                            <guid>{1799f340-966f-4d65-82cb-e1caac6fab58}</guid>
+                            <label>Repeat To Start</label>
+                            <x>134.40889</x>
+                            <y>626.7129</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                              pendencyFinder.searchDocument.cwOrderId = orderId;
+                              var pendRes = pendencyFinder.search();
+                              var status;
+                              for (var i =0;i < pendRes.length;i++){
+                                  if (pendRes[i].flagIssueStatus == 0){
+                                      return true;
+                                  }
+                              }
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo gerenciamento da atividade manual de
+      Instalar/Retirar Equipamento. A atividade manual &#233; gerada para que possa
+      ser realizada pelo usu&#225;rio WMS. Caso a atividade seja finalizada com
+      pend&#234;ncia, uma atividade manual &quot;Instalar/Retirar Equipamento -
+      pend&#234;ncia&quot; &#233; gerada. O usu&#225;rio dever&#225; fechar a pend&#234;ncia e uma nova
+      atividade de Instalar/Retirar Equipamento dever&#225; ser criada. Caso o
+      usu&#225;rio finalize a atividade com sucesso, o subprocesso &#233; encerrado e
+      volta para o ponto do processo que o chamou.
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Esse subprocesso representa tanto a Instala&#231;&#227;o quanto a Retirada do
+      equipamento na casa do Cliente.
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Esse subprocesso tamb&#233;m ser&#225; respons&#225;vel por notificar os impedimentos
+      de cancelamento ao OM. Imediatamente antes da realiza&#231;&#227;o da atividade
+      manual de Intala&#231;&#227;o/Retirada de Equipamento dever&#225; ser envia a
+      notifica&#231;&#227;o de empedimento de cancelamento para o OM.
+    </p>
+    <p style="margin-top: 0">
+
+    </p>
+    <p style="margin-top: 0">
+      Casos de excess&#227;o:
+    </p>
+    <p style="margin-top: 0">
+       - Caso a ordem em quest&#227;o seja uma modifica&#231;&#227;o de endere&#231;o, apenas
+      antes da Instala&#231;&#227;o do Equipamento no endere&#231;o Novo dever&#225; ser enviada
+      essa notifica&#231;&#227;o de empedimento de cancelamento. Na retirada do
+      equipamento no endere&#231;o antigo a notifica&#231;&#227;o n&#227;o dever&#225; ser enviada.
+    </p>
+    <p style="margin-top: 0">
+       - Caso a atividade de Instalar/Retirar Equipamento seja finalizada com
+      pend&#234;ncia, deve ser enviada para o OM uma notifica&#231;&#227;o de possibilidade
+      de cancelamento.
+    </p>
+  ]]></description>
+  <guid>{c59d44cf-a066-4fbe-a1e2-13c61a8da545}</guid>
+  <label>Install Remove Client Equipment Handle Issue Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <revision>16</revision>
+  <type>Sub-flow</type>
+</process>

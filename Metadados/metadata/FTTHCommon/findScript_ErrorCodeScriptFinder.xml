@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findScript name="FTTHCommon.ErrorCodeScriptFinder">
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <label>Error Code Script Finder</label>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHCommon.ErrorTypeDocument</output>
+  <type>script</type>
+  <volatility>0</volatility>
+  <methodList>
+    <method name="cwOnFinderSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        var searchDoc = new Document ("FTTHCommon:ErrorTypeDocument");
+        var i;
+        var codErrorResult;
+
+        codErrorResult  = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchDoc);
+
+        for (i = 0; i < codErrorResult.length; i++){
+            objectList.addLast(codErrorResult[i].errorCode);
+        }
+
+        return objectList;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <label>Issues</label>
+        <valueType>doc_FTTHCommon.ErrorTypeDocument</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHCommon.ErrorTypeDocument/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="ErrorCodeScriptFinderResultTable1" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findScript_FTTHCommon.ErrorCodeScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="cwDocId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.ErrorCodeScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.ErrorTypeDocument/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="errorCode" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.ErrorCodeScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.ErrorTypeDocument/leaf_errorCode</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="errorType" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.ErrorCodeScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.ErrorTypeDocument/leaf_errorType</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="errorDescription" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.ErrorCodeScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.ErrorTypeDocument/leaf_errorDescription</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="downstreamSystem" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHCommon.ErrorCodeScriptFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.ErrorTypeDocument/leaf_downstreamSystem</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_FTTHCommon.ErrorCodeScriptFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+  <viewList>
+    <view name="IssuesScriptFinderView" type="findVView">
+      <outputOverlay>findScript_FTTHCommon.ErrorCodeScriptFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+    </view>
+  </viewList>
+</findScript>

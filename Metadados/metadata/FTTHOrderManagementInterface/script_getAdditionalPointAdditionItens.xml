@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.getAdditionalPointAdditionItens">
+  <label>getAdditionalPointAdditionItens</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="cwOrderId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc = new Document("FTTHOrderManagementInterface.productDataSearch");
+    searchDoc.cwOrderId = cwOrderId;
+    var result = Finder.runSearch("FTTHOrderManagementInterface.idItemFinder", searchDoc);
+    var listaIdsAUX = new Array();
+    var listaIds = new Array();
+    var servicosIds = new Array();
+
+    for (var i=0; i < result.length; i++) {
+        listaIdsAUX.push(result[i].idPromocao);
+        if (result[i].identificadorIPTV){
+            listaIdsAUX.push(result[i].identificadorIPTV);
+        }
+    }
+
+    //remove duplicados, no caso da mudança de endereço
+    listaIds = FTTHCommon.removeDuplicates(listaIdsAUX);
+
+    return listaIds;
+  ]]></script>
+</script>

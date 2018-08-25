@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHOrderManagementInterface.NotifyRepairRequestAutomaticTask_cwr1">
+  <activity name="NotifyRepairRequestAutomaticTaskStart" type="seqActivity">
+    <guid>{0b77ed87-d49b-4249-b93f-056d47dafa22}</guid>
+    <label>Notify Repair Request Automatic Task Start</label>
+    <x>79.61563</x>
+    <y>30.0</y>
+    <childList>
+      <child name="NotifyRepairRequestClosingSendOperation" type="opActivity">
+        <element>iface_FTTHOrderManagementInterface.OMSenderInterface/oper_NotifyOperation</element>
+        <guid>{cad52424-ba8e-4f2a-818b-36bf232d8e4a}</guid>
+        <label>Notify Repair Request Closing Send Operation</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>134.69922</x>
+        <y>136.52188</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Notify Repair Request Closing Automatic Task", "Notify Repair Request Closing Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("OM_SYSTEM"));
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, Global.getConfigVariable("NOTIFICAR_ENCERRAMENTO"), status);
+
+              FTTHOrderManagementInterface.updateClosingDate(this.process.processOrder, status);
+            ]]></script>
+          </method>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var msg = FTTHOrderManagementInterface.NotifyRepairRequestClosing(this.process.processOrder, this.process.id, this.activityData);
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Notify Repair Request Closing Automatic Task", "Notify Repair Request Closing Send Operation", "cwOnProcActBefore", msg.toXML());
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="NotifyClosingRepairAutomaticTaskComplete" type="completeActivity">
+        <guid>{3696e829-1e46-4e53-97ed-ff9963811635}</guid>
+        <label>Notify Closing Repair Automatic Task Complete</label>
+        <x>224.82031</x>
+        <y>321.7289</y>
+      </child>
+      <child name="ExceptionHandler" type="onExceptionActivity">
+        <element>excp_cwf_pm.interfaceExcp</element>
+        <guid>{4293a025-e19f-4ad4-acf3-c54cfb6723a0}</guid>
+        <label>Exception Handler</label>
+        <x>30.0</x>
+        <y>165.92422</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("NOTIFICAR_ENCERRAMENTO"), Global.getConfigVariable("OM_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="OMSenderParticipant" type="participantActivity">
+        <guid>{2ee56e8a-0e1e-460e-a503-cd3940dec576}</guid>
+        <label>OM Sender Participant</label>
+        <participant>part_FTTHOrderManagementInterface.OMSenderParticipant</participant>
+        <x>58.820312</x>
+        <y>351.13126</y>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Fluxo respons&#225;vel pelo controle da atividade autom&#225;tica de Atualizar OM.
+      Inicialmente o fluxo envia para o sistema OM.
+    </p>
+  ]]></description>
+  <label>Notify Repair Request Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHOrderManagementInterface.NotifyRepairRequestAutomaticTask</process>
+  <type>User</type>
+</process__revision>

@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findScript name="FTTHReportApplication.researchReportSearchOS">
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHReportApplication.researchReportSearch</input>
+  <label>researchReportSearchOS</label>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHReportApplication.researchReportResult</output>
+  <type>script</type>
+  <methodList>
+    <method name="cwOnFinderSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        var resFinal = new Array();
+
+        var sql = "select DISTINCT OS.CWORDERID, OS.NUM_ORDEM_SERVICO, OS.NUM_PEDIDO, P.NOME_PACOTE, NVL(OS.DESC_ESTADO_ORDEM_SERVICO,'Em processamento') AS DESC_ESTADO_TRAMITACAO, OS.DT_ABERTURA, OS.DT_FECHAMENTO,"+
+                  "ATI.NOME_ATIVIDADE, PART.PARTICIPANTE, DECODE (OA.COD_STATUS, 'AUTOMATIC_ACTIVITY', 'Atividade automática em execução',"+
+                                                          "'FUNCTIONAL_ERROR', 'Atividade em erro funcional',"+
+                                                          "'ISSUE', 'Atividade com pendência aberta',"+
+                                                          "'MANUAL_ACTIVITY', 'Atividade manual a espera de execução',"+
+                                                          "'RESEND', 'Atividade manual reenviada',"+
+                                                          "'NEW', 'Atividade em processamento',"+
+        "'WAIT', 'Atividade em processamento',"+
+                                                          "'SUCCESS', 'Atividade finalizada com sucesso',"+
+                                                          "'TECHNICAL_ERROR', 'Atividade em Erro Técnico') as Status_ativ,"+
+        " OA.EXECUTIONDATE, OA.IND_CANCELAMENTO"+
+                  " from TBI_ORDEM_SERVICO OS, TBI_FACILIDADE FAC, TBI_PRODUTO P, TBI_ATIVIDADE ATI, TBI_ORDEM_ATIVIDADE OA, TBI_TIPO_PARTICIPANTE PART, TBI_CLIENTE C"+
+                  " where OS.CWORDERID = FAC.CWORDERID"+
+                  " and OA.COD_STATUS <> 'NOT_NECESSARY'"+
+                  " and FAC.CWORDERID = P.CWORDERID"+
+                  " and P.CWORDERID = C.CWORDERID"+
+                  " and OA.COD_ATIVIDADE = ATI.COD_ATIVIDADE"+
+                  " and OS.CWORDERID = OA.ID_ORDEM_SERVICO"+
+                  " and PART.ATIVIDADE = ATI.COD_ATIVIDADE"+
+                  " and OA.EXECUTIONDATE is not null";
+
+        var params = new Array();
+
+        //searchData.numeroOS
+        if(searchData.numeroOS != null){
+            sql += " and OS.NUM_ORDEM_SERVICO = ? ";
+            params.push(searchData.numeroOS);
+        }
+        //searchData.numeroPedido
+        if(searchData.numeroPedido != null){
+            sql += " and OS.NUM_PEDIDO = ? ";
+            params.push(searchData.numeroPedido);
+        }
+        //searchData.acessoGPOM
+        if(searchData.acessoGPOM != null){
+            sql +=" and FAC.ID_ACESSO_GPON = ?";
+            params.push(searchData.acessoGPOM);
+        }
+        //searchData.numTerminalVoIP
+        if(searchData.numTerminalVoIP != null){
+            sql +=" and P.NUM_TERMINAL_VOIP = ?";
+            params.push(searchData.numTerminalVoIP);
+        }
+        //12590
+        //searchData.identificadorIPTV
+        if(searchData.identificadorIPTV != null){
+            sql +=" and P.ID_IPTV = ?";
+            params.push(searchData.identificadorIPTV);
+        }
+        //searchData.identificadorVOIP
+        if(searchData.identificadorVOIP != null){
+            sql +=" and P.ID_VOIP = ?";
+            params.push(searchData.identificadorVOIP);
+        }
+        //searchData.identificadorHSI
+        if(searchData.identificadorHSI != null){
+            sql +=" and P.ID_HSI = ?";
+            params.push(searchData.identificadorHSI);
+        }
+        //searchData.numeroDocumento
+        if(searchData.numeroDocumento != null){
+            sql +=" and C.NUMERODOCUMENTO = ?";
+            params.push(searchData.numeroDocumento);
+        }
+
+        sql += " ORDER BY OS.CWORDERID, OA.IND_CANCELAMENTO, OA.EXECUTIONDATE";
+
+        //Query Resultante
+        var res = Global._runSQLQuery("ORDER","FTTHReportApplication.researchReportResult",1000,params,sql);
+
+        if(res && res.length > 0) {
+            var lastIndex = res.length-1;
+            var orderIdOld = res[lastIndex].orderId;
+            var achouLast = false;
+
+            for(var index = lastIndex; index > -1; index--) {
+
+                if (res[index].orderId != orderIdOld) { // Outra Ordem
+                    achouLast = false;
+                    orderIdOld = res[index].orderId;
+                    lastIndex = index;
+                        }
+                if (!achouLast) {
+                    if (res[index].statusAtividade != 'Atividade em processamento') {
+                        achouLast = true;
+
+                        if (res[index].statusAtividade == 'Atividade finalizada com sucesso' && index != lastIndex) {
+                            resFinal.push(res[index+1]);
+                        } else {
+                            resFinal.push(res[index]);
+                    }
+                    } else if ((index == 0 || res[index-1].orderId != orderIdOld)) {
+                        achouLast = true;
+                        resFinal.push(res[index]);
+                    }
+                }
+            }
+        }
+
+        return resFinal;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <valueType>doc_FTTHReportApplication.researchReportResult</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHReportApplication.researchReportSearch/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHReportApplication.researchReportResult/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="researchReportSearchOSResultTable" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="orderId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_orderId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numOS" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_numOS</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="numPedido" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_numPedido</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="produto" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_produto</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="statusOrdem" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_statusOrdem</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataAbertura" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_dataAbertura</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="dataFechamento" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_dataFechamento</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="atividade" type="elslct">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_atividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="participante" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_participante</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="statusAtividade" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHReportApplication.researchReportResult/leaf_statusAtividade</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Menu" type="exov">
+            <base>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</base>
+            <extends>ui_com.conceptwave.system.BaseFinderUserInterface/frmui_Forms/exov_Menu</extends>
+            <label>Menu</label>
+            <overrideList>
+              <override name="finderMenuLayout" type="elhlt">
+                <alignment>left,center</alignment>
+                <width>100%</width>
+                <elementList>
+                  <element name="cwfSearch" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_searchAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconSearch.gif</icon>
+                    <label>Search</label>
+                    <showDown>true</showDown>
+                    <showFocused>true</showFocused>
+                    <tooltip>Search</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_searchVisible</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="cwfSelect" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_showDetailAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconSelect.gif</icon>
+                    <label>Select</label>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/permMethod_cwfSelectView</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="cwfDetail" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_updateAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <label>Detail</label>
+                    <tooltip>Edit</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="cwfAdd" type="elmnu">
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_addAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconAdd.gif</icon>
+                    <tooltip>Add</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="cwfCopy" type="elmnu">
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_copyAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconCopy.gif</icon>
+                    <tooltip>Copy</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="cwfUpdate" type="elmnu">
+                    <menuAccel type="mAccelP"/>
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/action_updateAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconEdit.gif</icon>
+                    <tooltip>Edit</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="cwfDelete" type="elmnu">
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/usrActionMethod_deleteAction</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/MenuIconDelete.gif</icon>
+                    <tooltip>Delete</tooltip>
+                    <visible type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                      </variablePathList>
+                    </visible>
+                  </element>
+                  <element name="detailMenu" type="elovf">
+                    <formReference type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detail</variablePath>
+                        <variablePath>ui_com.conceptwave.system.UserInterface/frmui_Forms</variablePath>
+                        <variablePath>ui_com.conceptwave.system.UserInterface/frmui_Forms/vform_Menu</variablePath>
+                      </variablePathList>
+                    </formReference>
+                    <overflow>visible</overflow>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detail</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <width>1px</width>
+                  </element>
+                  <element name="MenuItem" type="elmnu">
+                    <clickMethod type="varPath">
+                      <variablePathList>
+                        <variablePath>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/usrActionMethod_cwOrder</variablePath>
+                      </variablePathList>
+                    </clickMethod>
+                    <icon>/cwf/TreeFolderUnknown.gif</icon>
+                    <label>Order</label>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="orderView" type="permMethod">
+        <script><![CDATA[
+          if(this.result.selected == null)
+                return false;
+          else
+                 return true;
+        ]]></script>
+      </method>
+      <method name="cwOrder" type="usrActionMethod">
+        <dialogHeight>600</dialogHeight>
+        <dialogWidth>1200</dialogWidth>
+        <parameterList>
+          <parameter name="dialog" type="rifp">
+            <type>ui_com.conceptwave.system.Dialog</type>
+          </parameter>
+        </parameterList>
+        <showInPopup>true</showInPopup>
+        <script><![CDATA[
+          if(this.result.selected == null)
+                return;
+          if (this.result.selected[0]!= null) {
+            if(this.result.selected[0].orderId!=null)
+                return Order.getOrderById(this.result.selected[0].orderId.key);
+            else
+               Global.throwException("UU0144");
+          }else
+                Global.throwException("UU0115");
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+  <viewList>
+    <view name="researchReportSearchOSView" type="findVView">
+      <inputOverlay>doc_FTTHReportApplication.researchReportSearch/ui_UserInterface/frmui_Forms/exov_Default</inputOverlay>
+      <outputOverlay>findScript_FTTHReportApplication.researchReportSearchOS/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+      <showSearchForm>true</showSearchForm>
+    </view>
+  </viewList>
+</findScript>

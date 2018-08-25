@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.createOrUpdateActivity">
+  <label>Create Or Update Activity</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="atividadeId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+             DESCRIPTION:   Adiciona atividade no plano de execução da ordem ou atualiza
+     */
+
+    var atividade = new Document("FTTHCommon:Activity");
+    atividade.orderId = orderId;
+    atividade.activityId = atividadeId;
+    var docAtividade = Finder.runSearch('FTTHClickInterface:RecuperarAtividade', atividade);
+
+
+    if(docAtividade.size > 0){
+        docAtividade[0].status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+        docAtividade[0].indCancelamento = false;
+        docAtividade[0].executionDate = new Date();
+        docAtividade[0].save();
+    }else{
+        atividade.status = Global.getConfigVariable('ACTIVITY_STATUS_NEW');
+        atividade.indCancelamento = false;
+        atividade.executionDate = new Date();
+        atividade.save();
+    }
+  ]]></script>
+</script>

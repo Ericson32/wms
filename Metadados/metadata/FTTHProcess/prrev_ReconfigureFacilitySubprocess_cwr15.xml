@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ReconfigureFacilitySubprocess_cwr15">
+  <activity name="ReconfigureFacilityStart" type="seqActivity">
+    <guid>{f8a03478-8840-4edd-8f5b-4f98c93c6441}</guid>
+    <label>Reconfigure Facility Start</label>
+    <x>39.947853</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureHSI" type="subflowActivity">
+        <element>prrev_FTTHProcess.ReconfigureHSIPlatformsSubprocess_cwr5</element>
+        <guid>{f88dd856-4103-4203-82e2-2c85c7da158e}</guid>
+        <label>Reconfigure HSI</label>
+        <x>30.0</x>
+        <y>121.76094</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "RECONFIGURAR_HSI%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ReconfigureVoIP" type="subflowActivity">
+        <element>prrev_FTTHProcess.ReconfigureVOIPPlatformsSubprocess_cwr8</element>
+        <guid>{09f94e4e-a6df-4c3c-a3bd-5676d3043d3d}</guid>
+        <label>Reconfigure VoIP</label>
+        <x>29.0</x>
+        <y>234.16327</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "RECONFIGURAR_VOIP%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ReconfigureIPTV" type="subflowActivity">
+        <element>prrev_FTTHProcess.ReconfigureIPTVPlatformsSubprocess_cwr5</element>
+        <guid>{aa7f5aa7-d06f-4fe4-aa51-8b8820646b60}</guid>
+        <label>Reconfigure IPTV</label>
+        <x>30.0</x>
+        <y>347.5656</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "RECONFIGURAR_IPTV%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ConfigureOTT" type="subflowActivity">
+        <element>prrev_FTTHProcess.ConfigureOTTPlatformsSubprocess_cwr5</element>
+        <guid>{0892e113-267b-492f-9b1f-b5d49cac9ccf}</guid>
+        <label>Configure OTT</label>
+        <x>36.336914</x>
+        <y>458.96796</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "RECONFIGURAR_IPTV%";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              if(result){
+                  orderId = process.processOrder.OrderHeader.cwOrderId;
+                  atividade = "CONFIGURAR_OTT%";
+                  result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              }
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela realiza&#231;&#227;o das atividades autom&#225;ticas
+      Reconfigurar HSI, Reconfigurar IPTV, Reconfigurar OTT e Reconfigurar
+      VoIP. As atividades s&#243; dever&#227;o ser realizadas caso o cliente tenha
+      solicitado o servi&#231;o associado a cada uma.
+    </p>
+    <p style="margin-top: 0">
+      Para o caso da atividade Reconfigurar OTT, a mesma s&#243; poder&#225; ser
+      realizada caso a Reconfigura&#231;&#227;o do IPTV tenha sido realizada com sucesso
+      anteriormente.
+    </p>
+  ]]></description>
+  <label>Reconfigure Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ReconfigureFacilitySubprocess</process>
+  <revision>15</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DesconfigureFacilitySubprocess_cwr8">
+  <activity name="DesconfigureFacilityStart" type="seqActivity">
+    <guid>{3a8f7f38-66a6-407a-a020-5e614085c9b6}</guid>
+    <label>Desconfigure Facility Start</label>
+    <x>317.81268</x>
+    <y>30.0</y>
+    <childList>
+      <child name="DesconfigureFacilities2" type="allActivity">
+        <guid>{19336916-0cef-44e3-9eb1-e1cb97d52a65}</guid>
+        <label>Desconfigure Facilities</label>
+        <x>317.8127</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="DesconfigureVoIP" type="seqActivity">
+            <guid>{45aacea3-9e0d-4652-a249-a3f4a311a798}</guid>
+            <label>Desconfigure VoIP</label>
+            <x>530.8043</x>
+            <y>427.98334</y>
+            <childList>
+              <child name="CheckVoIP" type="switchActivity">
+                <guid>{20539478-e7f6-42b1-9d11-db62ad71362d}</guid>
+                <label>Check VoIP</label>
+                <x>535.14453</x>
+                <y>739.4673</y>
+                <childList>
+                  <child name="DesconfigureVoIP" type="caseActivity">
+                    <guid>{9bd2f0d7-fc60-48bc-a8f6-7fa09f904eaa}</guid>
+                    <label>Desconfigure VoIP</label>
+                    <x>469.4707</x>
+                    <y>407.6999</y>
+                    <childList>
+                      <child name="DesconfigureVoIP" type="subflowActivity">
+                        <element>prrev_FTTHProcess.DesconfigureVoIPSubprocess_cwr4</element>
+                        <guid>{74e75761-4785-47b5-914a-b169ede26d49}</guid>
+                        <label>Desconfigure VoIP</label>
+                        <x>587.15576</x>
+                        <y>858.2202</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="necessaryDesconfigureVoIP" type="action">
+                        <script>return true;</script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="VoIPNotExists" type="caseActivity">
+                    <guid>{4898824b-7e9c-4370-89df-1b31877c951e}</guid>
+                    <label>VoIP Not Exists</label>
+                    <x>487.13232</x>
+                    <y>858.2202</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "DESCONFIGURAR_VOIP";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return (!result);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="DesconfigureBandaLarga" type="seqActivity">
+            <guid>{689fb4d1-b512-4c93-b8cb-117c9f70be1c}</guid>
+            <label>Desconfigure Banda Larga</label>
+            <x>318.64667</x>
+            <y>426.60287</y>
+            <childList>
+              <child name="CheckBandaLarga" type="switchActivity">
+                <guid>{15ea8197-2311-4e07-84f3-efd5729cc20a}</guid>
+                <label>Check Banda Larga</label>
+                <x>325.5791</x>
+                <y>724.7661</y>
+                <childList>
+                  <child name="DesconfigureHSI" type="caseActivity">
+                    <guid>{16b12c87-840f-434d-8a37-c86898850a19}</guid>
+                    <label>Desconfigure HSI</label>
+                    <x>198.06836</x>
+                    <y>407.6999</y>
+                    <childList>
+                      <child name="DesconfigureHSI" type="subflowActivity">
+                        <element>prrev_FTTHProcess.DesconfigureHSISubprocess_cwr3</element>
+                        <guid>{afacd818-4aa8-4ff8-9218-4a24f6c4f2ad}</guid>
+                        <label>Desconfigure HSI</label>
+                        <x>364.42725</x>
+                        <y>858.2202</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="necessaryDesconfigureHSI" type="action">
+                        <script>return true;</script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="BandaLargaNotExists" type="caseActivity">
+                    <guid>{94daa606-2825-49ba-a66b-f2896732112d}</guid>
+                    <label>Banda Larga Not Exists</label>
+                    <x>259.72803</x>
+                    <y>850.8696</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "DESCONFIGURAR_HSI";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return (!result);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="DesconfigureOTTandIPTV" type="seqActivity">
+            <guid>{a0e34c65-336f-447b-9246-d02e4256de6c}</guid>
+            <label>Desconfigure OTT and IPTV</label>
+            <x>81.31602</x>
+            <y>235.14078</y>
+            <childList>
+              <child name="CheckOTT" type="switchActivity">
+                <guid>{8ddf7b6a-6e1b-4138-80df-af6e68c02368}</guid>
+                <label>Check OTT</label>
+                <x>85.8584</x>
+                <y>329.9017</y>
+                <childList>
+                  <child name="DesconfigureOTT" type="caseActivity">
+                    <guid>{58e4f3c4-4c09-4220-b537-c76506150507}</guid>
+                    <label>Desconfigure OTT</label>
+                    <x>128.00195</x>
+                    <y>589.45935</y>
+                    <childList>
+                      <child name="DesconfigureOTT" type="seqActivity">
+                        <guid>{10b32bd7-7ccf-45e1-8c40-1a972bdab12e}</guid>
+                        <label>Desconfigure OTT</label>
+                        <x>30.13926</x>
+                        <y>427.98334</y>
+                        <childList>
+                          <child name="DesconfigureOTT" type="subflowActivity">
+                            <element>prrev_FTTHProcess.DesconfigureOTTSubprocess_cwr4</element>
+                            <guid>{fef209ce-85cf-4c81-8c4c-19eb5114b117}</guid>
+                            <label>Desconfigure OTT</label>
+                            <x>30.0</x>
+                            <y>521.3638</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="necessaryDesconfigureOTT" type="action">
+                        <script>return true;</script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="OTTNotExists" type="caseActivity">
+                    <guid>{f4a964a2-ec08-43eb-a403-fa2bb35dd03e}</guid>
+                    <label>OTT Not Exists</label>
+                    <x>148.70508</x>
+                    <y>521.3638</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var orderId = process.processOrder.OrderHeader.cwOrderId;
+                          var atividade = "DESCONFIGURAR_OTT";
+                          var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                          return (!result);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+              <child name="DesconfigureIPTV" type="seqActivity">
+                <guid>{c2799456-b682-4ede-9b49-9ab6d6afd006}</guid>
+                <label>Desconfigure IPTV</label>
+                <x>80.24492</x>
+                <y>632.7661</y>
+                <childList>
+                  <child name="CheckTV" type="switchActivity">
+                    <guid>{dc96ed45-0cd1-4e76-8240-7f8f8bcc00fb}</guid>
+                    <label>Check TV</label>
+                    <x>90.18848</x>
+                    <y>739.4673</y>
+                    <childList>
+                      <child name="DesconfiguraIPTV" type="caseActivity">
+                        <guid>{41050451-40f5-490e-99aa-6833cef9cae7}</guid>
+                        <label>Desconfigure IPTV</label>
+                        <x>747.541</x>
+                        <y>406.6999</y>
+                        <childList>
+                          <child name="DesconfigureIPTV" type="subflowActivity">
+                            <element>prrev_FTTHProcess.DesconfigureIPTVSubprocess_cwr4</element>
+                            <guid>{c4e8d419-b14b-40cc-beea-1bb641cefa4a}</guid>
+                            <label>Desconfigure IPTV</label>
+                            <x>137.02296</x>
+                            <y>858.2202</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="necessaryDesconfigureIPTV" type="action">
+                            <script>return true;</script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="IPTVNotExists" type="caseActivity">
+                        <guid>{fbd1fa0b-96c8-4f09-b6bf-43c3194387c9}</guid>
+                        <label>IPTV Not Exists</label>
+                        <x>36.34326</x>
+                        <y>858.2202</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var atividade = "DESCONFIGURAR_IPTV";
+                              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                              return (!result);
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="DesconfigureInfra" type="seqActivity">
+        <guid>{704252a3-cdfd-4537-9e95-34ae02242a1c}</guid>
+        <label>Desconfigure Infra</label>
+        <x>306.87442</x>
+        <y>1006.97314</y>
+        <childList>
+          <child name="CheckInfra" type="switchActivity">
+            <guid>{b2b5f4ee-a4cf-49eb-82cc-c9bd13738e10}</guid>
+            <label>Check Infra</label>
+            <x>311.41504</x>
+            <y>1098.9731</y>
+            <childList>
+              <child name="need" type="caseActivity">
+                <guid>{4db234e4-02d3-4853-86c3-f1da58eaad45}</guid>
+                <label>Need</label>
+                <x>284.45087</x>
+                <y>230.0</y>
+                <childList>
+                  <child name="DesconfigureInfraSubprocess" type="subflowActivity">
+                    <element>prrev_FTTHProcess.DesconfigureInfraSubprocess_cwr2</element>
+                    <guid>{a3fb8976-cff5-4f21-b413-6c11be407644}</guid>
+                    <label>Desconfigure Infra Subprocess</label>
+                    <x>363.0923</x>
+                    <y>1195.6743</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var atividade = "DESCONFIGURAR_INFRA";
+                      var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                      return (result);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="notNeed" type="caseActivity">
+                <guid>{91a957b3-1713-4662-95ae-34362a785774}</guid>
+                <label>Not Need</label>
+                <x>260.39697</x>
+                <y>1210.3755</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela realiza&#231;&#227;o das atividades autom&#225;ticas
+      Desconfigurar HSI, Desconfigurar IPTV, Desconfigurar OTT e Desconfigurar
+      VoIP. As atividades s&#243; dever&#227;o ser realizadas caso o cliente tenha
+      solicitado o servi&#231;o associado a cada uma.
+    </p>
+    <p style="margin-top: 0">
+      Para o caso da atividade Desconfigurar OTT, a mesma s&#243; poder&#225; ser
+      realizada caso a Desconfigura&#231;&#227;o do IPTV tenha sido realizada com
+      sucesso anteriormente.
+    </p>
+  ]]></description>
+  <label>Desconfigure Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DesconfigureFacilitySubprocess</process>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process__revision>

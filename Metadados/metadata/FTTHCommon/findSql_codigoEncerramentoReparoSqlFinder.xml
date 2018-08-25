@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<findSql name="FTTHCommon.codigoEncerramentoReparoSqlFinder">
+  <dbSchema>ORDER</dbSchema>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Document respos&#225;vel pela busca do campo de encerramento externo de
+      reparo com erro e pela listagem dos poss&#237;veis valores
+    </p>
+  ]]></description>
+  <extends>find_com.conceptwave.system.Finder</extends>
+  <input>doc_FTTHCommon.codigoEncerramentoReparo</input>
+  <maxRowsLimit>9999</maxRowsLimit>
+  <metaVersion>4</metaVersion>
+  <output>doc_FTTHCommon.codigoEncerramentoReparo</output>
+  <type>SQL</type>
+  <methodList>
+    <method name="cwOnFinderSQLSel" type="action">
+      <system>true</system>
+      <script><![CDATA[
+        SELECT {+*+} from TBI_CADASTRO_CODIGO_REPARO
+        WHERE
+        1=1
+        {[3] and}
+        {[3] (COD_ENCERRAMENTO like  ? }
+        {[3] or  DESC_COD_ENCERRAMENTO like ? )}
+        order by 2,3
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.FinderUserInterface</extends>
+    <variableList>
+      <variable name="result" type="uivar">
+        <flags enum-type="metadataFlag">ARRAY</flags>
+        <valueType>doc_FTTHCommon.codigoEncerramentoReparo</valueType>
+      </variable>
+      <variable name="search" type="uivar">
+        <valueType>doc_FTTHCommon.codigoEncerramentoReparo/ui_UserInterface</valueType>
+      </variable>
+      <variable name="detail" type="uivar">
+        <flags enum-type="metadataFlag">VALIDATE</flags>
+        <valueType>doc_FTTHCommon.codigoEncerramentoReparo/ui_UserInterface</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Result" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/vform_Result</extends>
+            <label>Result</label>
+            <overrideList>
+              <override name="table" type="elvlt">
+                <height>100%</height>
+                <width>100%</width>
+                <elementList>
+                  <element name="filtro" type="elref">
+                    <editable type="varPath">
+                      <variablePathList>
+                        <variablePath>dtype_com.conceptwave.system.Boolean/leaf_TRUE</variablePath>
+                      </variablePathList>
+                    </editable>
+                    <editableVk>true</editableVk>
+                    <height>20px</height>
+                    <iconAction type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/uimthd_filtrar</variablePath>
+                      </variablePathList>
+                    </iconAction>
+                    <label>Fechamento do BA - Error - Filtro</label>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/uivar_search</variablePath>
+                        <variablePath>doc_FTTHCommon.codigoEncerramentoReparo/ui_UserInterface/uivar_model</variablePath>
+                        <variablePath>doc_FTTHCommon.codigoEncerramentoReparo/leaf_filtro</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <width>300px</width>
+                  </element>
+                  <element name="codigoEncerramentoReparoSqlFinderResultTable1" type="eltabl">
+                    <onSelectChange type="varPath">
+                      <variablePathList>
+                        <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/action_OnSelChanged</variablePath>
+                      </variablePathList>
+                    </onSelectChange>
+                    <variable type="varPath">
+                      <variablePathList>
+                        <variablePath>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/uivar_result</variablePath>
+                      </variablePathList>
+                    </variable>
+                    <elementList>
+                      <element name="cwDocId" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.codigoEncerramentoReparo/leaf_cwDocId</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <visible type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </visible>
+                      </element>
+                      <element name="codEncerramento" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.codigoEncerramentoReparo/leaf_codEncerramento</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>150px</width>
+                      </element>
+                      <element name="descCodigoEncerramento" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/uivar_result</variablePath>
+                            <variablePath>doc_FTTHCommon.codigoEncerramentoReparo/leaf_descCodigoEncerramento</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>500px</width>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.FinderUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="detailSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/uivar_detailForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/uivar_detail</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.MasterDetailUserInterface/permMethod_detailVisible</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+              <override name="searchFormSection" type="elsect">
+                <formReference type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.BaseFinderUserInterface/uivar_searchForm</variablePath>
+                  </variablePathList>
+                </formReference>
+                <variable type="varPath">
+                  <variablePathList>
+                    <variablePath>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/uivar_search</variablePath>
+                  </variablePathList>
+                </variable>
+                <visible type="varPath">
+                  <variablePathList>
+                    <variablePath>ui_com.conceptwave.system.FinderUserInterface/permMethod_showSearchForm</variablePath>
+                  </variablePathList>
+                </visible>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="filtrar" type="uimthd">
+        <script><![CDATA[
+          /*
+          var busca = new Document("FTTHCommon:codigoEncerramentoReparo");
+
+                if( this.model.searchDocument.filtro){
+                    var filtro = this.model.searchDocument.filtro.trim();
+                    filtro = filtro.toUpperCase();
+                    busca.filtro       = '%' + filtro + '%';
+                }else{
+                    busca.filtro = '';
+                }
+
+                var resultLocal = Finder.runSearch("FTTHCommon.codigoEncerramentoReparoSqlFinder", busca);
+                this.result = resultLocal;
+              */
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+  <viewList>
+    <view name="codigoEncerramentoReparoSqlFinderView" type="findVView">
+      <outputOverlay>findSql_FTTHCommon.codigoEncerramentoReparoSqlFinder/ui_UserInterface/frmui_Forms/exov_Result</outputOverlay>
+    </view>
+  </viewList>
+</findSql>

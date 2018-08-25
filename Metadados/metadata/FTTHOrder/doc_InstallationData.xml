@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHOrder.InstallationData">
+  <dbSchema>ORDER</dbSchema>
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <generatedKey>true</generatedKey>
+  <guid>{9e641b1d-4e69-4365-95ec-4720b8aa1018}</guid>
+  <label>Installation Data</label>
+  <metaVersion>3</metaVersion>
+  <variableList>
+    <variable name="CDOIA" type="leaf">
+      <column>INFO_CDOIA</column>
+      <label>CDOIA</label>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_FTTHCommon.CDOIA</valueType>
+    </variable>
+    <variable name="caboRiser" type="leaf">
+      <column>COD_CABO_RISER</column>
+      <label>Cabo Riser</label>
+      <propertyElement type="elfld"/>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_FTTHCommon.caboRiser</valueType>
+    </variable>
+    <variable name="caboDrop" type="leaf">
+      <column>COD_CABO_DROP</column>
+      <label>Cabo Drop</label>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_FTTHCommon.caboDrop</valueType>
+    </variable>
+    <variable name="jumper" type="leaf">
+      <column>IND_NECESSITA_JUMPER</column>
+      <label>Necessita Jumper?</label>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_FTTHCommon.necessitaJumper</valueType>
+    </variable>
+    <variable name="cwDocId" type="leaf">
+      <column>CWDOCID</column>
+      <key>1</key>
+      <label>System document ID</label>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_cwf.cwDocId</valueType>
+    </variable>
+    <variable name="cwOrderId" type="leaf">
+      <column>CWORDERID</column>
+      <label>System order ID</label>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_cwf.cwOrderId</valueType>
+    </variable>
+    <variable name="cwParentId" type="leaf">
+      <column>CWPARENTID</column>
+      <label>System parent ID</label>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_cwf.cwParentId</valueType>
+    </variable>
+    <variable name="lastUpdatedDate" type="leaf">
+      <column>LASTUPDATEDDATE</column>
+      <label>System last updated timestamp</label>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_cwf.lastUpdatedDate</valueType>
+    </variable>
+    <variable name="updatedBy" type="leaf">
+      <column>UPDATEDBY</column>
+      <label>System updated by</label>
+      <table>TBI_INSTALACAO</table>
+      <valueType>dtype_cwf.updatedBy</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="InstallEquipmentPermission" type="permMethod">
+      <script><![CDATA[
+        var cwOrderId = this.cwOrderId;
+        var ord = Order.getOrderById(cwOrderId);
+        var orderType = ord.OrderHeader.tipoOS;
+
+        var actualTask = UserProfile.getUserTask();
+        if(actualTask == "FTTHUserInterface.InstallRemoveEquipmentManualTaskInterface/InstallRemoveEquipmentTask"){
+            if(orderType == "TIPO_ORDEM_INSTALACAO")
+                return true;
+                if(orderType == "TIPO_ORDEM_MODIFICACAO"){
+                    var atividade = "ALTERAR_EQUIPAMENTO_CLIENTE";
+                    var result = FTTHCommon.defineActivityNecessity(cwOrderId, atividade);
+                    return (result);
+                }
+        }else if(actualTask == "FTTHUserInterface.ClickManualActivityInterface/BAOpenningOperation"){
+            if(orderType == "TIPO_ORDEM_INSTALACAO")
+                return true;
+                if(orderType == "TIPO_ORDEM_MODIFICACAO"){
+                    var atividade = "ALTERAR_EQUIPAMENTO_CLIENTE";
+                    var result = FTTHCommon.defineActivityNecessity(cwOrderId, atividade);
+                    return (result);
+                }
+        }
+        return false;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHOrder.InstallationData</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Default" type="exov">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="Grid_vCentering" type="elvltstck">
+                <height>100%</height>
+                <membersMargin>5</membersMargin>
+                <width>100%</width>
+                <elementList>
+                  <element name="InstallationDataGrid" type="elgrd">
+                    <colWidths>200px</colWidths>
+                    <numOfCols>3</numOfCols>
+                    <useDefaultHeight>true</useDefaultHeight>
+                    <width>800px</width>
+                    <elementList>
+                      <element name="InstallationDataHeader" type="elhdr">
+                        <label>Dados da Instalação</label>
+                      </element>
+                      <element name="caboHeinzen" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.InstallationData/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.InstallationData/permMethod_InstallEquipmentPermission</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.InstallationData/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.InstallationData/leaf_caboRiser</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="caboDrop" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.InstallationData/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.InstallationData/permMethod_InstallEquipmentPermission</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.InstallationData/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.InstallationData/leaf_caboDrop</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="CDOIA" type="elfld">
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.InstallationData/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.InstallationData/permMethod_InstallEquipmentPermission</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.InstallationData/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.InstallationData/leaf_CDOIA</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="flagNecessidadeJumper" type="elrgrp">
+                        <defaultEnum>yes/no</defaultEnum>
+                        <editable type="varPath">
+                          <variablePathList>
+                            <variablePath>dtype_com.conceptwave.system.Boolean/leaf_FALSE</variablePath>
+                          </variablePathList>
+                        </editable>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHOrder.InstallationData/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHOrder.InstallationData/leaf_jumper</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+  </UserInterface>
+</document>

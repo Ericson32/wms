@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema targetNamespace="FTTHActivationInterface"
+		xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:FTTHActivationInterface="FTTHActivationInterface"
+	xmlns:cwf="http://www.conceptwave.com/system"
+	xmlns:FTTHCommon="FTTHCommon"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"	
+xmlns:cwf_system="http://www.conceptwave.com/com/conceptwave/system"
+	xmlns:cwt_common="http://www.conceptwave.com/templates/common">
+
+
+	<import namespace="http://www.conceptwave.com/system" schemaLocation="cwf.xsd"/>
+	<import namespace="FTTHCommon" schemaLocation="FTTHCommon.xsd"/>
+	<import namespace="http://www.conceptwave.com/com/conceptwave/system" schemaLocation="cwf_system.xsd"/>
+	<import namespace="http://www.conceptwave.com/templates/common" schemaLocation="cwt_common.xsd"/>
+
+	<annotation>
+		<documentation>FTTH Activation Interface</documentation>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<!-- Structures -->
+
+	<element name="request">
+		<complexType >
+		<annotation>
+			<documentation>request</documentation>
+		</annotation>
+			<sequence>
+				<element name="correlationId" minOccurs="1" maxOccurs="1" type="cwf:processId"/>
+				<element name="messageId" minOccurs="0" maxOccurs="1" type="cwf:cwDocId"/>
+				<element name="sendDate" minOccurs="1" maxOccurs="1" type="xsd:dateTime"/>
+				<element name="operation" minOccurs="1" maxOccurs="1" type="cwf:String64"/>
+				<element name="attributeList" minOccurs="0" maxOccurs="1">
+					<annotation>
+						<documentation>Lista de Atributos</documentation>
+						<appinfo>
+							<label>attributeList</label>
+						</appinfo>
+					</annotation>
+					<complexType>
+						<sequence>
+							<element name="attribute" minOccurs="0" maxOccurs="unbounded" type="FTTHActivationInterface:attributeType"/>
+						</sequence>
+					</complexType>
+				</element>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="attributeType">
+		<annotation>
+			<documentation>atributo</documentation>
+			<appinfo>
+				<label>attributeType</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="name" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="value" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="originalValue" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="notification">
+		<annotation>
+			<documentation>Notifica&amp;#231;&amp;#227;o</documentation>
+			<appinfo>
+				<label>notification</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="correlationId" minOccurs="1" maxOccurs="1" type="cwt_common:string32"/>
+				<element name="messageId" minOccurs="0" maxOccurs="1" type="cwt_common:string32"/>
+				<element name="code" minOccurs="1" maxOccurs="1" type="cwt_common:string32"/>
+				<element name="description" minOccurs="1" maxOccurs="1" type="cwt_common:string1024"/>
+				<element name="executionDate" minOccurs="0" maxOccurs="1" type="xsd:dateTime"/>
+				<element name="operation" minOccurs="1" maxOccurs="1" type="cwf:String64"/>
+			</sequence>
+		</complexType>
+
+	<!-- Documents -->
+
+	<complexType name="operationActivation">
+		<annotation>
+			<documentation>Operation Activation</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="cwDocId" type="cwf:cwDocId"/>
+						<element name="tipoOS" type="FTTHCommon:tipoOS"/>
+						<element name="solicitacao" type="FTTHCommon:solicitacao"/>
+						<element name="atividade" type="FTTHCommon:atividade"/>
+						<element name="operacao" type="FTTHCommon:operacao"/>
+						<element name="estadoOS" type="FTTHCommon:estadoOS"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="AttributeActivation">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document que representa a tabela de configura&amp;#231;&amp;#227;o dos atributos da
+  ativa&amp;#231;&amp;#227;o.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Attribute Activation Document</label>
+			</appinfo>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="operacao" type="FTTHCommon:operacao"/>
+						<element name="nomeDocumento" type="FTTHCommon:nomeDocument"/>
+						<element name="nomeCampo" type="FTTHCommon:nomeCampo"/>
+						<element name="identificadorCampo" type="FTTHCommon:identificadorCampo"/>
+						<element name="obrigatoriedade" type="xsd:boolean"/>
+						<element name="enviarDadoOriginal" type="xsd:integer"/>
+						<element name="cwDocId" type="cwf:cwDocId"/>
+						<element name="acao" type="cwt_common:string32"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="OperationQuery">
+		<annotation>
+			<documentation>Operation Query</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="cwOrderId" type="cwf:cwOrderId"/>
+						<element name="tipoOS" type="FTTHCommon:tipoOS"/>
+						<element name="solicitacao" type="FTTHCommon:solicitacao"/>
+						<element name="atividade" type="FTTHCommon:atividade"/>
+						<element name="operacao" type="FTTHCommon:operacao"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="AttributeFinderDocument">
+		<annotation>
+			<documentation>Attribute Finder Document</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="acao" type="cwt_common:string32"/>
+						<element name="os" type="cwt_common:string32"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+</schema>

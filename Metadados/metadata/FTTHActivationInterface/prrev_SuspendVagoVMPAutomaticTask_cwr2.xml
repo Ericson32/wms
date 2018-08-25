@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHActivationInterface.SuspendVagoVMPAutomaticTask_cwr2">
+  <activity name="SuspendVagoVMPAutomaticTask" type="seqActivity">
+    <guid>{f891e78f-d0aa-45f3-b1e4-9d41a554a030}</guid>
+    <label>Suspend Vago VMP Automatic Task</label>
+    <x>189.18086</x>
+    <y>30.0</y>
+    <childList>
+      <child name="exceptionHandler" type="onExceptionActivity">
+        <guid>{ccb55612-99a2-4a3d-9d91-df38c9e641a1}</guid>
+        <label>exceptionHandler</label>
+        <x>257.7036</x>
+        <y>152.69316</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.externalInterfaceExceptionHandler(this.process.processOrder, this.process.processOrder.id, this.process.id, Global.getConfigVariable("BLOQUEIO_VAGO_VMP"), Global.getConfigVariable("ACTIVATION_SYSTEM"), this.activityData);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="SuspendVagoVMPSendOperation" type="opActivity">
+        <element>iface_FTTHActivationInterface.ActivationSenderInterface/oper_SendOperation</element>
+        <guid>{4304a826-eaf9-427d-a0bb-cea5794a224d}</guid>
+        <label>Suspend Vago VMP Send Operation</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>103.43489</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="CheckSendOperationResult" type="switchActivity">
+            <guid>{81bb1322-0b6c-49c2-87a4-15a971d06acb}</guid>
+            <label>Check Send Operation Result</label>
+            <x>196.0</x>
+            <y>286.4461</y>
+            <childList>
+              <child name="Success" type="caseActivity">
+                <guid>{b30f968c-35aa-494d-a8f3-3d8af861acbe}</guid>
+                <label>Success</label>
+                <x>245.01172</x>
+                <y>427.2508</y>
+                <childList>
+                  <child name="WaitingAutomaticActivity" type="choiceActivity">
+                    <guid>{7138faab-52d7-473e-beab-9267be6e56a4}</guid>
+                    <label>Waiting Automatic Activity</label>
+                    <x>313.08252</x>
+                    <y>427.2508</y>
+                    <childList>
+                      <child name="TimeoutControl" type="timeoutActivity">
+                        <guid>{135cdd7d-1cd3-492a-8a26-c8261d259d29}</guid>
+                        <label>Timeout Control</label>
+                        <schedule type="sched">
+                          <duration type="dur">
+                            <methodList>
+                              <method name="cwOnDuration" type="action">
+                                <system>true</system>
+                                <script><![CDATA[
+                                  var timeout = Global.getConfigVariable("TIMEOUT_ACTIVATION");
+                                  return timeout;
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </duration>
+                        </schedule>
+                        <x>345.5205</x>
+                        <y>560.7049</y>
+                        <childList>
+                          <child name="TimeOutControl" type="scriptActivity">
+                            <guid>{3144cbc4-b978-4310-b592-369e91bf187b}</guid>
+                            <label>Time Out Control</label>
+                            <x>342.52344</x>
+                            <y>694.159</y>
+                            <methodList>
+                              <method name="cwOnProcActBefore" type="action">
+                                <category>before</category>
+                                <system>true</system>
+                                <script><![CDATA[
+                                  FTTHCommon.log(this.process.processOrder.id, this.process.id, "Configure Vago VMP Status Timeout", "cwOnProcActBefore", null);
+
+                                  var errorTypeResult = "" ;
+                                  var searchErrorTypeDoc = "";
+                                  var orderId = this.process.processOrder.id;
+                                  var activityId = '%BLOQUEIO_VAGO_VMP';
+                                  var activity = FTTHCommon.getIdActivity(this.process.processOrder.id, activityId);
+                                  var status = Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR");
+                                  FTTHCommon.setStatusActivity(this.process.processOrder.id, activity, status);
+
+
+                                  FTTHCommon.setStatusActivity(orderId, activity, status);
+
+                                  searchErrorTypeDoc= new Document("FTTHCommon:ErrorTypeDocument");
+                                  searchErrorTypeDoc.errorType = Global.getConfigVariable("TIMEOUT_ACTIVATION_TYPE");
+                                  searchErrorTypeDoc.downstreamSystem = Global.getConfigVariable("ACTIVATION_SYSTEM");
+
+                                  errorTypeResult = Finder.runSearch ("FTTHCommon.ErrorCodeFinder", searchErrorTypeDoc);
+
+                                  var errorType = errorTypeResult.start;
+
+                                  FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                       Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                       activity,
+                                                       status,
+                                                       errorType.errorCode,
+                                                       errorType.errorDescription,
+                                                       this.process.id,
+                                                       Global.getConfigVariable("ASYNC_REQUEST"));
+
+                                  FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                             Global.getConfigVariable("ACTIVATION_SYSTEM"),
+                                                                             activity);
+                                ]]></script>
+                              </method>
+                            </methodList>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="SuspendVagoVMPReceiveOperation" type="opActivity">
+                        <element>iface_FTTHActivationInterface.ActivationListenerInterface/oper_ReceiveOperation</element>
+                        <guid>{43864f29-2cb7-46ef-8882-89598dd7d588}</guid>
+                        <label>Suspend Vago VMP Receive Operation</label>
+                        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+                        <x>237.16016</x>
+                        <y>679.4578</y>
+                        <methodList>
+                          <method name="cwOnProcActAfter" type="action">
+                            <category>script</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Suspend Vago VMP Automatic Task", "Suspend Vago VMP Receive Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+                              var system = Global.getConfigVariable("ACTIVATION_SYSTEM");
+                              var activity = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+                              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, Global.getConfigVariable("ACTIVATION_SYSTEM"));
+                              FTTHCommon.setStatusActivity(this.process.processOrder.id, activity, status);
+
+                              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                                   system,
+                                                   activity,
+                                                   status,
+                                                   this.activityData.code,
+                                                   this.activityData.description,
+                                                   this.process.id,
+                                                   Global.getConfigVariable("ASYNC_RESPONSE"));
+                              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                                         system,
+                                                                         activity);
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      var result = FTTHCommon.getStatusActivity(orderId, Global.getConfigVariable("BLOQUEIO_VAGO_VMP"));
+
+                      if(result == Global.getConfigVariable("ACTIVITY_RETURN_WAIT"))
+                      return true;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="Error" type="caseActivity">
+                <guid>{55ec5008-5c4b-4515-ad1b-205f8749728b}</guid>
+                <label>Error</label>
+                <x>92.93115</x>
+                <y>568.0555</y>
+              </child>
+            </childList>
+          </child>
+        </childList>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var LOG_INTERFACE = "ACTIVATION";
+              var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_ACTIVATION');
+              var LOG_SCRIPT = "cwOnProcActBefore";
+              var LOG_OPERATION = "Sender";
+              var LOG_ACTIVITY = "Bloqueio Vago VMP";
+
+              var msg = FTTHActivationInterface.createMessageToActivation(this.process.processOrder, LOG_ACTIVITY, this.process.id, this.activityData);
+
+              FTTHCommon.log(this.process.processOrder.id, this.process.id,
+                              LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+                              "cwOnProcActBefore :: msg.toXML :: " + msg.toXML(), null,
+                              LOG_INTERFACE, LOG_NIVEL, "INFO" );
+
+              var messageDoc = new Document("cwf_pm:messageLog");
+              messageDoc.userData1 = this.process.processOrder.OrderHeader.numeroPedido;
+              messageDoc.userData2 = this.process.processOrder.OrderHeader.numeroOS;
+              messageDoc.userData3 = this.process.processOrder.order.id;
+              UserProfile.setMsgLogDoc(messageDoc);
+              return msg;
+            ]]></script>
+          </method>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              FTTHCommon.log(this.process.processOrder.id, this.process.id, "Suspend Vago VMP Automatic Task", "Suspend Vago VMP Send Operation", "cwOnProcActAfter", this.activityData.toXML());
+
+              var system = Global.getConfigVariable("ACTIVATION_SYSTEM");
+              var activity = Global.getConfigVariable("BLOQUEIO_VAGO_VMP");
+
+              var status = FTTHCommon.defineStatusAutomaticActivity(this.activityData.code, system);
+              if(status == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  status = Global.getConfigVariable("ACTIVITY_RETURN_WAIT");
+              FTTHCommon.setStatusActivity(this.process.processOrder.id, activity, status);
+
+              FTTHCommon.saveEvent(this.process.processOrder.id,
+                                   system,
+                                   activity,
+                                   status,
+                                   this.activityData.code,
+                                   this.activityData.description,
+                                   this.process.id,
+                                   Global.getConfigVariable("ASYNC_REQUEST"));
+              FTTHCommon.updateAutomaticActivityDocument(this.process.processOrder,
+                                                         system,
+                                                         activity);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="SuspendVagoVMPAutomaticTaskComplete" type="completeActivity">
+        <guid>{9ed99c0b-0e78-4823-b6a1-7135a0298289}</guid>
+        <label>Suspend Vago VMP Automatic Task Complete</label>
+        <x>218.63298</x>
+        <y>835.2625</y>
+      </child>
+      <child name="ActivationSenderParticipant" type="participantActivity">
+        <guid>{934d953d-79bc-405f-8f44-ef37b81cb8fa}</guid>
+        <label>Activation Sender Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationSenderParticipant</participant>
+        <x>30.0</x>
+        <y>293.7967</y>
+      </child>
+      <child name="ActivationListenerParticipant" type="participantActivity">
+        <guid>{17e05ac7-7135-40b2-a37d-69387455ea6f}</guid>
+        <label>Activation Listener Participant</label>
+        <participant>part_FTTHActivationInterface.ActivationListenerParticipant</participant>
+        <x>172.93115</x>
+        <y>553.3543</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_AUTOMATIC_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, Global.getConfigVariable("BLOQUEIO_VAGO_VMP"), status);
+        ]]></script>
+      </method>
+      <method name="cwOnProcActCond" type="action">
+        <category>cond</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var result = FTTHCommon.getStatusActivity(orderId, Global.getConfigVariable("BLOQUEIO_VAGO_VMP"));
+
+          if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+              return false;
+          return true;
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Suspend Vago VMP Automatic Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHActivationInterface.SuspendVagoVMPAutomaticTask</process>
+  <revision>2</revision>
+  <type>User</type>
+</process__revision>

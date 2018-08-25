@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.setExecutionDateActivity">
+  <label>Set Execution Date Activity</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.orderId</type>
+    </parameter>
+    <parameter name="operacao" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="executionDate" type="rifp">
+      <type>dtype_com.conceptwave.system.DateTime</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var executionDateActivity;
+    var searchDoc = new Document("FTTHActivationInterface:OperationQuery");
+    var docResult;
+
+    searchDoc.cwOrderId       = orderId;
+    searchDoc.operacao        = operacao;
+
+    if(orderId){
+        searchDoc.indCancelamento = FTTHCommon.isCancelOrder(orderId);
+    } else{
+        return null;
+    }
+
+    docResult                 = Finder.runSearch ("FTTHActivationInterface.ExecutionDateActivityFinder", searchDoc);
+
+    if(!docResult.length)
+        return null;
+
+    docResult[0].executionDate = executionDate;
+    docResult[0].save();
+
+    return docResult[0].executionDate;
+  ]]></script>
+</script>

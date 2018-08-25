@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHCommon.messageLogSearch">
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <guid>{28499750-bdf9-4728-973a-27749836cd2b}</guid>
+  <label>Message Log Search</label>
+  <metaVersion>3</metaVersion>
+  <variableList>
+    <variable name="messageID" type="leaf">
+      <label>Message ID</label>
+      <valueType>dtype_cwf_pm.MessageID</valueType>
+    </variable>
+    <variable name="avm" type="leaf">
+      <label>AVM</label>
+      <valueType>dtype_cwf_pm.VMID</valueType>
+    </variable>
+    <variable name="interType" type="leaf">
+      <label>Interface</label>
+      <valueType>dtype_cwf.metaInterfacesId</valueType>
+    </variable>
+    <variable name="operation" type="leaf">
+      <label>Operation</label>
+      <valueType>dtype_cwf.interOper</valueType>
+    </variable>
+    <variable name="userId" type="leaf">
+      <label>User ID</label>
+      <valueType>dtype_cwf.userIdRef</valueType>
+    </variable>
+    <variable name="fromTime" type="leaf">
+      <label>Msg Time &gt;=</label>
+      <valueType>dtype_com.conceptwave.system.Timestamp</valueType>
+    </variable>
+    <variable name="toTime" type="leaf">
+      <label>Timestamp</label>
+      <valueType>dtype_com.conceptwave.system.Timestamp</valueType>
+    </variable>
+    <variable name="userData1" type="leaf">
+      <label>User Data</label>
+      <valueType>dtype_cwf_pm.userData</valueType>
+    </variable>
+    <variable name="userData2" type="leaf">
+      <label>User Data</label>
+      <valueType>dtype_cwf_pm.userData</valueType>
+    </variable>
+    <variable name="userData3" type="leaf">
+      <label>User Data</label>
+      <valueType>dtype_cwf_pm.userData</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="cwLeafInitAction$fromTime" type="laction">
+      <path>doc_FTTHCommon.messageLogSearch/leaf_fromTime</path>
+      <type>initializer</type>
+      <script>return new Date(Date.parse(new Date())-1000*60*60);</script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>ui_com.conceptwave.system.DocumentUserInterface</extends>
+    <label>Message Log Search</label>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHCommon.messageLogSearch</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms</extends>
+        <overlayList>
+          <overlay name="Generated" type="vform">
+            <label>Generated</label>
+          </overlay>
+          <overlay name="Default" type="vform">
+            <base>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</base>
+            <extends>ui_com.conceptwave.system.DocumentUserInterface/frmui_Forms/exov_Default</extends>
+            <label>Default</label>
+            <overrideList>
+              <override name="VerticalLayout" type="elvlt">
+                <elementList>
+                  <element name="searchGrid" type="elgrd">
+                    <colWidths>170px</colWidths>
+                    <numOfCols>4</numOfCols>
+                    <elementList>
+                      <element name="search_Header" type="elhdr">
+                        <label>Search</label>
+                      </element>
+                      <element name="messageID" type="elfld">
+                        <dataLength>15</dataLength>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_messageID</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="avm" type="elfld">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_avm</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="interType" type="elslct">
+                        <label>Interface</label>
+                        <onChangeMethod type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/usrActionMethod_resetOperationList</variablePath>
+                          </variablePathList>
+                        </onChangeMethod>
+                        <sorted>true</sorted>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_interType</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="operation" type="elslct">
+                        <label>Operation</label>
+                        <sorted>true</sorted>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_operation</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="userId" type="elref">
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_userId</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="fromTime" type="eldatetime">
+                        <displayFormat>MM/dd/yyyy HH:mm:ss</displayFormat>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_fromTime</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>150px</width>
+                      </element>
+                      <element name="toTime" type="eldatetime">
+                        <displayFormat>MM/dd/yyyy HH:mm:ss</displayFormat>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_toTime</variablePath>
+                          </variablePathList>
+                        </variable>
+                        <width>150px</width>
+                      </element>
+                      <element name="userData1" type="elfld">
+                        <dataLength>25</dataLength>
+                        <label>Número do Pedido</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_userData1</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="userData2" type="elfld">
+                        <dataLength>25</dataLength>
+                        <label>Número da OS</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_userData2</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                      <element name="userData3" type="elfld">
+                        <dataLength>25</dataLength>
+                        <label>ID da Ordem</label>
+                        <variable type="varPath">
+                          <variablePathList>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/ui_UserInterface/uivar_model</variablePath>
+                            <variablePath>doc_FTTHCommon.messageLogSearch/leaf_userData3</variablePath>
+                          </variablePathList>
+                        </variable>
+                      </element>
+                    </elementList>
+                  </element>
+                </elementList>
+              </override>
+            </overrideList>
+          </overlay>
+        </overlayList>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="resetOperationList" type="usrActionMethod">
+        <script><![CDATA[this.model.operation="";]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

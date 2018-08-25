@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.UpdateCablingSolveIssueTask_cwr2">
+  <activity name="UpdateCablingSolveIssueTaskStart" type="seqActivity">
+    <guid>{20a50688-9d68-47dc-9413-814167387bcc}</guid>
+    <label>Update Cabling Solve Issue Task Start</label>
+    <x>35.95156</x>
+    <y>30.0</y>
+    <childList>
+      <child name="UpdateCablingSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_UpdateCablingSolveIssue</element>
+        <guid>{b68d6b52-dd97-4e1e-9c6c-23858b9b81be}</guid>
+        <label>Update Cabling Solve Issue Task</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>37.4834</x>
+        <y>130.6414</y>
+      </child>
+      <child name="UpdateCablingSolveIssueSuccess" type="opActivity">
+        <element>iface_FTTHUserInterface.InventorySolveIssueInterface/oper_UpdateCablingHandleSolveIssueSuccess</element>
+        <guid>{a7a9c9b0-ccec-4c58-b5f2-053d1854d831}</guid>
+        <label>Update Cabling Solve Issue - Success</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>37.4834</x>
+        <y>382.84845</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="InventorySolveIssue" type="participantActivity">
+        <guid>{6dffe2ed-a6d2-4faa-a226-44231ee882bf}</guid>
+        <label>Inventory Solve Issue</label>
+        <participant>part_FTTHUserInterface.InventorySolveIssue</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("ATUALIZAR_CABEAMENTO_INTERNO");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY")
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de
+      pend&#234;ncia manual. Caso a atividade manual Atualizar Facilidades - Erro
+      tenha sido finalizada com pend&#234;ncia pelo usu&#225;rio WMS, essa atividade
+      manual ser&#225; gerada e poder&#225; ser finalizada com sucesso.
+    </p>
+  ]]></description>
+  <label>Update Cabling Solve Issue Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.UpdateCablingSolveIssueTask</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

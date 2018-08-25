@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script filenameHash="2006efa9b665b60721a6a1dd5b8dba77" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.copyConsultLogical2Original">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script que copia os dados originais da cunsulta f&#237;sica para os dados
+      novos que est&#227;o sem valores.
+    </p>
+    <p style="margin-top: 0">
+      &#201; utilizado quando a consulta f&#237;sica original n&#227;o necessita ser feita.
+    </p>
+  ]]></description>
+  <label>copyConsultPhysicalOriginal</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var documento = FTTHCommon.getDocument(ordem, "Facility Data", false);
+    var documentoOriginal = FTTHCommon.getDocument(ordem, "Facility Data", true);
+
+    //Campos retornados na consulta logica 2: LINEID2, CVLAN2, SVLAN2, QVLAN2, routeNumberNetwork
+
+    if(documento != null && documentoOriginal != null){
+        if(documento.LINEID2 == null && documentoOriginal.LINEID2 != null){
+            documento.LINEID2 = documentoOriginal.LINEID2;
+        }
+        if(documento.CVLAN2 == null && documentoOriginal.CVLAN2 != null){
+            documento.CVLAN2 = documentoOriginal.CVLAN2;
+        }
+        if(documento.SVLAN2 == null && documentoOriginal.SVLAN2 != null){
+            documento.SVLAN2 = documentoOriginal.SVLAN2;
+        }
+        if(documento.QVLAN2 == null && documentoOriginal.QVLAN2 != null){
+            documento.QVLAN2 = documentoOriginal.QVLAN2;
+        }
+        if(documento.classeTecnologia == null && documentoOriginal.classeTecnologia != null){
+            documento.classeTecnologia = documentoOriginal.classeTecnologia;
+        }
+        documento.save();
+        ordem.save();
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHHandleIssueProcess.closeIssues">
+  <label>close Issues</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var userId = Global.getUserId();
+    var userDoc = UserProfile.getUserProfile(userId);
+
+    var matriculaUsuario;
+    var nomeUsuario;
+
+    if(userDoc){
+        matriculaUsuario = Global.trim(userDoc.profileId);
+        nomeUsuario = Global.trim(userDoc.userName);
+    } else{
+        var searchDoc = new Document("FTTHOrder:ManualActivityData");
+        searchDoc.cwOrderId = ordem.OrderHeader.cwOrderId;
+
+        var result = Finder.runSearch("FTTHOrder:ManualActivityDataFinder", searchDoc);
+        if(result && result.length > 0){
+            var fieldActivity = result[result.length -1];
+            matriculaUsuario = fieldActivity.matriculaTecnico;
+            nomeUsuario = fieldActivity.nomeTecnico;
+            fieldActivity.save();
+        }
+    }
+
+    var countManageIssue = ordem.IssueData.length;
+
+    var openIssuesDocSearch = new Document("FTTHOrder:IssuesData");
+    openIssuesDocSearch.cwOrderId = ordem.OrderHeader.cwOrderId;
+    openIssuesDocSearch.flagIssueStatus = 0;
+    var openIssuesInOrder = Finder.runSearch("FTTHOrder.orderIssueFinder", openIssuesDocSearch);
+
+    for (var i = 0; i < openIssuesInOrder.length; i++){
+        if(openIssuesInOrder[i].flagIssueStatus == 0 && openIssuesInOrder[i].codigoPendencia){
+            openIssuesInOrder[i].flagIssueStatus = 1;
+            openIssuesInOrder[i].dataFechamento = new Date();
+            openIssuesInOrder[i].matriculaUsuarioFechamento = matriculaUsuario;
+            openIssuesInOrder[i].nomeUsuarioFechamento = nomeUsuario;
+            openIssuesInOrder[i].save();
+        }
+    }
+
+
+    /*var issueDoc = ordem.IssueData[countManageIssue - 2].IssueData;
+    if(issueDoc.flagIssueStatus == 0 && issueDoc.codigoPendencia){
+        issueDoc.flagIssueStatus = 1;
+        issueDoc.dataFechamento = new Date();
+        issueDoc.matriculaUsuarioFechamento = matriculaUsuario;
+        issueDoc.nomeUsuarioFechamento = nomeUsuario;
+        ordem.save();
+    }*/
+  ]]></script>
+</script>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.mandatoryFieldsManualActivities">
+  <label>Mandatory Fields Manual Activities</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="activity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="ord" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="worklistActivity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="osType" type="rifp">
+      <type>dtype_FTTHCommon.tipoOS</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var campo;
+    var msg = "";
+    var i, j;
+    var countManageIssue,countManualActivity;
+    var camposObrigatoriosResult;
+    var searchDoc = new Document("FTTHCommon:MandatoryFields");
+
+    searchDoc.nomeAtividade = activity; //esse campo deve dizer se e Instalar ou Remover Equipamento
+    searchDoc.tipoOS = osType;
+    camposObrigatoriosResult  = Finder.runSearch ("FTTHCommon.MandatoryFieldsFinder", searchDoc);
+
+    if(ord.IssueData)
+        countManageIssue = ord.IssueData.length; //retorna a quantidade de formulários de pendencias existentes na ordem
+    if(ord.ManualActivityData)
+        countManualActivity = ord.ManualActivityData.length - 1; //retorna a posicao do ultimo elemento do grupo de atividades manuais, levando em conta que nao podem existir atividades de campo em paralelo
+
+
+    for (i = 0; i < camposObrigatoriosResult.length; i++){
+        if(camposObrigatoriosResult[i].getValueByName("nomeDocument") == "FacilityData"){
+               if(ord.FacilityData){
+                campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+                if(ord.FacilityData.getValueByName(campo) == null)
+                    msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+            }
+        }
+
+        if(camposObrigatoriosResult[i].getValueByName("nomeDocument") == "IssueData"){
+            if(ord.IssueData){
+                for(j = countManageIssue - 1; j >= 0; j--){
+                    if(ord.IssueData[j].IssueData.operationWorklist == worklistActivity){
+                        campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+                        if(ord.IssueData[j].IssueData.getValueByName(campo) == null)
+                            msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+                    }
+                }
+            }
+        }
+
+
+        if(camposObrigatoriosResult[i].getValueByName("nomeDocument") == "ManualActivityData"){
+            if(ord.ManualActivityData){
+                campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+                if(ord.ManualActivityData[countManualActivity].ManualActivityData.getValueByName(campo) == null)
+                    msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+            }
+        }
+
+    }
+
+    if(msg=="") return null;
+
+    return msg;
+  ]]></script>
+</script>

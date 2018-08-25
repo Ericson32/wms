@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.getEventHtml">
+  <label>Get Event HTML</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp"/>
+    <parameter name="system" type="rifp"/>
+    <parameter name="activity" type="rifp"/>
+    <parameter name="indCancelamento" type="rifp"/>
+  </parameterList>
+  <script><![CDATA[
+    var text = "";
+    var searchEvent = new Document('FTTHCommon:Event');
+    searchEvent.cwOrderId = orderId;
+    searchEvent.sistema = system;
+    searchEvent.atividade = activity;
+    searchEvent.indCancelamento = indCancelamento;
+
+    var events = Finder.runSearch('FTTHCommon:EventFinder', searchEvent);
+
+    if(events.size>0) text = "<table><thead><tr><th class=\"fieldDisabled\">Data</th><th class=\"fieldDisabled\">Hora</th><th class=\"fieldDisabled\">Identificador</th><th class=\"fieldDisabled\">Tipo</th><th class=\"fieldDisabled\">Situação</th><th class=\"fieldDisabled\">Código</th><th class=\"fieldDisabled\">Descrição</th></tr></thead><tbody>";
+
+    for (var i = 0; i < events.size; i++) {
+        var event = events[i];
+        var date = Calendar.formatDate(event.dataExecucao, "dd/MM/yyyy");
+        var hour = Calendar.formatDate(event.dataExecucao, "HH:mm:ss");
+        var text = text + "<tr><td class=\"fieldDisabled\">" + date + "</td><td class=\"fieldDisabled\">" + hour + "</td><td class=\"fieldDisabled\">" + event.correlationId + "</td><td class=\"fieldDisabled\">" + event.direcao + "</td><td class=\"fieldDisabled\">" + event.status + "</td><td class=\"fieldDisabled\">" + event.codigo + "</td><td class=\"fieldDisabled\">" + event.descricao + "</td><tr class=\"fieldDisabled\">";
+    }
+
+    if(events.size>0) text = text + "</tbody></table>";
+
+    return text;
+  ]]></script>
+</script>

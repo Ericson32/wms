@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.CancellationPreventingHandleErrorTask_cwr5">
+  <activity name="CancellationPreventingHandleErrorTaskStart" type="seqActivity">
+    <guid>{4a0cd2b1-0f13-43f5-8e82-87c73681001f}</guid>
+    <label>Cancellation Preventing Handle Error Task Start</label>
+    <x>33.007812</x>
+    <y>30.0</y>
+    <childList>
+      <child name="CancellationPreventingHandleErrorTask" type="opActivity">
+        <element>iface_FTTHUserInterface.OMHandleErrorInterface/oper_NotifyCancelationPreventingHandleError</element>
+        <guid>{cd091596-8448-46df-b370-62f85d650502}</guid>
+        <label>Cancellation Preventing Handle Error Task</label>
+        <participant>part_FTTHUserInterface.OMHandleError</participant>
+        <x>35.479492</x>
+        <y>130.6414</y>
+      </child>
+      <child name="CancellationPreventingHandleErrorResend" type="opActivity">
+        <element>iface_FTTHUserInterface.OMHandleErrorInterface/oper_NotifyCancelationPreventingHandleErrorResend</element>
+        <guid>{d1516000-4dbc-4cd5-b912-d73e6cd705ae}</guid>
+        <label>Cancellation Preventing Handle Error - Resend</label>
+        <participant>part_FTTHUserInterface.OMHandleError</participant>
+        <x>35.479492</x>
+        <y>382.84845</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("NOTIFICAR_PONTO_NAO_RETORNO");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="OMHandleError" type="participantActivity">
+        <guid>{677db48e-262e-48c5-875b-487c06f67692}</guid>
+        <label>OM Handle Error</label>
+        <participant>part_FTTHUserInterface.OMHandleError</participant>
+        <x>54.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a notifica&#231;&#227;o de empedimento de cancelamento autom&#225;tica n&#227;o
+      tenha sido realizada com sucesso, essa atividade manual ser&#225; gerada e
+      poder&#225; ser finalizada com reenvio.
+    </p>
+  ]]></description>
+  <label>Cancellation Preventing Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.CancellationPreventingHandleErrorTask</process>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process__revision>

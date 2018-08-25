@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrder.isEquipmentLocked">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Este script &#233; respons&#225;vel por verificar se existe alguma transa&#231;&#227;o sendo
+      executada para este equipamento e se este pode ser alterado e
+      movimentado nos sistemas ponta (SIS, NETWIN, SAP)
+    </p>
+  ]]></description>
+  <label>Is Equipment Locked</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="equipmentId" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+    &#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      ONT, HGW e IdAtivo caso for STB&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_FTTHClickInterface.tipoEquipamento</type>
+    </parameter>
+    <parameter name="equipmentType" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Se STB, HGW ou ONT&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="cwOrderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+
+        Este script é responsável por verificar se existe alguma transação sendo executada
+        para este equipamento e se este pode ser alterado e movimentado nos sistemas ponta
+        (SIS, NETWIN, SAP)
+
+    */
+
+    try{
+        var ordem = Order.getOrderById(cwOrderId);
+    } catch(e){
+        Global.logError("erro em FTTHOrder.isEquipmentLocked, não foi possível encontrar pedido para o orderID: " + cwOrderId);
+    }
+
+
+    var searchDoc = new Document('FTTHCommon.ActivityClick');
+    searchDoc.equipmentType = equipmentType;
+    searchDoc.equipmentId = equipmentId;
+    searchDoc.cwOrderId = cwOrderId;
+    var newCount = 0; //necessário para validar se foi logo após um clique ou se não houve execução por causa de um erro em atividade anterior
+    //Finder ordenado por intialDate descendente e endDate descrescente, ou seja, refere-se à operação mais recente
+    var result = Finder.runSearch('FTTHCommon:activityClickFinder', searchDoc);
+    //Retorna true se há qualquer operação para o equipamento no status WAIT ou NEW
+    for (var i = 0; i < result.length; i++) {
+        if (result[i].status == 'WAIT'){
+             return true;
+        } else if (result[i].status.indexOf('ERROR') > -1 ) {
+             return false
+        } else if (result[i].status == 'NEW'){
+            newCount++;
+        }
+        //é preciso continuar procurando ainda que o primeiro não seja NEW ou WAIT
+    }
+
+    return (newCount > 0); //se chegou aqui é porque TODOS os status são SUCCESS ou NEW. Se NEW = 0, então não há lock. Se NEW > 0, há lock.
+  ]]></script>
+</script>

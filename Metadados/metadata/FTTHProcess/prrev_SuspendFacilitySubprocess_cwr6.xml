@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.SuspendFacilitySubprocess_cwr6">
+  <activity name="SuspendRestoreFacilityStart" type="seqActivity">
+    <guid>{34a87d8c-8770-467e-9b09-97c094e03182}</guid>
+    <label>Suspend Restore Facility Start</label>
+    <x>284.45526</x>
+    <y>29.0</y>
+    <childList>
+      <child name="SuspendRestoreFacilities" type="allActivity">
+        <guid>{6a2ff546-0803-403c-b250-9336aecbdfeb}</guid>
+        <label>Suspend Restore Facilities</label>
+        <x>280.71933</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="SuspendRestoreIPTV" type="seqActivity">
+            <guid>{37f18b31-0bf0-4298-a9fa-b52ae66d0f7d}</guid>
+            <label>Suspend Restore IPTV</label>
+            <x>489.4879</x>
+            <y>219.37921</y>
+            <childList>
+              <child name="CheckTV" type="switchActivity">
+                <guid>{1338bd61-2e7a-456f-a4d5-684dd771a955}</guid>
+                <label>Check TV</label>
+                <x>491.9619</x>
+                <y>327.46088</y>
+                <childList>
+                  <child name="DesconfiguraIPTV" type="caseActivity">
+                    <guid>{99f90097-72d1-4865-abd0-26aa41e15abc}</guid>
+                    <label>Suspend Restore IPTV</label>
+                    <x>747.541</x>
+                    <y>406.6999</y>
+                    <childList>
+                      <child name="SuspendRestoreIPTV" type="subflowActivity">
+                        <element>prrev_FTTHProcess.SuspendIPTVSubprocess_cwr7</element>
+                        <guid>{12e44d4c-ed24-47ab-85bf-b707c1097e0b}</guid>
+                        <label>Suspend Restore IPTV</label>
+                        <x>543.46484</x>
+                        <y>446.2138</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="necessaryDesconfigureIPTV" type="action">
+                        <script>return true;</script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="IPTVNotExists" type="caseActivity">
+                    <guid>{faa129ba-fdff-4ec5-ac47-d50594b17e28}</guid>
+                    <label>IPTV Not Exists</label>
+                    <x>442.78516</x>
+                    <y>446.2138</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          if (process.processOrder.OriginalData[0].ProductData.identificadorIPTV != null || process.processOrder.OriginalData[0].ProductData.identificadorRFTV != null)
+                          {
+                              return false;
+                          }
+                              return true;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+              <child name="SuspendRestoreOTT" type="seqActivity">
+                <guid>{0c84739c-f4a7-45b8-8025-83a8966d4fa5}</guid>
+                <label>Suspend Restore OTT</label>
+                <x>490.55896</x>
+                <y>564.96674</y>
+                <childList>
+                  <child name="CheckOTT" type="switchActivity">
+                    <guid>{748136f8-1a80-4fd7-803b-e4079d6a6d81}</guid>
+                    <label>Check OTT</label>
+                    <x>487.63184</x>
+                    <y>656.96674</y>
+                    <childList>
+                      <child name="DesconfigureOTT" type="caseActivity">
+                        <guid>{1159816c-e4a1-40d5-a8f8-dcd284c1504e}</guid>
+                        <label>Suspend Restore OTT</label>
+                        <x>746.541</x>
+                        <y>693.10223</y>
+                        <childList>
+                          <child name="SuspendRestoreOTT" type="subflowActivity">
+                            <element>prrev_FTTHProcess.SuspendOTTSubprocess_cwr7</element>
+                            <guid>{c94847ec-4104-4a46-985b-87dac1fbcb03}</guid>
+                            <label>Suspend Restore OTT</label>
+                            <x>542.7954</x>
+                            <y>753.6679</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="necessaryDesconfigureOTT" type="action">
+                            <script>return true;</script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="OTTNotExists" type="caseActivity">
+                        <guid>{37d86172-abcb-4744-8c93-e1dc3d0c1d4a}</guid>
+                        <label>OTT Not Exists</label>
+                        <x>444.79346</x>
+                        <y>753.6679</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              if (process.processOrder.OriginalData[0].ProductData.identificadorOTT != null){
+                                  return false;
+                              }
+                                  return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="SuspendRestoreVoIP" type="seqActivity">
+            <guid>{45845b62-102f-4567-be67-2d840ebcdd70}</guid>
+            <label>Suspend Restore VoIP</label>
+            <x>284.97794</x>
+            <y>219.37921</y>
+            <childList>
+              <child name="CheckVoIP" type="switchActivity">
+                <guid>{c9570ad9-2e93-48c0-b191-f4ab823f8225}</guid>
+                <label>Check VoIP</label>
+                <x>282.07422</x>
+                <y>327.46088</y>
+                <childList>
+                  <child name="DesconfigureVoIP" type="caseActivity">
+                    <guid>{b378377e-17ed-4fc0-b403-7fe9c3b8ffb9}</guid>
+                    <label>Suspend Restore VoIP</label>
+                    <x>469.4707</x>
+                    <y>407.6999</y>
+                    <childList>
+                      <child name="SuspendRestoreVoIP" type="subflowActivity">
+                        <element>prrev_FTTHProcess.SuspendVoIPSubprocess_cwr7</element>
+                        <guid>{f0e8049c-82c0-4485-8322-22bd73566e0a}</guid>
+                        <label>Suspend Restore VoIP</label>
+                        <x>338.7539</x>
+                        <y>446.2138</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="necessaryDesconfigureVoIP" type="action">
+                        <script>return true;</script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="VoIPNotExists" type="caseActivity">
+                    <guid>{0597b13a-e0e1-41eb-9f97-bada61b2cb8a}</guid>
+                    <label>VoIP Not Exists</label>
+                    <x>238.73047</x>
+                    <y>446.2138</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          if (process.processOrder.OriginalData[0].ProductData.identificadorVoIP != null){
+                              return false;
+                          }
+                              return true;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="SuspendRestoreBandaLarga" type="seqActivity">
+            <guid>{fab46903-e9fc-47af-afdd-75a9caee3504}</guid>
+            <label>Suspend Restore Banda Larga</label>
+            <x>76.50645</x>
+            <y>217.99875</y>
+            <childList>
+              <child name="CheckBandaLarga" type="switchActivity">
+                <guid>{8415ee04-20c7-43ed-b209-59397f7b9a0d}</guid>
+                <label>Check Banda Larga</label>
+                <x>91.18262</x>
+                <y>312.7597</y>
+                <childList>
+                  <child name="DesconfigureHSI" type="caseActivity">
+                    <guid>{8d86c2b4-da91-4617-a9f1-0a7cbb1b9edd}</guid>
+                    <label>Suspend Restore HSI</label>
+                    <x>198.06836</x>
+                    <y>407.6999</y>
+                    <childList>
+                      <child name="SuspendRestoreHSI" type="subflowActivity">
+                        <element>prrev_FTTHProcess.SuspendHSISubprocess_cwr7</element>
+                        <guid>{ea1a7c9b-3a8a-45af-abcc-ec388d9de561}</guid>
+                        <label>Suspend Restore HSI</label>
+                        <x>134.69922</x>
+                        <y>446.2138</y>
+                      </child>
+                    </childList>
+                    <methodList>
+                      <method name="necessaryDesconfigureHSI" type="action">
+                        <script>return true;</script>
+                      </method>
+                    </methodList>
+                  </child>
+                  <child name="BandaLargaNotExists" type="caseActivity">
+                    <guid>{fcf4db22-91d5-42a9-bb70-4e404c3b0fcf}</guid>
+                    <label>Banda Larga Not Exists</label>
+                    <x>30.0</x>
+                    <y>438.86322</y>
+                    <methodList>
+                      <method name="cwOnProcActCond" type="action">
+                        <category>cond</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          if (process.processOrder.OriginalData[0].ProductData.identificadorHSI != null){
+                              return false;
+                          }
+                              return true;
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela realiza&#231;&#227;o das atividades autom&#225;ticas
+      Bloquear HSI,
+    </p>
+    <p style="margin-top: 0">
+      Bloquear IPTV, Bloquear OTT e Bloquear VoIP. As atividades s&#243; dever&#227;o
+      ser realizadas caso o cliente tenha o servi&#231;o associado a cada uma.
+    </p>
+    <p style="margin-top: 0">
+      Para o caso da atividade Bloquear OTT, a mesma s&#243; poder&#225; ser realizada
+      caso a Bloquear do IPTV tenha sido realizada com sucesso anteriormente.
+    </p>
+  ]]></description>
+  <label>Suspend Facility Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.SuspendFacilitySubprocess</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

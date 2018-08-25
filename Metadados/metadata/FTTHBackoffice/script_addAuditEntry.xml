@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script filenameHash="f370101d4be7615fc8d8989d236b0efd" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHBackoffice.addAuditEntry">
+  <label>Add an entry to the audit log</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="userId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf_oe.string128</type>
+    </parameter>
+    <parameter name="auditObject" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf_oe.string128</type>
+    </parameter>
+    <parameter name="auditAction" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf_oe.string128</type>
+    </parameter>
+    <parameter name="auditLog" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_FTTHBackoffice.log</type>
+    </parameter>
+    <parameter name="configType" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwt_common.string32</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /**
+    * Add new audit log entry
+    *
+    */
+    try{
+        var logDoc = new Document('FTTHBackoffice:audit');
+
+        logDoc.system                    = "OMR";
+        logDoc.userId                  = UserProfile.userId();
+        logDoc.auditObject                = auditObject;
+        logDoc.auditAction                = auditAction;
+        logDoc.auditLog                   = auditLog;
+        logDoc.configType                 = configType;
+        logDoc.dateTime                   = new Date();
+
+        logDoc.save();
+    }catch(e){
+        Global.logError("Error saving audit log: " + UserProfile.userId() + "/" + auditObject + "/" + auditAction + "/"  + configType + "/" + auditLog);
+        Global.logError(e);
+    }
+  ]]></script>
+</script>

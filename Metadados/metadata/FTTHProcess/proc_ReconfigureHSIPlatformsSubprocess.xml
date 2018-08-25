@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.ReconfigureHSIPlatformsSubprocess">
+  <activity name="ReconfigureHSIStart" type="seqActivity">
+    <guid>{f2d27531-e769-4190-b5af-eb0be0158ef0}</guid>
+    <label>Reconfigure HSI Start</label>
+    <x>31.135353</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ReconfigureHSIAPCSubprocess" type="subflowActivity">
+        <element>proc_FTTHProcess.ReconfigureHSIAPCSubprocess</element>
+        <guid>{54e8b0c2-7ba7-4906-9f7b-d3c4b812718b}</guid>
+        <label>Reconfigure HSI APC Subprocess</label>
+        <x>30.0</x>
+        <y>124.76094</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "RECONFIGURAR_HSI_APC";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ReconfigureHSINASSSubprocess" type="subflowActivity">
+        <element>proc_FTTHProcess.ReconfigureHSINASSSubprocess</element>
+        <guid>{1814818b-9aff-4159-9dfd-d91d11ad7507}</guid>
+        <label>Reconfigure HSI NASS Subprocess</label>
+        <x>30.0</x>
+        <y>250.86444</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var atividade = "RECONFIGURAR_HSI_NASS";
+              var result = FTTHCommon.defineActivityNecessity(orderId, atividade);
+              return result;
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da execu&#231;&#227;o dos processos de
+      reconfigura&#231;&#227;o de HSI de acordo com a necessidade de envio para
+      plataforma
+    </p>
+  ]]></description>
+  <guid>{e43cc129-7756-4c2b-abde-d2661e16f8fc}</guid>
+  <label>Reconfigure HSI Platform Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process>

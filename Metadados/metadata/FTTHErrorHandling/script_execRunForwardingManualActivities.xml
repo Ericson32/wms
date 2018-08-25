@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHErrorHandling.execRunForwardingManualActivities">
+  <label>Exec Run Forwarding Manual Activities</label>
+  <metaVersion>4</metaVersion>
+  <script><![CDATA[
+    //Declaração de Variáveis
+
+    Global.logInfo('Início do Script Error Handling');
+    //Finders
+    var finderSearchOS = null;
+    var finderSearchParamRes = null;
+
+    //Documents
+    var worklistDoc = null;
+    var processLog = null;
+
+    //Variáveis Locais
+    var manualActivities =  null;
+    var resultFinderSearchParamRes = null;
+    var action = null;
+    var ord = null;
+    var dateStartProcess = null;
+    var statusProcess = null;
+    var dateEndProcess = null;
+
+    //Executar script para apagar dados da tabela de atividades que serão reenviadas
+    Global.runDBStoredProcedure("ORDER", "begin PR_TRUNC_REENVIO_AUTO(); end;",null);
+
+    //Setar a data de início do processo de reenvio
+    dateStartProcess = new Date();
+    processLog = new Document("FTTHErrorHandling.docLogExecutionResendProcess");
+    processLog.dateStartResendProcess = dateStartProcess;
+
+    //Buscar Atividades manuais que podem ser reenviadas
+    finderSearchOS = new Finder("FTTHErrorHandling.finderSearchServiceOrder");
+    finderSearchOS.search();
+    worklistDoc =  new Document("cwf_pm.BaseWorklist");
+    worklistDoc = finderSearchOS.list ? finderSearchOS.list.start : null;
+
+    //Verifica se existe atividade para ser reenviada
+    //Havendo atividade, o processo de reenvio automatico é executado
+    if(worklistDoc != null){
+
+        while(worklistDoc != null){
+
+            //Gravar Atividades na tabela de reenvio
+            manualActivities = new Document("FTTHErrorHandling.docRecordManualActivities");
+            manualActivities.cwDocId = worklistDoc.cwDocId;
+            manualActivities.orderId = worklistDoc.OrderId;
+            manualActivities.operation = worklistDoc.Operation;
+            manualActivities.participant = worklistDoc.Participant;
+            manualActivities.dateActivityCreation = worklistDoc.createDate;
+
+            //Obter a Action para que a mesma seja enviada na solicitação de reenvio
+            finderSearchParamRes = new Finder("FTTHErrorHandling.finderSearchParametersResend");
+            finderSearchParamRes.searchDocument.operation = worklistDoc.Operation;
+            finderSearchParamRes.search();
+            resultFinderSearchParamRes = finderSearchParamRes.list.start;
+            action = resultFinderSearchParamRes.action;
+
+            //Obter dados da Ordem de Serviço para executar reenvio
+            ord = Order.getOrderById(worklistDoc.OrderId);
+
+            //Executar Reevio Autmático da atividade
+            Process.performWorklistAction(worklistDoc, null, action, false, ord , null);
+
+            //Marcar a OS como reenviada
+            manualActivities.save();
+
+            worklistDoc = worklistDoc.next;
+       }
+
+        //Setar o status do processo com sucesso
+        statusProcess = "Reenvios Executados. Relatorio Gerado.";
+        processLog.statusProcess = statusProcess;
+
+        //Setar a data de encerramento do processo
+        dateEndProcess = new Date();
+        processLog.dateEndResendProcess = dateEndProcess;
+
+        processLog.save();
+
+    } else {
+
+        //Setar o status do processo infomando que não há atividades para serem reenviadas
+        statusProcess = "Nao ha Atividades Para Reenviar.";
+        processLog.statusProcess = statusProcess;
+
+        //Setar a data de encerramento do processo
+         dateEndProcess = new Date();
+         processLog.dateEndResendProcess = dateEndProcess;
+
+        processLog.save();
+      }
+
+      Global.logInfo('Fim do Script Error Handling');
+  ]]></script>
+</script>

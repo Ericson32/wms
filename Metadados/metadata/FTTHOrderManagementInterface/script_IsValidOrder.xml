@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.IsValidOrder">
+  <label>Is Valid Order</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_com.conceptwave.system.Order</type>
+    </parameter>
+    <parameter name="tipoOrdemArray" type="rifp">
+      <array>true</array>
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="errorMsg" type="rifp">
+      <array>true</array>
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Script IsValidOrder');
+
+    var strDadosNovos = 'Dados Novos:';
+    var strDadosOriginais = 'Dados Originais:';
+
+    var hasNewData = true;
+
+    var validaMudancaEndereco = false;
+
+    for(var i=0; i < tipoOrdemArray.length; i++) {
+
+        var tipoOrdem = tipoOrdemArray[i];
+
+        if(tipoOrdem == 'retiradaFTTH' || tipoOrdem == 'manterBloqueioFTTH' || tipoOrdem == 'removerBloqueioFTTH') {
+            hasNewData = false;
+        }
+
+        if(tipoOrdem == 'mudancaEnderecoFTTH'){
+            validaMudancaEndereco = true;
+        }
+
+        if(tipoOrdem == 'instalacaoFTTH' ||
+           tipoOrdem == 'retiradaFTTH' ||
+           tipoOrdem == 'trocaBundleFTTH' ||
+           tipoOrdem == 'trocaPlanoFTTH' ||
+           tipoOrdem == 'inclusaoPontoAdicionalFTTH' ||
+           tipoOrdem == 'exclusaoPontoAdicionalFTTH' ||
+           tipoOrdem == 'mudancaEnderecoFTTH'
+           ) {
+                if(ordem.OrderHeader.dataAgendamento == null) {
+                    errorMsg[errorMsg.length] = 'Não foi enviada a Data de Agendamento (nenhum <acesso> possui o <atributo> com <nome> = dataPromessa)';
+                    break;
+                }
+
+                if(ordem.OrderHeader.dataPromessa == null) {
+                    errorMsg[errorMsg.length] = 'Não foi enviada a Data Promessa (nenhum <acesso> possui o <atributo> com <nome> = dataIndicador)';
+                }
+
+           }
+    }
+
+    if(hasNewData) {
+        Global.logInfo('Script IsValidOrder - Validacao Dados Novos');
+        validateHSIAttributes(strDadosNovos, ordem.ProductData);
+        validateIPTVAttributes(strDadosNovos, ordem.ProductData);
+        validateVoipAttributes(strDadosNovos, ordem.ProductData);
+        validateFacilityDataAttributes(strDadosNovos, ordem.FacilityData);
+        if(validaMudancaEndereco){
+            validateAddressData(strDadosNovos, ordem.AddressData);
+        }
+    }
+
+    if(ordem.OriginalData != null) {
+        Global.logInfo('Script IsValidOrder - Validacao Dados Originais');
+        validateHSIAttributes(strDadosOriginais, ordem.OriginalData[0].ProductData);
+        validateIPTVAttributes(strDadosOriginais, ordem.OriginalData[0].ProductData);
+        validateVoipAttributes(strDadosOriginais, ordem.OriginalData[0].ProductData);
+        validateFacilityDataAttributes(strDadosOriginais, ordem.OriginalData[0].FacilityData);
+        if(validaMudancaEndereco){
+            validateAddressData(strDadosOriginais, ordem.OriginalData[0].AddressData);
+        }
+    }else if(validaMudancaEndereco){
+        errorMsg[errorMsg.length] += 'Não foi enviado o endereço original.';
+    }
+
+    if(errorMsg.length > 0) {
+        Global.logInfo('Script IsValidOrder com erros');
+        return false;
+    }
+
+    Global.logInfo('Script IsValidOrder - Ordem validada');
+    return true;
+
+    function validateHSIAttributes(msgIni, productData) {
+        if(productData.identificadorHSI != null) {
+            if(productData.velocidadeContratada == null) {
+                errorMsg[errorMsg.length] = msgIni + 'Não foi enviada a Velocidade Contratada para OI_INTERNET (o <acesso> OI_INTERNET não possui <plano> com o <atributo> <nome> = velocidadeContratada)';
+            }
+            if(productData.velocidadeDownload == null) {
+                errorMsg[errorMsg.length] = msgIni + 'Não foi enviada a Velocidade Download para OI_INTERNET (o <acesso> OI_INTERNET não possui <plano> com o <atributo> <nome> = velocidadeDownload)';
+            }
+            if(productData.velocidadeUpload == null) {
+                errorMsg[errorMsg.length] = msgIni + 'Não foi enviada a Velocidade Upload para OI_INTERNET (o <acesso> OI_INTERNET não possui <plano> com o <atributo> <nome> = velocidadeUpload)';
+            }
+        }
+    }
+
+    function validateIPTVAttributes(msgIni, productData) {
+        if(productData.quantidadePontosIPTV != null && productData.quantidadePontosRFTV != null) {
+            if(productData.quantidadePontosIPTV == 0 && productData.quantidadePontosRFTV == 0) {
+                errorMsg[errorMsg.length] = msgIni + 'Não foi enviado ponto para OI_IPTV (o <acesso> OI_IPTV não possui <servico> com o <atributo> <nome> = Tipo e <valor> = STB ou RF)';
+            }
+        }
+    }
+
+    function validateVoipAttributes(msgIni, productData) {
+        if(productData.identificadorVoIP != null) {
+            if(productData.numeroVoIP == null) {
+                errorMsg[errorMsg.length] = msgIni + 'Não foi enviado o Numero Terminal OI_VOIP (o <acesso> OI_VOIP não possui <atributo> <nome> = ddd e <atributo> <nome> = numeroLinha)';
+            }
+        }
+    }
+
+    function validateFacilityDataAttributes(msgIni, facilityData) {
+        if(facilityData.validateGPON) {
+            if(facilityData.acessoGPON == null) {
+                errorMsg[errorMsg.length] = msgIni + 'Não foi enviado o Acesso GPON (nenhum <acesso> possui o <atributo> com <nome> = idAcesso)';
+            }
+        }
+    }
+
+    function validateAddressData(msgIni, addressData) {
+        if(addressData.codigoLogradouro == null){
+            errorMsg[errorMsg.length] = msgIni + 'Não foi enviado um endereço.';
+        }
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.mandatoryFieldsManualActivitiesBaseEquipment">
+  <label>Mandatory Fields Manual Activities Base Equipment</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="activity" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="baseEquipment" type="rifp">
+      <type>doc_FTTHOrder.BaseEquipmentData</type>
+    </parameter>
+    <parameter name="tipoOS" type="rifp">
+      <type>dtype_FTTHCommon.tipoOS</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var campo;
+    var msg = "";
+    var i;
+    var countManageIssue,countManualActivity, countEquipmentData;
+    var camposObrigatoriosResult;
+    var searchDoc = new Document("FTTHCommon:MandatoryFields");
+
+    searchDoc.nomeAtividade = activity; //esse campo deve dizer se e Instalar ou Remover Equipamento
+    searchDoc.tipoOS = tipoOS;
+    camposObrigatoriosResult  = Finder.runSearch ("FTTHCommon.MandatoryFieldsFinder", searchDoc);
+
+    //MS - marcossouza@br.ibm.com - 21/12/2017 - Alteração do código para a correção do defeito PRJ14217#203
+    //TODO - Refatorar código. Foi solicitado correção imediata e portanto, não foi possível organizar o código
+    //marcossouza@ - PRJ11255 - RQF008 - 15/06/2017
+    var searchDoc = new Document("FTTHReportApplication:registerCPE");
+
+
+    var result = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+
+
+    //Filipe - 13/01/2018
+
+    //Código para contornar a limitação do comboBox, quando settado pelo comboBox o nomeCPE vem como o cwDocId da tabela tbi_tipo_cpe
+    if(!isNaN(parseInt(baseEquipment.nomeCPE_ONT_Original))){
+        searchDoc.clearData();
+        searchDoc.cwDocId = baseEquipment.nomeCPE_ONT_Original;//Correção defeito
+        var equipTemp = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc)[0];
+    }
+    //End Filipe
+
+    try{
+        if((baseEquipment.nomeCPE_ONT_Original == "ONT" || equipTemp && equipTemp.nomeCPE == "ONT" ) && !baseEquipment.numeroSerieHGW_Original ){
+            msg += "\n" + "- " + "Número de Série Home Gateway";
+        }
+
+        for (i = 0; i < camposObrigatoriosResult.length; i++){
+            if(camposObrigatoriosResult[i].getValueByName("nomeDocument") == "EquipmentBaseData"){
+                campo = camposObrigatoriosResult[i].getValueByName("identificadorCampo");
+
+                    if(campo == "isNETWINHGW" &&( baseEquipment.nomeCPE_ONT_Original == "ONT Integrada" || (equipTemp && equipTemp.nomeCPE ==  "ONT Integrada" ))){
+                    //Se o tipo de equipamento é ONT integrada, não verificar o equipamento de HGW
+                } else{
+                    if(baseEquipment.getValueByName(campo) == null){
+                        msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+                    } else if ((campo == "isNETWIN" || campo == "isNETWINHGW") && !baseEquipment.getValueByName(campo)) { //PRJ11255 Correção defeito #40 - luanm@br.ibm.com
+                        msg = msg + "\n" + "- " + camposObrigatoriosResult[i].getValueByName("nomeCampo");
+                    }
+                }
+            }
+        }
+
+    } catch(e){
+        msg += "Não existem CPEs cadastrados";
+    }
+    //end MS
+    //end MS
+
+
+
+
+
+    if(tipoOS == "TIPO_ORDEM_INSTALACAO"){
+        var orderId = baseEquipment.cwOrderId;
+        var activityId = Global.getConfigVariable("ASSOCIAR_ONT_APC");
+        var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+        if(result != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+            msg = msg + "\n" + "- ONT não foi associado";
+    }
+    return msg;
+  ]]></script>
+</script>

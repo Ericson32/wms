@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHInventoryInterface.createUpdateEquipmentCPEMessage">
+  <label>update Equipment CPE</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="ValidateEquipmentDoc" type="rifp">
+      <type>doc_FTTHClickInterface.ValidateEquipmentDoc</type>
+    </parameter>
+    <parameter name="request" type="rifp">
+      <type>dstruct_FTTHInventoryInterface.request</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var equipamento = recuperarDocumentoRequest(ValidateEquipmentDoc);
+
+
+
+
+
+    function  buscarNomeCPE(codigoMaterial){
+        var searchDoc = new Document("FTTHReportApplication:registerCPE");
+        searchDoc.cwDocId = null;
+        searchDoc.isTV = null;
+
+        searchDoc.codigoMaterial = codigoMaterial;
+        var pointEquipment = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+
+        return pointEquipment.length > 0 ? pointEquipment[0].nomeCPE:'';
+    }
+
+    function recuperarDocumentoRequest(documentoT){
+        var isOriginal = (documentoT.numeroSerieEquipamentoOriginal) ? true : false;
+        var request = {
+                    isSAP : null,
+                    codOperacao : null,
+
+                    nSerieEquip : null,
+                    nomeCPE : null,
+                    motivoEquipamento : null,
+                    acao : null,
+                    idAtivo : null,
+                    tipoEquipamento : null,
+                    codMaterial : null };
+
+        if(isOriginal){
+            request.nSerieEquip = documentoT.numeroSerieEquipamentoOriginal;
+            request.isSAP = '';
+            request.codOperacao = '';
+            request.nomeCPE = buscarNomeCPE(documentoT.codMaterialOriginal);
+            request.motivoEquipamento = documentoT.motivoEquipamentoOriginal;
+            request.acao = documentoT.acaoOriginal;
+            request.idAtivo = documentoT.idAtivoOriginal;
+            request.tipoEquipamento = documentoT.tipoEquipamentoOriginal;
+            request.codMaterial = documentoT.codMaterialOriginal;
+
+        }else{
+            request.nSerieEquip = documentoT.numeroSerieEquipamentoNovo;
+            request.isSAP = '' ;
+            request.codOperacao = '' ;
+            request.nomeCPE = buscarNomeCPE(documentoT.codMaterialNovo);
+            request.motivoEquipamento = documentoT.motivoEquipamentoNovo;
+            request.acao = documentoT.acaoNovo;
+            request.idAtivo = documentoT.idAtivoNovo;
+            request.tipoEquipamento = documentoT.tipoEquipamentoNovo;
+            request.codMaterial = documentoT.codMaterialNovo
+
+        }
+
+
+        return request;
+    }
+
+    var tipoEquipamento = ValidateEquipmentDoc.tipoEquipamentoOriginal ;
+    var isONT = (tipoEquipamento == "ONT") ? true : false;
+    var action = this.atividade;
+    var msg = new DataStructure("FTTHInventoryInterface:request");
+    var outputNETWIN = new DataStructure("FTTHInventoryInterface:request");
+    var operation = "UpdateEquipmentSendOperation";
+    //var request = new DataStructure("FTTHManterEquipamentoInventarioSAP:ManterEquipamentoInventariadoRequest");
+    var attributeListToChange;
+    var searchDoc = new Document("FTTHReportApplication:registerCPE");
+
+    searchDoc.codigoMaterial = ValidateEquipmentDoc.codMaterialNovo;
+
+    var result = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+
+    var equipamentoNovo = {
+              codOperacao: ValidateEquipmentDoc.operacao,
+              acaoNovo: ValidateEquipmentDoc.acaoNovo,
+              codEquipamento: ValidateEquipmentDoc.codMaterialNovo,
+              nomeCPE: result[0].nomeCPE,
+              numeroSerieNovo: ValidateEquipmentDoc.numeroSerieEquipamentoNovo
+    };
+
+
+    searchDoc.codigoMaterial = ValidateEquipmentDoc.codMaterialOriginal;
+
+    result = Finder.runSearch("FTTHOrder:nomeCPEFinder", searchDoc);
+
+    var equipamentoOriginal = {
+        codOperacao: ValidateEquipmentDoc.operacao,
+        codEquipamentoOriginal: ValidateEquipmentDoc.codMaterialOriginal,
+        acaoOriginal: ValidateEquipmentDoc.acaoOriginal,
+        nomeCPE: '',
+        tipoEquipamentoOriginal: ValidateEquipmentDoc.tipoEquipamentoOriginal,
+        numeroSerieOriginal: ValidateEquipmentDoc.numeroSerieEquipamentoOriginal
+    };
+
+    if (equipamentoOriginal.tipoEquipamentoOriginal == 'ONT'){
+        equipamentoOriginal.nomeCPE = "numeroSerieONT"
+        attributeListToChange = ["numeroSerieONT"]
+    }else{
+        equipamentoOriginal.nomeCPE = "numeroSerieHomeGateway"
+        attributeListToChange = ["numeroSerieHomeGateway"]
+    }
+    var requestRemove = FTTHInventoryInterface.CreateInventoryMessage(order, order.id , "ATUALIZAR_EQUIPAMENTO_CLIENTE", outputNETWIN, null, tipoEquipamento); //Create message to sen
+    requestRemove.attributeList.attribute[0].name = equipamentoOriginal.nomeCPE
+    requestRemove.attributeList.attribute[0].value = equipamentoOriginal.numeroSerieOriginal;
+
+
+
+    FTTHInventoryInterface.updateInventoryMessage(requestRemove, attributeListToChange, "CESSAR");
+    var syncResp = Global.invokeInterface("FTTHInventoryInterface:InventoryOnChangeSenderInterface", operation, requestRemove)[0]; //Sent message
+    if(syncResp)
+    {
+        return syncResp;
+    }
+
+    if(equipamentoOriginal.acaoOriginal == "adicionar"){
+        requestRemove.attributeList.attribute[0].action = "ACTIVAR";
+    }
+    else
+    {
+        requestRemove.attributeList.attribute[0].action = "CESSAR";
+    }
+
+
+    var attributeListToChange;
+
+    if (isONT){
+        attributeListToChange = ["numeroSerieONT"]
+    }else{
+        attributeListToChange = ["numeroSerieHomeGateway"]
+    }
+    //Manda a mensagem para CESSAR o equipamento original
+    if(ValidateEquipmentDoc.acaoOriginal == "adicionar")
+    {
+        FTTHInventoryInterface.updateInventoryMessage(request, attributeListToChange, "CESSAR");
+    }
+    //Manda a mensagem para Ativar o novo equipamento
+    if(ValidateEquipmentDoc.acaoNovo == "remover")
+    {
+        FTTHInventoryInterface.updateInventoryMessage(request, attributeListToChange, "ACTIVAR");
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.InstallRemoveClientEquipmentManualTask_cwr9">
+  <activity name="InstallRemoveEquipmentTaskStart" type="seqActivity">
+    <guid>{80f1ddac-1d83-4f9f-9072-0169f3d4bf37}</guid>
+    <label>Install Remove Equipment Task Start</label>
+    <x>83.83916</x>
+    <y>29.0</y>
+    <childList>
+      <child name="InstallRemoveEquipmentTask" type="opActivity">
+        <element>iface_FTTHUserInterface.InstallRemoveEquipmentManualTaskInterface/oper_InstallRemoveEquipmentTask</element>
+        <guid>{cf45b370-60b7-42e8-96f8-b20112f24cac}</guid>
+        <label>Install Remove Equipment Task</label>
+        <participant>part_FTTHUserInterface.InstallRemoveEquipmentManualTaskParticipant</participant>
+        <x>85.8374</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{b189caaa-4bcd-44ea-b7cc-347e27f8f7c6}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>293.49786</y>
+            <childList>
+              <child name="InstallRemoveEquipmentIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.InstallRemoveEquipmentManualTaskInterface/oper_InstallRemoveEquipmentIssue</element>
+                <guid>{c4b44417-a5fb-476e-8f05-6d27d1a8e112}</guid>
+                <label>Install Remove Equipment - Issue</label>
+                <participant>part_FTTHUserInterface.InstallRemoveEquipmentManualTaskParticipant</participant>
+                <x>155.90625</x>
+                <y>456.65314</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var activityId;
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+                      /* -- Disfaz ponto de não retorno --
+                       * se existir pendência
+                       *     e se o tipo da ultima pendência for igual a "cliente" ou "cancelamento"
+                       *         então permitir cancelamento
+                       */
+                      if (process.processOrder.IssueData.length > 0)
+                          if ( (process.processOrder.IssueData.allChildren[process.processOrder.IssueData.length-1].codigoPendencia.reference.tipoPendencia == "cliente")
+                          ||   (process.processOrder.IssueData.allChildren[process.processOrder.IssueData.length-1].codigoPendencia.reference.tipoPendencia == "cancelamento"))
+                          {
+                              process.processOrder.OrderHeader.permiteCancelamento = true;
+                              process.processOrder.save();
+                          }
+
+                      if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+                          activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                      }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+                          activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                      }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+                          activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+                          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+                          if(result == null){
+                              activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                              result = FTTHCommon.getStatusActivity(orderId, activityId);
+                              if(result == null || result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                                  activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                              }
+                          }
+                      }
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="InstallRemoveEquipmentSuccess" type="opActivity">
+                <element>iface_FTTHUserInterface.InstallRemoveEquipmentManualTaskInterface/oper_InstallRemoveEquipmentSuccess</element>
+                <guid>{6e43ba04-858c-4768-b976-6aa08b2ac704}</guid>
+                <label>Install Remove Equipment - Success</label>
+                <participant>part_FTTHUserInterface.InstallRemoveEquipmentManualTaskParticipant</participant>
+                <x>31.152832</x>
+                <y>456.65314</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var activityId;
+                      var orderId = process.processOrder.OrderHeader.cwOrderId;
+                      if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+                          activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                      }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+                          activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                      }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+                          activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+                          var result = FTTHCommon.getStatusActivity(orderId, activityId);
+                          if(result == null){
+                              activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                              result = FTTHCommon.getStatusActivity(orderId, activityId);
+                              if(result == null || result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                                  activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                              }
+                          }
+                      }
+                      var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+                      FTTHCommon.setStatusActivity(orderId, activityId, status);
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InstallRemoveEquipmentManualTaskParticipant" type="participantActivity">
+        <guid>{b03923bf-86c3-4caf-a06e-878f07afe088}</guid>
+        <label>Install Remove Equipment  Manual Task Participant</label>
+        <participant>part_FTTHUserInterface.InstallRemoveEquipmentManualTaskParticipant</participant>
+        <x>122.0293</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var activityId;
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+
+          //Define ponto de não retorno
+          process.processOrder.OrderHeader.permiteCancelamento = false;
+
+          if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_INSTALACAO")){
+              activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+          }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_RETIRADA")){
+              activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+          }else if(process.processOrder.OrderHeader.tipoOS == Global.getConfigVariable("TIPO_ORDEM_MODIFICACAO")){
+              activityId = Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE");
+              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+              if(result == null){
+                  activityId = Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE");
+                  result = FTTHCommon.getStatusActivity(orderId, activityId);
+                  if(result == null || result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS")){
+                      activityId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+                  }
+              }
+          }
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+
+
+          var ord = process.processOrder;
+          if (ord.ManualActivityData == null) {
+              ord.createOrderItemByPath("ManualActivityData");
+          }
+          var psrIns = ord.ManualActivityData.newInstance();
+          if(activityId == Global.getConfigVariable("INSTALAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Instalar Equipamento";
+          else if(activityId == Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Remover Equipamento";
+          else if(activityId == Global.getConfigVariable("ALTERAR_EQUIPAMENTO_CLIENTE"))
+              psrIns.ManualActivityData.nomeAtividade = "Instalar/Remover Equipamento";
+          psrIns.ManualActivityData.operationWorklist = "FTTHProcess.InstallRemoveEquipmentManualTaskInterface/InstallRemoveEquipmentTask";
+          psrIns.ManualActivityData.dataAbertura = new Date();
+          psrIns.ManualActivityData.dataAgendamento = ord.OrderHeader.dataAgendamento;
+          ord.save();
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo gerenciamento da atividade manual
+      &quot;Instalar/Remover Equipamento&quot;.
+    </p>
+    <p style="margin-top: 0">
+      A atividade manual pode ser finalizada com Sucesso ou Pend&#234;ncia, caso
+      algum problema impossibilite a instala&#231;&#227;o/retirada do equipamento.
+    </p>
+  ]]></description>
+  <label>Install and Remove Equipment Manual Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.InstallRemoveClientEquipmentManualTask</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

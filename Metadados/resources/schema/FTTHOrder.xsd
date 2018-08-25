@@ -1,0 +1,888 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema targetNamespace="FTTHOrder"	
+	xmlns="http://www.w3.org/2001/XMLSchema"	
+	xmlns:FTTHOrder="FTTHOrder"	
+	xmlns:cwf="http://www.conceptwave.com/system"	
+	xmlns:cwt_common="http://www.conceptwave.com/templates/common"	
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"	
+	xmlns:FTTHCommon="FTTHCommon"	
+	xmlns:cwf_pm="http://www.conceptwave.com/products/pm"	
+	xmlns:FTTHOrderManagementInterface="FTTHOrderManagementInterface"	
+	xmlns:FTTHInventorySAPInterface="urn:sap-com:document:sap:rfc:functions"	
+	xmlns:FTTHClickInterface="FTTHClickInterface"	
+	xmlns:cwf_oe="http://www.conceptwave.com/products/oe"	
+	xmlns:FTTHHandleIssueProcess="FTTHHandleIssueProcess"	
+	xmlns:FTTHInventoryInterface="FTTHInventoryInterface"	
+	xmlns:FTTHManterEquipamentoInventarioSAP="http://www.oi.net.br/xsd/RecursoOperacao/ManterEquipamentoInventario/v1.0/Interfaces/Schemas/ManterEquipamentoInventarioSAP">
+
+
+	<import namespace="http://www.conceptwave.com/system" schemaLocation="cwf.xsd"/>
+	<import namespace="http://www.conceptwave.com/templates/common" schemaLocation="cwt_common.xsd"/>
+
+	<import namespace="FTTHCommon" schemaLocation="FTTHCommon.xsd"/>
+	<import namespace="http://www.conceptwave.com/products/pm" schemaLocation="cwf_pm.xsd"/>
+	<import namespace="FTTHOrderManagementInterface" schemaLocation="FTTHOrderManagementInterface.xsd"/>
+	<import namespace="urn:sap-com:document:sap:rfc:functions" schemaLocation="FTTHInventorySAPInterface.xsd"/>
+	<import namespace="FTTHClickInterface" schemaLocation="FTTHClickInterface.xsd"/>
+	<import namespace="http://www.conceptwave.com/products/oe" schemaLocation="cwf_oe.xsd"/>
+	<import namespace="FTTHHandleIssueProcess" schemaLocation="FTTHHandleIssueProcess.xsd"/>
+	<import namespace="FTTHInventoryInterface" schemaLocation="FTTHInventoryInterface.xsd"/>
+	<import namespace="http://www.oi.net.br/xsd/RecursoOperacao/ManterEquipamentoInventario/v1.0/Interfaces/Schemas/ManterEquipamentoInventarioSAP" schemaLocation="FTTHManterEquipamentoInventarioSAP.xsd"/>
+
+	<annotation>
+		<documentation>FTTH Order</documentation>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<simpleType name="nomeCPE">
+		<annotation>
+			<documentation>nomeCPE</documentation>
+		</annotation>
+		<restriction base="cwf:sReference">
+			<maxLength value="64"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="statusCPE">
+		<annotation>
+			<documentation>Status CPE</documentation>
+		</annotation>
+		<restriction base="cwt_common:string32">
+			<enumeration value="INS">
+				<annotation>
+					<documentation>INSUCESSO</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="PEN">
+				<annotation>
+					<documentation>PENDENTE</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="SUC">
+				<annotation>
+					<documentation>SUCESSO</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="tipoPontoSTB">
+		<annotation>
+			<documentation>Tipo OS</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="32"/>
+			<enumeration value="RF_OVERLAY">
+				<annotation>
+					<documentation>RF OVERLAY</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="STB_DVR_GRATIS">
+				<annotation>
+					<documentation>STB DVR GRATIS</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="STB_HD_GRATIS">
+				<annotation>
+					<documentation>STB HD GRATIS</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="STB_HD_PAGO">
+				<annotation>
+					<documentation>STB HD PAGO</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="statusONT">
+		<annotation>
+			<documentation>Status ONT</documentation>
+		</annotation>
+		<restriction base="cwt_common:string32">
+			<enumeration value="INS">
+				<annotation>
+					<documentation>INSUCESSO</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="PEN">
+				<annotation>
+					<documentation>PENDENTE</documentation>
+				</annotation>
+			</enumeration>
+			<enumeration value="SUC">
+				<annotation>
+					<documentation>SUCESSO</documentation>
+				</annotation>
+			</enumeration>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="codigoPSR">
+		<annotation>
+			<documentation>codigoPSR</documentation>
+		</annotation>
+		<restriction base="cwf:iReference">
+			<maxLength value="16"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="portabilidadeInterna">
+		<annotation>
+			<documentation>Portabilidade Interna</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="64"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="portabilidadeReceptora">
+		<annotation>
+			<documentation>Portabilidade Receptora</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="64"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="errorMessage">
+		<annotation>
+			<documentation>Error Message</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="100"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="tipoPortabilidade">
+		<annotation>
+			<documentation>Tipo Portabilidade</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="6"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="nomeCPEIsTV">
+		<annotation>
+			<documentation>nomeCPEIsTV</documentation>
+		</annotation>
+		<restriction base="cwf:sReference">
+			<maxLength value="64"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="teste">
+		<annotation>
+			<documentation>teste</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="10000"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="valorCDO">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Campo para armazenar valor de CDO e CEO
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Valor do DCO</label>
+			</appinfo>
+		</annotation>
+		<restriction base="FTTHCommon:string1000">
+		</restriction>
+	</simpleType>
+
+	<simpleType name="portabilidadeInternaComTrocaDeTecnologia">
+		<annotation>
+			<documentation>Portabilidade Interna com Troca de Tecnologia</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="64"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="nomeCDO">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Campo com nome do enderecoCDO ou CDO ou CEO do caminho da Fibra
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Nome caminho da Fibra</label>
+			</appinfo>
+		</annotation>
+		<restriction base="FTTHCommon:string20">
+		</restriction>
+	</simpleType>
+
+	<!-- Structures -->
+
+	<complexType name="docAndOrderId">
+		<annotation>
+			<documentation>docAndOrderId</documentation>
+		</annotation>
+			<sequence>
+				<element name="docId" minOccurs="0" maxOccurs="1" type="cwf:docId"/>
+				<element name="orderId" minOccurs="0" maxOccurs="1" type="cwf:orderId"/>
+				<element name="tipoPontoSTB" minOccurs="0" maxOccurs="1" type="FTTHOrder:tipoPontoSTB"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="infoFromSAP">
+		<annotation>
+			<documentation>infoFromSAP</documentation>
+		</annotation>
+			<sequence>
+				<element name="COD_OPER" minOccurs="0" maxOccurs="1" type="FTTHInventorySAPInterface:numeric1"/>
+				<element name="SAPResponse" minOccurs="0" maxOccurs="1" type="FTTHManterEquipamentoInventarioSAP:ManterEquipamentoInventariadoResponse"/>
+			</sequence>
+		</complexType>
+
+	<!-- Documents -->
+
+	<complexType name="AdditionalPackage">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados dos Pacotes Adicionais para Oi
+  VoiP
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Additional Package</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="cwProcessId" type="cwf_pm:PROCESS_ID"/>
+				<element name="idCatalogo" type="FTTHOrderManagementInterface:idCatalogo"/>
+				<element name="nome" type="FTTHCommon:nome"/>
+				<element name="idAtivo" type="FTTHOrderManagementInterface:idAtivo"/>
+				<element name="flagDadoOriginal" type="FTTHCommon:flagDadoOriginal"/>
+				<element name="acao" type="FTTHCommon:acao"/>
+				<element name="statusAcao" type="FTTHCommon:statusAcao"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="AddressData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados do endere&amp;#231;o do cliente.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Address Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="codigoLogradouro" type="FTTHCommon:codigoLogradouro"/>
+				<element name="tipoLogradouro" type="FTTHCommon:tipoLogradouro"/>
+				<element name="nomeLogradouro" type="FTTHCommon:nomeLogradouro"/>
+				<element name="numeroLogradouro" type="FTTHCommon:numlogradouro"/>
+				<element name="complemento1" type="FTTHCommon:complemento"/>
+				<element name="tipoComplemento1" type="FTTHCommon:tipoComplemento"/>
+				<element name="complemento2" type="FTTHCommon:complemento"/>
+				<element name="tipoComplemento2" type="FTTHCommon:tipoComplemento"/>
+				<element name="complemento3" type="FTTHCommon:complemento"/>
+				<element name="tipoComplemento3" type="FTTHCommon:tipoComplemento"/>
+				<element name="bairro" type="FTTHCommon:bairro"/>
+				<element name="cidade" type="FTTHCommon:cidade"/>
+				<element name="estadoLogradouro" type="FTTHCommon:estadoLogradouro"/>
+				<element name="CEP" type="FTTHCommon:CEP"/>
+				<element name="pontoReferencia" type="FTTHCommon:pontoReferencia"/>
+				<element name="codigoLocalidade" type="FTTHCommon:codigoLocalidade"/>
+				<element name="siglaLocalidade" type="FTTHCommon:siglaLocalidade"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="flagIsOriginal" type="FTTHCommon:flagDadoOriginal"/>
+				<element name="siglaLoc" type="FTTHCommon:siglaLocalidadeReal"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="BaseEquipmentData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados dos equipamentos que foram
+  instalados/retirados/modificados no cliente
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Base Equipment Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="numeroSerieONT" type="FTTHCommon:numeroSerieONT"/>
+				<element name="foiDevolvidoONT" type="FTTHCommon:foiDevolvido"/>
+				<element name="motivoONT" type="FTTHCommon:motivo"/>
+				<element name="numeroSerieHomeGateway" type="FTTHCommon:numeroSerieHomeGateway"/>
+				<element name="foiDevolvidoHomeGateway" type="FTTHCommon:foiDevolvido"/>
+				<element name="motivoHomeGateway" type="FTTHCommon:motivo"/>
+				<element name="flagAssociateONT" type="FTTHCommon:flagAssociateONT"/>
+				<element name="atividade" type="FTTHCommon:nomeAtividade"/>
+				<element name="flagDadoOriginal" type="FTTHCommon:flagDadoOriginal"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="adicionarSTB" type="FTTHCommon:nomeAtividade"/>
+				<element name="statusAcao" type="FTTHCommon:statusAcao"/>
+				<element name="codOperacao" type="cwf:String64"/>
+				<element name="nomeCPE" type="FTTHOrder:nomeCPE"/>
+				<element name="codEquipamento" type="FTTHInventorySAPInterface:char18"/>
+				<element name="isSAP" type="cwt_common:booleanCheckBox"/>
+				<element name="isNETWIN" type="cwt_common:booleanCheckBox"/>
+				<element name="codOperacaoHGW" type="cwf:String64"/>
+				<element name="nomeCPEHGW" type="FTTHOrder:nomeCPE"/>
+				<element name="codEquipamentoHGW" type="FTTHInventorySAPInterface:char18"/>
+				<element name="isSAPHGW" type="cwt_common:booleanCheckBox"/>
+				<element name="isNETWINHGW" type="cwt_common:booleanCheckBox"/>
+				<element name="tabname" type="xsd:string"/>
+				<element name="idAtivo" type="FTTHCommon:string100"/>
+				<element name="idAtivoHGW" type="FTTHCommon:string100"/>
+				<element name="flgValidado" type="xsd:boolean"/>
+				<element name="codMaterial" type="FTTHClickInterface:codMaterial"/>
+				<element name="isProcessando" type="xsd:boolean"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="InstallationData">
+		<annotation>
+			<documentation>Installation Data</documentation>
+		</annotation>
+			<sequence>
+				<element name="CDOIA" type="FTTHCommon:CDOIA"/>
+				<element name="caboRiser" type="FTTHCommon:caboRiser"/>
+				<element name="caboDrop" type="FTTHCommon:caboDrop"/>
+				<element name="jumper" type="FTTHCommon:necessitaJumper"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="ProductData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados do produtos
+  instalados/retirados/modificados na OS.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Product Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="nomePacote" type="FTTHCommon:nomePacote"/>
+				<element name="idPromocao" type="FTTHCommon:idItem"/>
+				<element name="servicos_idItems" type="FTTHCommon:servicos_idItems"/>
+				<element name="servicos_idCatalogos" type="FTTHCommon:servicos_idCatalogos"/>
+				<element name="nomePromocao" type="FTTHCommon:nomePromocao"/>
+				<element name="listaServicos" type="FTTHCommon:listaServicos"/>
+				<element name="identificadorHSI" type="FTTHCommon:string30"/>
+				<element name="planoHSI" type="FTTHCommon:identificadorPlano"/>
+				<element name="planoHSI_idItem" type="FTTHCommon:idItem"/>
+				<element name="nomePlanoHSI" type="FTTHCommon:nomePlano"/>
+				<element name="velocidadeContratada" type="FTTHCommon:velocidadeContratada"/>
+				<element name="velocidadeUpload" type="FTTHCommon:velocidadeUpload"/>
+				<element name="velocidadeDownload" type="FTTHCommon:velocidadeDownload"/>
+				<element name="identificadorIPTV" type="FTTHCommon:string30"/>
+				<element name="planoIPTV" type="FTTHCommon:identificadorPlano"/>
+				<element name="planoIPTV_idItem" type="FTTHCommon:idItem"/>
+				<element name="nomePlanoIPTV" type="FTTHCommon:nomePlano"/>
+				<element name="quantidadePontosIPTV" type="FTTHCommon:quantidadePontosIPTV"/>
+				<element name="identificadorRFTV" type="FTTHCommon:identificadorRFTV"/>
+				<element name="planoRFTV" type="FTTHCommon:identificadorPlano"/>
+				<element name="nomePlanoRFTV" type="FTTHCommon:nomePlano"/>
+				<element name="quantidadePontosRFTV" type="FTTHCommon:quantidadePontosRF"/>
+				<element name="identificadorOTT" type="FTTHCommon:idOTT"/>
+				<element name="planoOTT" type="FTTHCommon:identificadorPlano"/>
+				<element name="nomePlanoOTT" type="FTTHCommon:nomePlano"/>
+				<element name="identificadorVoIP" type="FTTHCommon:string30"/>
+				<element name="planoVoIP" type="FTTHCommon:identificadorPlano"/>
+				<element name="planoVoIP_idItem" type="FTTHCommon:idItem"/>
+				<element name="nomePlanoVoIP" type="FTTHCommon:nomePlano"/>
+				<element name="numeroVoIP" type="FTTHCommon:numeroVoIP"/>
+				<element name="PORTAB" type="FTTHCommon:PORTAB"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="flagIsOriginal" type="FTTHCommon:flagDadoOriginal"/>
+				<element name="unidadeFranquia" type="FTTHCommon:unidadeFranquia"/>
+				<element name="valorFranquia" type="FTTHCommon:valorFranquia"/>
+				<element name="tipoUso" type="FTTHCommon:tipoUso"/>
+				<element name="isCaixaPostal" type="FTTHCommon:isCaixaPostal"/>
+				<element name="isBina" type="FTTHCommon:isBina"/>
+				<element name="isChamadaEspera" type="FTTHCommon:isChamadaEspera"/>
+				<element name="isConferencia" type="FTTHCommon:isConferencia"/>
+				<element name="isSigame" type="FTTHCommon:isSigame"/>
+				<element name="tipoPlano" type="FTTHOrderManagementInterface:idCatalogo"/>
+				<element name="qtdPontosDVRGratis" type="FTTHCommon:qtdPontosDVRGratis"/>
+				<element name="qtdPontosDVRGratisExtra" type="FTTHCommon:qtdPontosDVRGratisExtra"/>
+				<element name="qtdPontosHDGratis" type="FTTHCommon:qtdPontosHDGratis"/>
+				<element name="qtdPontosHDGratisExtra" type="FTTHCommon:qtdPontosHDGratisExtra"/>
+				<element name="qtdPontosHDPago" type="FTTHCommon:qtdPontosHDPago"/>
+				<element name="qtdPontosHDPagoExtra" type="FTTHCommon:qtdPontosHDPagoExtra"/>
+				<element name="qtdPontosRFExtra" type="FTTHCommon:qtdPontosRFExtra"/>
+				<element name="qtdPontosRFOverlay" type="FTTHCommon:qtdPontosRFOverlay"/>
+				<element name="qtdPontosSTBDVRGratis" type="FTTHCommon:qtdPontosSTBDVRGratis"/>
+				<element name="qtdPontosSTBHDGratis" type="FTTHCommon:qtdPontosSTBHDGratis"/>
+				<element name="qtdPontosSTBHDPago" type="FTTHCommon:qtdPontosSTBHDPago"/>
+				<element name="motivoRetirada" type="FTTHCommon:motivoRetirada"/>
+				<element name="tipoPortabilidade" type="FTTHOrder:tipoPortabilidade"/>
+				<element name="portabilidadeReceptora" type="FTTHOrder:portabilidadeReceptora"/>
+				<element name="portabilidadeInterna" type="FTTHOrder:portabilidadeInterna"/>
+				<element name="portabilidadeInternaComTrocaDeTecnologia" type="FTTHOrder:portabilidadeInternaComTrocaDeTecnologia"/>
+				<element name="isDVR" type="FTTHCommon:isDVR"/>
+				<element name="needTVIESF" type="xsd:boolean"/>
+				<element name="ID_OITOTAL" type="FTTHCommon:ID_OITOTAL"/>
+				<element name="idBundle" type="FTTHCommon:string30"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="CPEValidationStatus">
+		<annotation>
+			<documentation>CPE Validation Status</documentation>
+		</annotation>
+			<sequence>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="description" type="cwf_oe:string4000"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="sentDate" type="xsd:dateTime"/>
+				<element name="statusCPE" type="FTTHOrder:statusONT"/>
+				<element name="fkEquipment" type="FTTHCommon:string16"/>
+				<element name="equipmentType" type="FTTHCommon:string16"/>
+				<element name="statusStock" type="FTTHCommon:string16"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="CaminhoDaFibra">
+		<annotation>
+			<documentation>Caminho da Fibra</documentation>
+		</annotation>
+			<sequence>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="campo" type="FTTHOrder:nomeCDO"/>
+				<element name="valor" type="FTTHOrder:valorCDO"/>
+				<element name="flagDadoOriginal" type="FTTHCommon:flagDadoOriginal"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="OrderHeader">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados do cabe&amp;#231;alho da ordem. Esse
+  document possuir&amp;#225; os identificadores da OS.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Order Header</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="numeroOS" type="FTTHCommon:numeroOS"/>
+				<element name="numeroRFSPON" type="FTTHCommon:numeroRFSPON"/>
+				<element name="numeroPedido" type="FTTHCommon:string30"/>
+				<element name="numeroOSInventario" type="FTTHCommon:numeroOSInventario"/>
+				<element name="numeroItemOSInventario" type="FTTHCommon:numeroOSInventario"/>
+				<element name="tipoOS" type="FTTHCommon:tipoOS"/>
+				<element name="listaSolicitacoes" type="FTTHCommon:listaSolicitacoes"/>
+				<element name="acao" type="FTTHOrderManagementInterface:acao"/>
+				<element name="listaAtividades" type="FTTHCommon:listaAtividades"/>
+				<element name="dataAbertura" type="FTTHCommon:dataAbertura"/>
+				<element name="dataPromessa" type="FTTHCommon:dataPromessa"/>
+				<element name="dataFechamento" type="FTTHCommon:dataFechamento"/>
+				<element name="dataAtivacao" type="FTTHCommon:dataAtivacao"/>
+				<element name="estadoOS" type="FTTHCommon:estadoOS"/>
+				<element name="estadoTramitacao" type="FTTHCommon:estadoTramitacao"/>
+				<element name="permiteCancelamento" type="FTTHCommon:permiteCancelamento"/>
+				<element name="countIPTV" type="FTTHCommon:countIPTV"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="dataAgendamento" type="FTTHCommon:dataAgendamento"/>
+				<element name="idProcesso" type="cwf_pm:PROCESS_ID"/>
+				<element name="versao" type="FTTHCommon:versao"/>
+				<element name="dataCancelamento" type="FTTHCommon:dataCancelamento"/>
+				<element name="tipoPromocaoOriginal" type="FTTHCommon:tipoPromocaoOriginal"/>
+				<element name="tipoPromocao" type="FTTHCommon:tipoPromocao"/>
+				<element name="tipoPromocaoAcao" type="FTTHCommon:tipoPromocaoAcao"/>
+				<element name="ufInfo" type="FTTHCommon:string2"/>
+				<element name="descProblema" type="FTTHCommon:string80"/>
+				<element name="horaPromessa" type="FTTHCommon:string4"/>
+				<element name="flagBSIM" type="FTTHCommon:string1"/>
+				<element name="aprazado" type="FTTHCommon:string1"/>
+				<element name="codAtividade" type="FTTHCommon:string5"/>
+				<element name="codPendencia" type="FTTHCommon:string50"/>
+				<element name="origemPedido" type="FTTHCommon:string50"/>
+				<element name="revisao" type="xsd:integer"/>
+				<element name="flagJumperIssue" type="xsd:boolean"/>
+				<element name="flagEquipmentIssue" type="xsd:boolean"/>
+				<element name="sistema" type="FTTHCommon:string100"/>
+				<element name="tipoInfo" type="FTTHCommon:string100"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="TecnicoAuxiliar">
+		<annotation>
+			<documentation>Tecnico Auxiliar</documentation>
+		</annotation>
+			<sequence>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="fk_manualActivity" type="cwf:cwDocId64"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="nomeTecnico" type="FTTHCommon:nomeTecnico"/>
+				<element name="matriculaTecnico" type="FTTHCommon:matriculaTecnico"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="IssueData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados das pend&amp;#234;ncias abertas e
+  fechadas ao longo da tramita&amp;#231;&amp;#227;o da ordem.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Issue Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="nomeAtividade" type="FTTHCommon:nomeAtividadePend"/>
+				<element name="associatedItens" type="cwt_common:string3"/>
+				<element name="idItem" type="FTTHCommon:idItem"/>
+				<element name="codigoPendencia" type="FTTHCommon:codigoPendencia"/>
+				<element name="BA" type="FTTHCommon:BA"/>
+				<element name="ARS" type="FTTHCommon:ARS"/>
+				<element name="dataAbertura" type="FTTHCommon:dataAbertura"/>
+				<element name="matriculaUsuarioAbertura" type="FTTHCommon:matriculaUsuario"/>
+				<element name="nomeUsuarioAbertura" type="FTTHCommon:nomeUsuario"/>
+				<element name="observacaoAbertura" type="FTTHCommon:observacao"/>
+				<element name="dataFechamento" type="FTTHCommon:dataFechamento"/>
+				<element name="matriculaUsuarioFechamento" type="FTTHCommon:matriculaUsuario"/>
+				<element name="nomeUsuarioFechamento" type="FTTHCommon:nomeUsuario"/>
+				<element name="observacaoFechamento" type="FTTHCommon:observacao"/>
+				<element name="operationWorklist" type="FTTHCommon:operationWorklist"/>
+				<element name="flagIssueStatus" type="FTTHCommon:flagIssueStatus"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="idProcesso" type="cwf_pm:PROCESS_ID"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="docAndOrderIdDocument">
+		<annotation>
+			<documentation>Maping doc and order id</documentation>
+		</annotation>
+			<sequence>
+				<element name="docId" type="cwf:docId"/>
+				<element name="orderId" type="cwf:orderId"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="tipoPontoSTB" type="FTTHOrder:tipoPontoSTB"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="ClientData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados do cliente.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Cliente Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="alertaPropensao" type="FTTHCommon:string30"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="email" type="FTTHCommon:email"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="nome" type="FTTHCommon:nome"/>
+				<element name="nomeConta" type="FTTHCommon:nomeConta"/>
+				<element name="nomeContato" type="FTTHCommon:string60"/>
+				<element name="nomeRazaoSocial" type="FTTHCommon:nomeRazaoSocial"/>
+				<element name="numeroDocumento" type="FTTHCommon:numeroDocumento"/>
+				<element name="segmentoMercado" type="FTTHCommon:string30"/>
+				<element name="telefoneContato1" type="FTTHCommon:telefoneContato"/>
+				<element name="telefoneContato2" type="FTTHCommon:telefoneContato"/>
+				<element name="telefoneContato3" type="FTTHCommon:telefoneContato"/>
+				<element name="tipoCliente" type="FTTHCommon:string40"/>
+				<element name="unidadeNegocio" type="FTTHCommon:string30"/>
+				<element name="dataPromessa" type="FTTHCommon:string8"/>
+				<element name="horaPromessa" type="FTTHCommon:string4"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="CPF" type="FTTHCommon:string15"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="AutomaticActivityData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados das atividades autom&amp;#225;ticas.
+  Esse document possuir&amp;#225; os XML&#39;s enviados e recebidos dos sistemas em que
+  o WMS possui algum tipo de interface autom&amp;#225;tica.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Automatic Activity Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="nomeAtividade" type="FTTHCommon:nomeAtividade"/>
+				<element name="nomeSistema" type="FTTHCommon:nomeSistema"/>
+				<element name="registroMensagens" type="FTTHCommon:registroMensagens"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="indCancelamento" type="FTTHCommon:permiteCancelamento"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="ONTActivationStatus">
+		<annotation>
+			<documentation>ONT Activation Status</documentation>
+		</annotation>
+			<sequence>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="description" type="cwf_oe:string4000"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="serialNumberHomeGateway" type="FTTHCommon:numeroSerieHomeGateway"/>
+				<element name="serialNumberONT" type="FTTHCommon:numeroSerieONT"/>
+				<element name="sentDate" type="xsd:dateTime"/>
+				<element name="receiveDate" type="xsd:dateTime"/>
+				<element name="statusONT" type="FTTHOrder:statusONT"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="IssueAdditionalPointData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados das pend&amp;#234;ncias de pontos
+  adicionais abertas e fechadas ao longo da tramita&amp;#231;&amp;#227;o da ordem.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Issue Additional Point Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="pendencyId" type="FTTHCommon:codigoPendencia"/>
+				<element name="pendencyObs" type="FTTHCommon:observacao"/>
+				<element name="itemId" type="FTTHCommon:idItem"/>
+				<element name="userId" type="cwf:userId"/>
+				<element name="status" type="FTTHHandleIssueProcess:sendingStatus"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="FacilityData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados das facilidades da ordem em
+  quest&amp;#227;o
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Facility Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="estacao" type="FTTHCommon:estacao"/>
+				<element name="idEndereco" type="FTTHInventoryInterface:idEndereco"/>
+				<element name="classeTecnologia" type="FTTHCommon:numeroRotaRede"/>
+				<element name="acessoGPON" type="FTTHCommon:string60"/>
+				<element name="OLTGALC" type="FTTHCommon:OLTGALC"/>
+				<element name="OLTRACK" type="FTTHCommon:OLTRACK"/>
+				<element name="OLTSHELF" type="FTTHCommon:OLTSHELF"/>
+				<element name="OLTSLOT" type="FTTHCommon:OLTSLOT"/>
+				<element name="OLTPORT" type="FTTHCommon:OLTPORT"/>
+				<element name="ONT" type="FTTHCommon:ONT"/>
+				<element name="ONTCARD" type="FTTHCommon:ONTCARD"/>
+				<element name="UNI" type="FTTHCommon:UNI"/>
+				<element name="ICX" type="FTTHCommon:ICX"/>
+				<element name="DGO" type="FTTHCommon:DGO"/>
+				<element name="CDO" type="FTTHCommon:CDO"/>
+				<element name="caminhoFibra" type="FTTHCommon:caminhoFibra"/>
+				<element name="BSP" type="FTTHCommon:BSP"/>
+				<element name="ARDO" type="FTTHCommon:ARDO"/>
+				<element name="CVLAN1" type="FTTHCommon:VLAN"/>
+				<element name="CVLAN2" type="FTTHCommon:VLAN"/>
+				<element name="SVLAN1" type="FTTHCommon:VLAN"/>
+				<element name="SVLAN2" type="FTTHCommon:VLAN"/>
+				<element name="QVLAN1" type="FTTHCommon:VLAN"/>
+				<element name="QVLAN2" type="FTTHCommon:VLAN"/>
+				<element name="LINEID1" type="FTTHCommon:LINEID1"/>
+				<element name="LINEID2" type="FTTHCommon:LINEID2"/>
+				<element name="necessitaSplitter" type="FTTHCommon:necessitaSpliter"/>
+				<element name="tipoSplitter" type="FTTHCommon:tipoSplitter"/>
+				<element name="modeloSplitter" type="FTTHCommon:modeloSplitter"/>
+				<element name="splitterPort" type="FTTHCommon:splitterPort"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="validateGPON" type="xsd:boolean"/>
+				<element name="acessoGESTAO" type="FTTHCommon:acessoGestao"/>
+				<element name="flagIsOriginal" type="FTTHCommon:flagDadoOriginal"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="BlockData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Dados de Bloqueio
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Block Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="acao" type="FTTHOrderManagementInterface:acao"/>
+				<element name="idAtivo" type="FTTHOrderManagementInterface:idAtivo"/>
+				<element name="nomeBloqueio" type="FTTHOrderManagementInterface:nomeBloqueio"/>
+				<element name="idServico" type="FTTHOrderManagementInterface:idServico"/>
+				<element name="nomeServico" type="FTTHOrderManagementInterface:nomeServico"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="flagIsOriginal" type="FTTHCommon:flagDadoOriginal"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="FranchisePlan">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados dos Planos de Franquia para Oi
+  VoiP
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Franchise Plan</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="tipoPlano" type="FTTHOrderManagementInterface:idCatalogo"/>
+				<element name="bolsoOCS" type="xsd:string"/>
+				<element name="unidadeFranquia" type="FTTHCommon:unidadeFranquia"/>
+				<element name="valorFranquia" type="FTTHCommon:valorFranquia"/>
+				<element name="tipoUso" type="FTTHCommon:tipoUso"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="PROCESS_ID" type="cwf_pm:PROCESS_ID"/>
+				<element name="statusAcao" type="FTTHCommon:statusAcao"/>
+				<element name="acao" type="FTTHCommon:acao"/>
+				<element name="flagIsOriginal" type="FTTHCommon:flagDadoOriginal"/>
+				<element name="idCatalogo" type="FTTHOrderManagementInterface:idCatalogo"/>
+				<element name="tipoDado" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="EquipmentData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados dos equipamentos que foram
+  instalados/retirados/modificados no cliente
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Equipment Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="numeroSerieSetTopBox" type="FTTHCommon:numeroSerieSetTopBox"/>
+				<element name="possuiDVRIntegrado" type="FTTHCommon:possuiDVRIntegrado"/>
+				<element name="foiDevolvidoSetTopBox" type="FTTHCommon:foiDevolvido"/>
+				<element name="motivoSetTopBox" type="FTTHCommon:motivo"/>
+				<element name="atividade" type="FTTHCommon:nomeAtividade"/>
+				<element name="flagDadoOriginal" type="FTTHCommon:flagDadoOriginal"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="instalado" type="FTTHCommon:instalado"/>
+				<element name="tipoTV" type="FTTHCommon:tipoTV"/>
+				<element name="identificadorIPTV" type="FTTHCommon:identificadorIPTV"/>
+				<element name="acao" type="FTTHOrderManagementInterface:acaoType"/>
+				<element name="sendStbToSisStatus" type="FTTHCommon:sendStbToSisStatus"/>
+				<element name="deviceGUID" type="FTTHCommon:deviceGUID"/>
+				<element name="tipoPontoSTB" type="FTTHOrder:tipoPontoSTB"/>
+				<element name="errorMessage" type="FTTHOrder:errorMessage"/>
+				<element name="statusAcao" type="FTTHCommon:statusAcao"/>
+				<element name="codOperacao" type="cwf:String64"/>
+				<element name="nomeCPE" type="FTTHOrder:nomeCPEIsTV"/>
+				<element name="codEquipamento" type="FTTHInventorySAPInterface:char18"/>
+				<element name="isSAP" type="cwt_common:booleanCheckBox"/>
+				<element name="isNETWIN" type="cwt_common:booleanCheckBox"/>
+				<element name="idAtivo" type="FTTHCommon:string100"/>
+				<element name="flgValidado" type="xsd:boolean"/>
+				<element name="codMaterial" type="FTTHClickInterface:codMaterial"/>
+				<element name="isProcessando" type="xsd:boolean"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="RolloutData">
+		<annotation>
+			<documentation>Rollout Data</documentation>
+		</annotation>
+			<sequence>
+				<element name="tipoProduto" type="FTTHCommon:string4"/>
+				<element name="uf" type="FTTHCommon:estadoLogradouro"/>
+				<element name="localidade" type="FTTHCommon:string16"/>
+				<element name="bairro" type="FTTHCommon:string64"/>
+				<element name="ativo" type="FTTHCommon:isAtivo"/>
+				<element name="LASTUPDATEDDATE" type="xsd:dateTime"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="ManualActivityData">
+		<annotation>
+			<documentation>&lt;p style=&#34;margin-top: 0&#34;&gt;
+  Document respons&amp;#225;vel por manter os dados das atividades de campo
+  realizadas ao longo da tramita&amp;#231;&amp;#227;o da ordem de servi&amp;#231;o.
+&lt;/p&gt;</documentation>
+			<appinfo>
+				<label>Manual Activity Data</label>
+			</appinfo>
+		</annotation>
+			<sequence>
+				<element name="statusAtividade" type="xsd:boolean"/>
+				<element name="operationWorklist" type="FTTHCommon:operationWorklist"/>
+				<element name="nomeAtividade" type="FTTHCommon:nomeAtividadePend"/>
+				<element name="dataAgendamento" type="FTTHCommon:dataAgendamento"/>
+				<element name="dataAbertura" type="FTTHCommon:dataAbertura"/>
+				<element name="dataFechamento" type="FTTHCommon:dataFechamento"/>
+				<element name="codigoPSR" type="FTTHCommon:codigoPSR"/>
+				<element name="nomePSR" type="FTTHCommon:nomePSR"/>
+				<element name="matriculaTecnico" type="FTTHCommon:matriculaTecnico"/>
+				<element name="nomeTecnico" type="FTTHCommon:nomeTecnico"/>
+				<element name="aprazado" type="FTTHCommon:aprazado"/>
+				<element name="osDespachada" type="FTTHCommon:osDespachada"/>
+				<element name="observacao" type="FTTHCommon:observacao"/>
+				<element name="cwDocId" type="cwf:cwDocId"/>
+				<element name="cwOrderId" type="cwf:cwOrderId"/>
+				<element name="cwParentId" type="cwf:cwParentId"/>
+				<element name="lastUpdatedDate" type="cwf:lastUpdatedDate"/>
+				<element name="updatedBy" type="cwf:updatedBy"/>
+				<element name="cwDocIDPSR" type="FTTHOrder:codigoPSR"/>
+				<element name="matriculaAuxiliar" type="FTTHCommon:matriculaTecnico"/>
+				<element name="nomeAuxiliar" type="FTTHCommon:nomeTecnico"/>
+				<element name="dataHoraInicio" type="xsd:dateTime"/>
+				<element name="dataHoraFim" type="xsd:dateTime"/>
+				<element name="numeroBA" type="FTTHCommon:string15"/>
+				<element name="codEncerramento" type="FTTHCommon:string4"/>
+			</sequence>
+		</complexType>
+
+</schema>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHProcess.getProcessingEquipment">
+  <label>Get Processing Equipment</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="ord" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="ValidateEquipmentDoc" type="rifp">
+      <type>doc_FTTHClickInterface.ValidateEquipmentDoc</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    //DATE: 27/03/2018
+
+    var searchDoc;
+    var equipResult;
+
+    if(ValidateEquipmentDoc.tipoEquipamentoNovo == "STB"){
+        searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:EquipmentData");
+        searchDoc.idAtivo = ValidateEquipmentDoc.idAtivoNovo;
+        searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+
+        if(ValidateEquipmentDoc.userId){
+            searchDoc.flagDadoOriginal = (ValidateEquipmentDoc.isOriginalData) ? "O" : "N";
+        }
+
+        //07/05/2018 - Ajustando busca para pegar equipamentos que estão sendo adicionados em tempo de BA
+        if(!ValidateEquipmentDoc.idAtivoNovo || ValidateEquipmentDoc.idAtivoNovo == ""){
+            //18/07/2018 - Ajuste provisório para trocas de equip adicionado em tempo de BA
+            var equipBkp;
+            if(ValidateEquipmentDoc.operacao == "Associar CPE"){
+            searchDoc.numeroSerieSetTopBox = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+                equipBkp = ValidateEquipmentDoc.numeroSerieEquipamentoOriginal;
+            } else{
+                searchDoc.numeroSerieSetTopBox_Original = ValidateEquipmentDoc.numeroSerieEquipamentoOriginal;
+                equipBkp = ValidateEquipmentDoc.numeroSerieEquipamentoNovo;
+            }
+            equipResult = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+            if(!equipResult || equipResult.length == 0){
+                searchDoc.numeroSerieSetTopBox_Original = null;
+                searchDoc.numeroSerieSetTopBox = ValidateEquipmentDoc.numeroSerieEquipamentoOriginal;
+
+            equipResult = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc);
+            if(!equipResult || equipResult.length == 0){
+                searchDoc.numeroSerieSetTopBox = equipBkp;
+                }
+            }
+            //end 18/07/2018
+        }
+        try{
+            equipResult = Finder.runSearch("FTTHOrder:equipamentoPontaFinder", searchDoc)[0];
+        } catch(e){
+            equipResult = null;
+            Global.logError("Erro ao procurar o equipamento com idAtivo: " + ValidateEquipmentDoc.idAtivoNovo + " e orderId: " + ord.OrderHeader.cwOrderId);
+        }
+
+    } else{
+        searchDoc = FTTHCommon.createEmptyDoc("FTTHOrder:BaseEquipmentData");
+        searchDoc.cwOrderId = ord.OrderHeader.cwOrderId;
+
+        if(ValidateEquipmentDoc.userId){
+            searchDoc.flagDadoOriginal = (ValidateEquipmentDoc.isOriginalData) ? "O" : "N";
+        }
+
+        try{
+            equipResult = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc)[0];
+        } catch(e){
+            equipResult = null;
+            Global.logError("Erro ao procurar o equipamento com idAtivo: " + ValidateEquipmentDoc.idAtivoOriginal + " e orderId: " + ord.OrderHeader.cwOrderId);
+        }
+    }
+
+    return equipResult;
+  ]]></script>
+</script>

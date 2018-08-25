@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHProcess.NotificarClick">
+  <activity name="InicioNotificarClick" type="seqActivity">
+    <guid>{c278e056-8e6b-4433-a7db-79038c489b60}</guid>
+    <label>Start Notificar Click</label>
+    <x>79.77051</x>
+    <y>30.0</y>
+    <childList>
+      <child name="SGFTUpdateStock" type="seqActivity">
+        <guid>{dfdf7163-6517-4413-8f86-81f8ab662cfa}</guid>
+        <label>SGFT Update Stock</label>
+        <x>79.23379</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="isSGFT" type="switchActivity">
+            <guid>{d09263bc-9555-460a-a40d-51a064fd202d}</guid>
+            <label>is SGFT ?</label>
+            <x>77.8418</x>
+            <y>219.52188</y>
+            <childList>
+              <child name="click" type="caseActivity">
+                <guid>{1529db70-b5b2-45ac-948b-72f7344da0ff}</guid>
+                <label>Click</label>
+                <x>300.3695</x>
+                <y>2893.2825</y>
+                <childList>
+                  <child name="isAutomatic" type="switchActivity">
+                    <guid>{4b417b1f-a30d-424d-ac73-a4ffd5d49f1d}</guid>
+                    <label>Is Automatic ?</label>
+                    <x>126.0</x>
+                    <y>316.22302</y>
+                    <childList>
+                      <child name="yes" type="caseActivity">
+                        <guid>{128c7a95-e348-4ed2-ae68-97df3f449b2a}</guid>
+                        <label>Yes</label>
+                        <x>250.44888</x>
+                        <y>457.3266</y>
+                        <childList>
+                          <child name="NotifyEquipmentValidationSubProcess" type="subflowActivity">
+                            <element>proc_FTTHProcess.NotifyEquipmentValidationSubProcess</element>
+                            <guid>{2ce63b4d-f121-4c34-80a6-49499085ea6b}</guid>
+                            <label>Notify Equipment Validation Sub Process</label>
+                            <x>177.34717</x>
+                            <y>427.62537</y>
+                          </child>
+                        </childList>
+                      </child>
+                      <child name="no" type="caseActivity">
+                        <guid>{8e82f06e-2047-4370-bf02-0f32aa4a1ea9}</guid>
+                        <label>No</label>
+                        <x>93.34717</x>
+                        <y>457.0277</y>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              //MS - adicinando validação se o processo foi startado pelo CLICK
+                              //ou pelo técnico na atividade de campo - 11/01/2018
+                              var validateDoc = this.process.processDocument;
+                              return (validateDoc.userId && validateDoc.userId != "");
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+              <child name="sgft" type="caseActivity">
+                <guid>{5eb2db3f-a88f-41ee-9cb7-43c96ea6a5ef}</guid>
+                <label>SGFT</label>
+                <x>202.66434</x>
+                <y>2896.5813</y>
+                <childList>
+                  <child name="updateStockSequence" type="seqActivity">
+                    <guid>{6de8f0f6-029a-4967-94ba-32bfa437ffe0}</guid>
+                    <label>Update Stock Sequence</label>
+                    <x>27.183594</x>
+                    <y>324.54376</y>
+                  </child>
+                </childList>
+                <methodList>
+                  <method name="cwOnProcActCond" type="action">
+                    <category>cond</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ordem = this.process.processOrder;
+
+                      var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+                      searchDoc.OrderId = ordem.OrderHeader.cwOrderId;
+                      var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+                      if(worklist && worklist.length > 0){
+                          return (worklist[0].Operation == "FTTHUserInterface.SGFTManualActivityInterface/SGFTBAOpenning");
+                      }
+
+                      return false;
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <guid>{415bc6ae-c23f-4dc5-9b10-1459e6604d45}</guid>
+  <label>Notificar Click</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <revision>5</revision>
+  <type>Sub-flow</type>
+</process>

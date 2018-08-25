@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHRollout.processRolloutRequestScript">
+  <label>Process Rollout Request Script</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="input" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHRollout.input</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var output = new DataStructure("FTTHRollout:output");
+
+    try{
+        var ordem = Order.getOrderById(input.orderId);
+    } catch(e){
+        output.code = '-1';
+        output.description = "Ordem não encontrada para este OrderId! - " + e;
+
+        return output;
+    }
+
+
+    var errorMessage = null;
+    var msgParticipant = null;
+    var messageToSGFT;
+    var messageFromSGFT;
+    var operation = '';
+
+    switch(input.operation){
+        //GP1 - ROLLOUT_OM
+        case 'InstallRemoveEquipmentIssue':
+            msgParticipant = "ROLLOUTAR_OS";
+            operation = 'FTTHUserInterface.InstallRemoveEquipmentManualTaskInterface/InstallRemoveEquipmentTask';
+            break;
+        //GP1 - ROLLOUT_OM
+        case 'InstallJumperIssue':
+            msgParticipant = "ROLLOUTAR_OS";
+            operation = 'FTTHUserInterface.InstallJumperManualTaskInterface/InstallJumperHandleError';
+            break;
+        //GP2 - ROLLOUT_SGFT
+        case 'SGFTBAExternalClosingSuccess':
+            msgParticipant = "REDIRECIONAR_ROLLOUT_CLICK";
+            operation = 'FTTHUserInterface.SGFTManualActivityInterface/SGFTBAOpenning';
+            break;
+        //GP3 - ROLLOUT_CLOSE_PEND
+        case 'InstallRemoveEquipmentSolveIssueSuccess':
+            operation = 'FTTHUserInterface.InstallRemoveEquipmentSolveIssueInterface/InstallRemoveEquipmentSolveIssueTask';
+            break;
+        case 'InstallJumperSolved':
+            operation = 'FTTHUserInterface.InstallJumperSolveIssueInterface/InstallJumperSolveIssue';
+            break;
+        default:
+            errorMessage = "Operation not found!";
+            break;
+    }
+
+    var searchDoc = new Document("override_cwf_pm:BaseWorklist");
+    searchDoc.OrderId = input.orderId;
+    searchDoc.Operation = operation;
+    var worklist = Finder.runSearch("override_cwf_pm:worklistFinder", searchDoc);
+
+    if(!errorMessage){
+        if (input.operation == 'SGFTBAExternalClosingSuccess' ) {
+            messageToSGFT = createBAExternalCloseRequestMessage(ordem);
+            try{
+                messageFromSGFT = sendMessageToBus(messageToSGFT, ordem.OrderHeader.numeroPedido, worklist[0].SenderId, input.orderId);
+
+                if(messageFromSGFT.ResponseControl.code != '0001'){
+                    errorMessage = messageFromSGFT.ResponseControl.code + " - " + messageFromSGFT.ResponseControl.detail;
+                }
+            } catch(e){
+                errorMessage = "Erro no encerramento BA SGFT - " + e;
+            }
+    }
+
+        try{
+            if(!errorMessage){
+                if (worklist.length == 1) {
+            Process.performWorklistAction(worklist[0], null, input.operation, true, ordem, msgParticipant);
+            output.code = '0';
+            output.description = "SUCESSO";
+                } else {
+                    output.code = '-1';
+                    output.description = "Ordem não é válida para ROLLOUT. Existem nenhuma ou diversas atividades em sua lista de tarefas.";
+                }
+            } else{
+                output.code = '-1';
+                output.description = errorMessage;
+            }
+        } catch(e){
+            output.code = '-1';
+            output.description = "Operação não existente para esta ordem - " + e;
+        }
+    } else{
+        output.code = '-1';
+        output.description = errorMessage;
+    }
+
+    var msgLogDoc = UserProfile.getMsgLogDoc();
+    if(msgLogDoc != null){
+        msgLogDoc.userData1 = ordem.OrderHeader.numeroPedido;
+        msgLogDoc.userData2 = (worklist && worklist.length > 0) ? worklist[0].SenderId : null;
+        msgLogDoc.userData3 = input.orderId;
+        msgLogDoc.save();
+    }
+
+    return output;
+
+
+    //================================== METHODS ======================================
+
+    function createBAExternalCloseRequestMessage(order){
+        var request = new DataStructure('SolicitarEncerramentoExternoSGFTRequest.SolicitarEncerramentoExternoRequest_el');
+        var ator = new DataStructure("FTTHEsbUser.Ator");
+
+        var date = new Date();
+        var fullDate = Calendar.formatDate(date, 'yyyyMMdd');
+        var fullHour = Calendar.formatDate(date, 'HHmm');
+
+        ator.sistema = "OM";
+        request.Ator = ator;
+
+        request.DataBaixaDocumento = fullDate;
+        request.HoraBaixaDocumento = fullHour;
+
+        var baData = FTTHServiceRequest.getTicketActivityData(null, null, order.id);
+
+        request.NumBA = baData.numBA;
+        request.DescLivre = baData.descLivre;
+        request.MatriculaOperador = "SADMIN";
+        request.CodEncerramento =  Global.getConfigVariable("COD_PENDENCIA_ROLLOUT");
+        return request;
+    }
+
+    function sendMessageToBus(messageToSGFT, idPedido, correlationId, orderId){
+        var msgLogDoc = UserProfile.getMsgLogDoc();
+        if(msgLogDoc != null){
+            msgLogDoc.userData1 = idPedido;
+            msgLogDoc.userData2 = correlationId;
+            msgLogDoc.userData3 = orderId;
+            msgLogDoc.save();
+        }
+        var msg = Global.invokeInterface("SolicitarEncerramentoExternoSGFT:SolicitarEncerramentoExterno", "SolicitarEncerramentoExterno", messageToSGFT)[0];
+        return msg;
+    }
+  ]]></script>
+</script>

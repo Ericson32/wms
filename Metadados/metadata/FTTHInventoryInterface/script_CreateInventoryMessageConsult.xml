@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHInventoryInterface.CreateInventoryMessageConsult">
+  <label>Create Inventory Message Consult</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processID" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="atividade" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="output" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHInventoryInterface.query</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+    Monta mensagens de consulta para envio ao Inventario
+
+    parametros:
+    order          (this.process.processOrder)           ordem vinda do OM -->                      tipo FTTHOrder.FTTHOrder
+    processID      (this.process.id)                     transacao no OM                            tipo string
+    atividade:
+    CONSULTAR_FACILIDADE_LOGICA_1
+    CONSULTAR_FACILIDADE_LOGICA_2
+    CONSULTAR_FACILIDADE_FISICA
+    output        (this.activityData)
+    */
+
+    //Parametros de LOG
+    var LOG_INTERFACE = "INVENTORY";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_INVENTORY');
+    var LOG_ACTIVITY = atividade;
+    var LOG_SCRIPT = "CreateInventoryMessageConsult";
+    var LOG_OPERATION = "Sender";
+
+    var isOriginal;
+    var chaveNetWin;
+    var passouValidacao = true;
+    var msgValidacao = 'Campo(s) obrigatório(s) sem valor => ';
+
+    if (atividade.endsWith('NOVA')) {
+        chaveNetWin = order.OrderHeader.numeroOSInventario; // chave-unica interna do NetWin, designacao
+        isOriginal = 0;
+    } else {
+        chaveNetWin = order.OriginalData[0].FacilityData.acessoGPON; // GPON, alguma alteracao
+        isOriginal = 1;
+    }
+    output.uniqueCode = chaveNetWin;
+    output.type = "ServiceOrderExtKey";
+    output.actor.sistema = "OM-R";
+
+    //Validacao necessaria para a consulta logica 2 dos dados novos, so se pode fazer a consulta se a accao for diferente de dash
+    var searchDocOrdParam = new Document('FTTHOrderManagementInterface:OrderParameters');
+    searchDocOrdParam.orderId = order.id;
+    searchDocOrdParam.idCatalogo = 'OI_VOIP';
+
+    var voipParameterResult = Finder.runSearch('FTTHOrderManagementInterface:orderParamDocFind', searchDocOrdParam);
+    var voipParameterCheck = voipParameterResult.size > 0 && (voipParameterResult[0].acao != 'remover' && voipParameterResult[0].acao != '-');
+
+    var searchDoc = new Document('FTTHInventoryInterface:AttributeInventory');
+    searchDoc.operacao = atividade;
+    searchDoc.idOS = order.id;
+
+    var atributos = Finder.runSearch('FTTHInventoryInterface:AttributeFinder', searchDoc);
+    if (atributos.size > 0) {
+
+        var listaAtributos = new Array();
+
+        //Na consulta lógica 1 do inventário o campo acessoGESTAO será enviado quando não existir o produto HSI.
+        //Caso exista o produto HSI, o campo "acessoGESTAO" não será enviado.
+        if (atividade.startsWith('CONSULTAR_FACILIDADE_LOGICA_1')) {
+            var k = 0;
+            if(isOriginal == 0){ //consulta dados novos
+                if(order.ProductData != null && order.ProductData.identificadorHSI != null)
+                var possuiHSI = true;
+                else
+                var possuiHSI = false;
+            }else{ //consulta dados originais
+                if(order.OriginalData[0] != null && order.OriginalData[0].ProductData != null && order.OriginalData[0].ProductData.identificadorHSI != null)
+                var possuiHSI = true;
+                else
+                var possuiHSI = false;
+            }
+            for (var i = 0; i < atributos.length; i++) {
+                if(possuiHSI && atributos[i].identificadorCampo == 'acessoGESTAO'){
+                    continue;
+                }
+                if(!possuiHSI && atributos[i].identificadorCampo == 'identificadorHSI'){
+                    continue;
+                }
+                var entrada = FTTHCommon.getDocument(order, atributos[i].nomeDocumento, isOriginal);
+                var valor = entrada.getValueByName(atributos[i].identificadorCampo);
+                if (valor != null) {
+                    var key = new DataStructure('FTTHInventoryInterface.queryType');
+                    key.type = atributos[i].identificadorCampo;
+                    key.uniqueCode = valor;
+                    k++;
+                    listaAtributos[listaAtributos.length] = key;
+                }else if(valor == null && atributos[i].obrigatoriedade == 1){
+                    passouValidacao = false;
+                    msgValidacao = msgValidacao + '[value][' + atributos[i].nomeDocumento + ']' + '[' + atributos[i].identificadorCampo + '][indDadoOriginal][' + atributos[i].enviarDadoOriginal+']\n';
+                    FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, msgValidacao, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                }
+            }
+        } else if (atividade.startsWith('CONSULTAR_FACILIDADE_LOGICA_2')) {
+            var k = 0;
+            if(isOriginal == 0){ //consulta dados novos, voipParameterCheck adicionado por causa de so se consulta caso esteja a ser alterado.
+                if(order.ProductData != null && order.ProductData.identificadorVoIP != null && voipParameterCheck)
+                var possuiVoIP = true;
+                else
+                var possuiVoIP = false;
+            }else{ //consulta dados originais
+                if(order.OriginalData[0] != null && order.OriginalData[0].ProductData != null && order.OriginalData[0].ProductData.identificadorVoIP != null)
+                var possuiVoIP = true;
+                else
+                var possuiVoIP = false;
+            }
+            for (var i = 0; i < atributos.length; i++) {
+                if(possuiVoIP && atributos[i].identificadorCampo == 'identificadorIPTV'){
+                    continue;
+                }else if (!possuiVoIP && atributos[i].identificadorCampo == 'identificadorVoIP'){
+                        continue;
+                }
+
+
+
+                var entrada = FTTHCommon.getDocument(order, atributos[i].nomeDocumento, isOriginal);
+                var valor = entrada.getValueByName(atributos[i].identificadorCampo);
+                if (valor != null) {
+                    var key = new DataStructure('FTTHInventoryInterface.queryType');
+                    key.type = atributos[i].identificadorCampo;
+                    key.uniqueCode = valor;
+                    k++;
+                    listaAtributos[listaAtributos.length] = key;
+                }else if(valor == null && atributos[i].obrigatoriedade == 1){
+                    passouValidacao = false;
+                    msgValidacao = msgValidacao + '[value][' + atributos[i].nomeDocumento + ']' + '[' + atributos[i].identificadorCampo + '][indDadoOriginal][' + atributos[i].enviarDadoOriginal+']\n';
+                    FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, msgValidacao, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                }
+            }
+        } else {
+            var k = 0;
+            for (var i = 0; i < atributos.length; i++) {
+                var entrada = FTTHCommon.getDocument(order, atributos[i].nomeDocumento, isOriginal);
+                var valor = entrada.getValueByName(atributos[i].identificadorCampo);
+                if (valor != null){
+                    var key = new DataStructure('FTTHInventoryInterface.queryType');
+                    key.type = atributos[i].identificadorCampo;
+                    key.uniqueCode = valor;
+                    k++;
+                    listaAtributos[listaAtributos.length] = key;
+                }else if(valor == null && atributos[i].obrigatoriedade == 1){
+                    passouValidacao = false;
+                    msgValidacao = msgValidacao + '[value][' + atributos[i].nomeDocumento + ']' + '[' + atributos[i].identificadorCampo + '][indDadoOriginal][' + atributos[i].enviarDadoOriginal+']\n';
+                    FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, msgValidacao, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+                }
+            }
+        }
+    } else {
+        var LOG_MSG = "Lista de atributos retornou vazia para atividade: [" + atividade + "] ordem [" + order.id + "]";
+        FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        passouValidacao = false;
+    }
+
+    if(passouValidacao){
+        for(i = 0; i < listaAtributos.length; i++){
+            output.key[i].type = listaAtributos[i].type;
+            output.key[i].uniqueCode = listaAtributos[i].uniqueCode;
+        }
+        var LOG_MSG = "Atividade: [" + atividade + "] realizada com sucesso";
+        FTTHCommon.log( order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, LOG_MSG, null, LOG_INTERFACE, LOG_NIVEL, "TRACE" );
+    }else{
+        FTTHCommon.log(order.id, processID, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT,
+        msgValidacao, -1, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        for(i = 0; i < listaAtributos.length; i++){
+            if(listaAtributos[i].type == 'numeroOS'){
+                output.key[i].type = listaAtributos[i].type;
+                output.key[i].uniqueCode = listaAtributos[i].uniqueCode;
+                break;
+            }
+        }
+        FTTHCommon.saveEvent(order.id, Global.getConfigVariable("INVENTORY_SYSTEM"),
+        atividade, "FUNCTIONAL_ERROR", -1000, msgValidacao,
+        processID, Global.getConfigVariable("ASYNC_REQUEST"));
+        FTTHCommon.updateAutomaticActivityDocument(order, Global.getConfigVariable("INVENTORY_SYSTEM"), atividade);
+    }
+    return output;
+  ]]></script>
+</script>

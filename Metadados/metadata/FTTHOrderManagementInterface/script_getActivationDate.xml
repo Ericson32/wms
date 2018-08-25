@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.getActivationDate">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Retorna a Data Ativacao
+    </p>
+  ]]></description>
+  <label>get Activation Date</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="requisicao" type="rifp">
+      <type>dstruct_FTTHActivationInterface.notification</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var orderId           = ordem.OrderHeader.cwOrderId;
+    var atividadeManual   = null;
+
+    var tipoSolicitacao;
+    var data;
+    var atividade;
+
+    var docSolicitacao     = new Document("FTTHCommon:Request");
+    docSolicitacao.orderId = orderId;
+    var result = Finder.runSearch("FTTHCommon:requestFinder",docSolicitacao);
+    if(result != null){
+        for(var i = 0; i < result.length; i++){
+            tipoSolicitacao = result[i].requestId;
+
+            //Data de fechamento da atividade de campo de instalação com sucesso
+            //Data de fechamento da atividade de campo para pedidos compostos
+            if(tipoSolicitacao == 'INSTALACAO_BANDA_LARGA' || tipoSolicitacao == 'INSTALACAO_TV'            || tipoSolicitacao == 'INSTALACAO_VOZ' ||
+               tipoSolicitacao == 'MUDANCA_ENDERECO'       || tipoSolicitacao == 'EXCLUSAO_PONTO_ADICIONAL' || tipoSolicitacao == 'INCLUSAO_PONTO_ADICIONAL' ||
+              (tipoSolicitacao == 'MUDANCA_PACOTE'         && instalarPonto(orderId) )){
+
+                var searchDoc       = new Document('FTTHOrder:ManualActivityData');
+                searchDoc.cwOrderId = orderId;
+                var resultTM        = Finder.runSearch('FTTHOrder:ManualActivityDataFinder', searchDoc);
+                if( resultTM != null)
+                    for(var y = 0; y < resultTM.length; y++){
+                        if(resultTM[y].nomeAtividade == 'Remover Equipamento' && tipoSolicitacao == 'MUDANCA_ENDERECO'){
+                            continue;
+                        }
+                        data = resultTM[y].dataFechamento;
+                        return data;
+                    }
+            }
+
+            //Execution Date recebida na última mensagem de iteração com o sistema Ativação
+            else
+            {
+                atividade                 = new Document('FTTHCommon:Activity');
+                atividade.orderId         = ordem.OrderHeader.cwOrderId;
+                var ultimaAtividadeFinder = Finder.runSearch('FTTHActivationInterface:getLastExecutionDateFinder', atividade);
+                if( ultimaAtividadeFinder != null){
+                    data = ultimaAtividadeFinder[0].executionDate;
+                }
+            }
+        }
+        return data;
+    }
+
+
+
+    //-----------------------------------||
+    //        Funções Auxiliares         ||
+    //-----------------------------------||
+
+    function instalarPonto(cwOrderId){
+        var atividadeMP     = new Document('FTTHCommon:Activity');
+        atividadeMP.orderId = ordem.OrderHeader.cwOrderId;
+        var atividadeFinder = Finder.runSearch('FTTHActivationInterface:ExecutionDateActivityFinder', atividadeMP);
+        if( atividadeFinder.length > 0){
+            for(var z = 0; z < atividadeFinder.length; z++){
+                var atividadeF = atividadeFinder[0].activityId;
+                if(atividadeF == 'INSTALAR_EQUIPAMENTO_CLIENTE')
+                    return true;
+                else
+                    return false;
+            }
+        }
+    }
+  ]]></script>
+</script>

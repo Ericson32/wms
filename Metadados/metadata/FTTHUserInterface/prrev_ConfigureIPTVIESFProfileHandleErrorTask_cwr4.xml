@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConfigureIPTVIESFProfileHandleErrorTask_cwr4">
+  <activity name="startConfigureIPTVIESFProfileHandleError" type="seqActivity">
+    <guid>{74d099ef-2e7d-418e-a95a-e1bf7755ee83}</guid>
+    <label>Start Configure IPTV IESF Profile Handle Error</label>
+    <x>80.41963</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConfigureIPTVIESFProfileSolveIssueTask" type="opActivity">
+        <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVIESFProfileHandleError</element>
+        <guid>{c04c23d4-ef15-4036-97c0-774a014de262}</guid>
+        <label>Configure IPTV IESF Profile Handle Error Task</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>85.69092</x>
+        <y>130.6414</y>
+      </child>
+      <child name="waitManualActivity" type="choiceActivity">
+        <guid>{e5106ab9-7a1e-4870-9863-061b3400574c}</guid>
+        <label>Wait Manual Activity</label>
+        <x>30.0</x>
+        <y>286.14728</y>
+        <childList>
+          <child name="ConfigureIPTVIESFProfileHandleErrorIssue" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVIESFProfileHandleErrorIssue</element>
+            <guid>{6919350b-855e-483b-8285-ed166c4bf912}</guid>
+            <label>Configure IPTV IESF Profile Handle Error - Issue</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>155.48047</x>
+            <y>427.2508</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="ConfigureIPTVIESFProfileHandleErrorResend" type="opActivity">
+            <element>iface_FTTHUserInterface.ActivationHandleErrorInterface/oper_ConfigureIPTVIESFProfileHandleErrorResend</element>
+            <guid>{2aef8559-276a-49f5-b058-12cd3edaa745}</guid>
+            <label>Configure IPTV IESF Profile Handle Error - Resend</label>
+            <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+            <x>31.35205</x>
+            <y>427.2508</y>
+            <methodList>
+              <method name="cwOnProcActAfter" type="action">
+                <category>script</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF");
+                  var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+                  FTTHCommon.setStatusActivity(orderId, activityId, status);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="ActivationHandleError" type="participantActivity">
+        <guid>{4cfa3394-3b29-48eb-aca8-c38f8302c40a}</guid>
+        <label>Activation Handle Error</label>
+        <participant>part_FTTHUserInterface.ActivationHandleError</participant>
+        <x>121.37305</x>
+        <y>286.14728</y>
+      </child>
+    </childList>
+    <methodList>
+      <method name="cwOnProcActBefore" type="action">
+        <category>before</category>
+        <system>true</system>
+        <script><![CDATA[
+          var orderId = process.processOrder.OrderHeader.cwOrderId;
+          var activityId = Global.getConfigVariable("CONFIGURAR_PERFIL_CLIENTE_IPTV_IESF");
+          var status = Global.getConfigVariable("ACTIVITY_RETURN_MANUAL_ACTIVITY");
+
+          FTTHCommon.setStatusActivity(orderId, activityId, status);
+        ]]></script>
+      </method>
+    </methodList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a configura&#231;&#227;o de IPTV IESF Profile autom&#225;tica
+      n&#227;o tenha sido realizada com sucesso, essa atividade manual ser&#225; gerada
+      e poder&#225; ser finalizada com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Configure IPTV IESF Profile Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConfigureIPTVIESFProfileHandleErrorTask</process>
+  <revision>4</revision>
+  <type>Sub-flow</type>
+</process__revision>

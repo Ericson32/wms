@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.NotifyClosingInterfaceScript">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script respons&#225;vel por:
+    </p>
+    <p style="margin-top: 0">
+      - Montar o XML de fechamento de OS que deve ser enviado ao OM;
+    </p>
+    <p style="margin-top: 0">
+      - Enviar o XML pra o processo de fechamento de OS;
+    </p>
+  ]]></description>
+  
+  <label>Notify Closing Interface Script</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dtype_cwf_pm.PROCESS_ID</type>
+    </parameter>
+    <parameter name="msg" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.notificacao</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var LOG_INTERFACE = "OM";
+    var LOG_NIVEL = Global.getConfigVariable('NIVEL_LOG_OM');
+    var LOG_ACTIVITY = "Notify Closing Automatic Task";
+    var LOG_SCRIPT = "Notify Closing Interface Script";
+    var LOG_OPERATION = "Closing Operation";
+    var tipoSolicitacao;
+    var orderId = ordem.OrderHeader.cwOrderId;
+    var franchisePlanDoc = null;
+    var franchisePlanFinder = null;
+    var doc = null;
+    var error = null;
+    var STATUS_ACAO_PROCESSADO_FRANQUIA = 'processado';
+    var ACAO_REMOVER_FRANQUIA = 'remover';
+
+    var orderHeaderteste = FTTHCommon.getLatestVersion(ordem.OrderHeader.numeroPedido);
+    //20121019 EPC inicio
+    var dataAtivacao = ordem.OrderHeader.dataAtivacao;
+    if(dataAtivacao == null) {
+        FTTHCommon.log(ordem.id, processId, LOG_ACTIVITY, LOG_OPERATION, LOG_SCRIPT, 'O campo dataAtivacao em OrderHeader eh nulo.', null, LOG_INTERFACE, LOG_NIVEL, "ERROR" );
+        dataAtivacao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss'); // TODO remover isso!
+    }
+    //20121019 EPC fim
+
+    var numeroOS =  FTTHCommon.getNumeroOs(ordem.OrderHeader.numeroPedido,ordem.OrderHeader.tipoOS);
+    msg.idMensagem = ordem.OrderHeader.numeroPedido;
+    //msg.correlationId = ordem.OrderHeader.numeroOS;
+    msg.correlationId = numeroOS;
+    msg.status = '0';
+    msg.descricao = 'Closing Operation';
+    msg.timestampExecucao = Calendar.parseDate(Calendar.formatDate(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ss'), 'yyyy-MM-dd\'T\'HH:mm:ss');
+
+    dataAtivacao = FTTHOrderManagementInterface.getActivationDate(ordem);
+    if (dataAtivacao){
+         msg.listaAtributos.atributo[0].nome = 'dataAtivacao';
+         msg.listaAtributos.atributo[0].valor = Calendar.formatDate(dataAtivacao, 'yyyy-MM-dd\'T\'HH:mm:ss');
+    }
+    //20121019 EPC inicio
+    msg.listaAtributos.atributo[1].nome = 'numeroOS';
+    //msg.listaAtributos.atributo[1].valor = ordem.OrderHeader.numeroOS;
+    msg.listaAtributos.atributo[1].valor = numeroOS;
+    //20121019 EPC fim
+
+    // PRJ14217 - Inicio
+    franchisePlanDoc =  new Document('FTTHOrder:FranchisePlan');
+    franchisePlanDoc.cwOrderId = ordem.OrderHeader.cwOrderId;
+    franchisePlanDoc.statusAcao = STATUS_ACAO_PROCESSADO_FRANQUIA;
+    franchisePlanDoc.acao = ACAO_REMOVER_FRANQUIA;
+    franchisePlanFinder = Finder.runSearch('FTTHActivationInterface.FrachisePlanFinder', franchisePlanDoc);
+
+    var idArrayAtributo = msg.listaAtributos.atributo.length;
+
+    try {
+        for (var i=0; i<franchisePlanFinder.size; i++) {
+                doc = franchisePlanFinder[i];
+                idArrayAtributo = idArrayAtributo + i;
+                msg.listaAtributos.atributo[idArrayAtributo].nome = 'remover';
+                msg.listaAtributos.atributo[idArrayAtributo].valor = doc.bolsoOCS;
+        }
+    } catch(e){
+        error = e;
+    }
+    // PRJ14217 - Fim
+
+    var ops = new Document('FTTHOrderManagementInterface:OrderParametersSearch');
+    ops.cwOrderId = ordem.OrderHeader.cwOrderId;
+    ops.indCancelamento = FTTHCommon.isCancelOrder(ordem.OrderHeader.cwOrderId);
+
+    var parameters = Finder.runSearch('FTTHOrderManagementInterface:OrderParametersFinder', ops);
+
+    for (var i = 0; i < parameters.size; i++) {
+        var param = parameters[i];
+        msg.operacoes.operacao[i].operacao = param.operacao; //CORRECAO INTRODUZIDA PELO CR2: msg.operacoes[i]. Foi alterada a estrutura.
+    }
+
+    return msg;
+  ]]></script>
+</script>

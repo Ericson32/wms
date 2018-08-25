@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process name="FTTHUserInterface.ExecuteJumperBAHandleErrorTask">
+  <activity name="HandleErrorTaskStart" type="seqActivity">
+    <guid>{88cdec8a-893a-4e5c-884b-649fc8b3e570}</guid>
+    <label>Handle Error Task Start</label>
+    <x>56.079784</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ExecuteBAJumperHandleError" type="opActivity">
+        <element>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_ExecuteBAJumperHandleError</element>
+        <guid>{86f5c02a-d7ad-467d-b195-052057f6ccfe}</guid>
+        <label>Execute BA Jumper Handle Error</label>
+        <participant>part_FTTHUserInterface.ClickHandleError</participant>
+        <x>59.675293</x>
+        <y>124.76094</y>
+      </child>
+      <child name="ExecuteBAJumperHandleErrorResend" type="opActivity">
+        <element>iface_FTTHUserInterface.ClickHandleErrorInterface/oper_ExecuteBAJumperHandleErrorResend</element>
+        <guid>{13de7126-f74f-461a-8094-c28879c70d2e}</guid>
+        <label>Execute BA Jumper Handle Error - Resend</label>
+        <participant>part_FTTHUserInterface.ClickHandleError</participant>
+        <x>30.0</x>
+        <y>265.5656</y>
+        <methodList>
+          <method name="cwOnProcActAfter" type="action">
+            <category>script</category>
+            <system>true</system>
+            <script><![CDATA[
+              var orderId = process.processOrder.OrderHeader.cwOrderId;
+              var activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+              var status = Global.getConfigVariable("ACTIVITY_RETURN_RESEND");
+
+              FTTHCommon.setStatusActivity(orderId, activityId, status);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="ClickHandleError" type="participantActivity">
+        <guid>{1e7f5ef7-40a0-484c-a65b-fc3b03a90cfd}</guid>
+        <label>Click Handle Error</label>
+        <participant>part_FTTHUserInterface.ClickHandleError</participant>
+        <x>34.02588</x>
+        <y>421.07147</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a abertura do BA de Jumper n&#227;o tenha sido realizada com
+      sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser finalizada com
+      reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <guid>{38d99ebc-b986-48a9-815d-5097c5a9c220}</guid>
+  <label>Execute Jumper BA Handle Error Task</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <type>Sub-flow</type>
+</process>

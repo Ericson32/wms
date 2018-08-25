@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision filenameHash="bbbe667f7f9311cac53960c62da60a62" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHHandleIssueProcess.InstallJumperHandleIssueSubprocess_cwr8">
+  <activity name="InstallJumperStart" type="seqActivity">
+    <guid>{20029b88-608f-4aa2-b575-96685dff6ec3}</guid>
+    <label>Install Jumper Start</label>
+    <x>104.160934</x>
+    <y>30.0</y>
+    <childList>
+      <child name="OpenIssueStart" type="seqActivity">
+        <guid>{b0634a28-1ed3-4b9c-bffe-ca5421aa2c20}</guid>
+        <label>Open Issue Start</label>
+        <x>98.02031</x>
+        <y>124.76094</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{6e61764f-3216-445b-b457-bbe506ea3d59}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>99.68652</x>
+            <y>216.76093</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{c4b3da10-255e-48d4-9341-2a4b2757f516}</guid>
+        <label>Check Issue Type</label>
+        <x>100.69238</x>
+        <y>342.86444</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{a3a0fdf6-3a52-4e66-b0ce-a8b333311ab3}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="technicalIssue" type="seqActivity">
+                <guid>{8a80e842-8258-4e87-ba1e-61f081343f15}</guid>
+                <label>Technical Issue</label>
+                <x>161.7084</x>
+                <y>454.26678</y>
+                <childList>
+                  <child name="InstallJumperSolveIssueTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.InstallJumperSolveIssueTask_cwr2</element>
+                    <guid>{85365506-77d7-47d3-ab03-282ac424a3c4}</guid>
+                    <label>Install Jumper Solve Issue Task</label>
+                    <x>160.04102</x>
+                    <y>546.2668</y>
+                  </child>
+                  <child name="NotifyCloseIssueAutomaticTask" type="scriptActivity">
+                    <guid>{0ca0a16f-e23d-4801-be25-8ad4b8a51fae}</guid>
+                    <label>Notify Close Issue Automatic Task</label>
+                    <x>164.37207</x>
+                    <y>687.0715</y>
+                    <methodList>
+                      <method name="cwOnProcActBefore" type="action">
+                        <category>before</category>
+                        <system>true</system>
+                        <script><![CDATA[
+                          var ultimo =  process.processOrder.IssueData.length;
+                          var issueDoc = process.processOrder.IssueData[ ultimo-1].IssueData;
+                          //issueDoc.idProcesso = this.process.id;
+                          //issueDoc.save();
+                          Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                        ]]></script>
+                      </method>
+                    </methodList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{61a54247-0335-43be-b0cc-fe4e351f5c4a}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{33e0b35c-d94e-4e16-b62a-f556f0b01355}</guid>
+                <label>Client Issue</label>
+                <x>47.020508</x>
+                <y>454.26678</y>
+                <childList>
+                  <child name="closeClientCancelIssueTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{22cb57d6-f0ed-4d85-8d9a-d195acb10eed}</guid>
+                    <label>Close Cliente/Cancel Issue task</label>
+                    <syc>true</syc>
+                    <x>30.0</x>
+                    <y>554.6174</y>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo gerenciamento da atividade manual de
+      Instalar Jumper. A atividade manual &#233; gerada para que possa ser
+      realizada pelo usu&#225;rio WMS. Caso a atividade seja finalizada com
+      pend&#234;ncia, uma atividade manual &quot;Instalar jumper - pend&#234;ncia&quot; &#233; gerada.
+      O usu&#225;rio dever&#225; fechar a pend&#234;ncia e uma nova atividade de Instalar
+      Jumper dever&#225; ser criada. Caso o usu&#225;rio finalize a atividade com
+      sucesso, o subprocesso &#233; encerrado e volta para o ponto do processo que
+      o chamou.
+    </p>
+  ]]></description>
+  <label>Install Jumper Handle Issue Subprocess</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.InstallJumperHandleIssueSubprocess</process>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process__revision>

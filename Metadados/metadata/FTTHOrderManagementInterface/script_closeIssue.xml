@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.closeIssue">
+  <highlight>32</highlight>
+  <label>Close Issue</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="order" type="rifp">
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="idItem" type="rifp">
+      <type>dtype_FTTHCommon.idItem</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var issue;
+
+    if (!order){
+        if(orderId){
+            order =  Order.getOrderById(orderId);
+        }
+    }
+
+    if (idItem && !order){
+        var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+        pendencyFinder.searchDocument.idItem = idItem;
+        var pendRes = pendencyFinder.search();
+
+        for (var i =0;i < pendRes.length;i++){
+            if (pendRes[i].flagIssueStatus == 0){
+                order =  Order.getOrderById(pendRes[i].cwOrderId);
+                break;
+            }
+        }
+    }
+
+    if (order){
+        if (order.IssueData){
+            for (var j = 0;j < order.IssueData.length;j++){
+                issue = order.IssueData[j].IssueData;
+
+                if (issue.flagIssueStatus == 0){
+                    issue.flagIssueStatus = 1;
+                    issue.dataFechamento = new Date();
+                }
+            }
+        }
+        order.save();
+    }
+  ]]></script>
+</script>

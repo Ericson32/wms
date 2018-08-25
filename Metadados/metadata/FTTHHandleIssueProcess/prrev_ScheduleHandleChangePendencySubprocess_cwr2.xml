@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ScheduleHandleChangePendencySubprocess_cwr2">
+  <activity name="scheduleHandleIssueSubProcessStart" type="seqActivity">
+    <guid>{8b052f00-2706-46f2-88fe-211ec51d09d1}</guid>
+    <label>Schedule Handle Issue Sub Process Start</label>
+    <x>36.46035</x>
+    <y>30.0</y>
+    <childList>
+      <child name="openScheduleIssueScript" type="scriptActivity">
+        <guid>{93539bbe-b986-44cd-8115-fb18edc984ab}</guid>
+        <label>Open Schedule Issue Script</label>
+        <x>44.000977</x>
+        <y>130.6414</y>
+        <methodList>
+          <method name="cwOnProcActBefore" type="action">
+            <category>before</category>
+            <system>true</system>
+            <script><![CDATA[
+              var isCloseBA = false;
+
+              var pendencyConfig = FTTHHandleIssueProcess.getPendenciesByCode(this.process.processOrder.OrderHeader.codPendencia);
+              //var descricaoPendencia = pendencyConfig[0].
+              var newIssueDoc = FTTHHandleIssueProcess.createNewIssue(this.process.processOrder,this.process.processOrder.OrderHeader.codPendencia ,pendencyConfig[0].descPendencia, "Consulta de Agendamento", null, isCloseBA);
+              Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', newIssueDoc);
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="closeClientCancelIssueTask" type="spawnActivity">
+        <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+        <guid>{7251ea57-526e-42ef-abee-4c39135cb3d0}</guid>
+        <label>Close Cliente/Cancel Issue task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>271.4461</y>
+      </child>
+    </childList>
+  </activity>
+  <label>ScheduleHandleChangePendencySubprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ScheduleHandleChangePendencySubprocess</process>
+  <revision>2</revision>
+  <type>Sub-flow</type>
+</process__revision>

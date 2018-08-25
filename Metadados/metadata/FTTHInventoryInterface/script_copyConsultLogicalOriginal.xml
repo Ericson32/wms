@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script filenameHash="a0bb97a0a4dc5accddb5a5be41a13d66" versionHash="eccbc87e4b5ce2fe28308fd9f2a7baf3" name="FTTHInventoryInterface.copyConsultLogicalOriginal">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Script que copia os dados originais da cunsulta f&#237;sica para os dados
+      novos que est&#227;o sem valores.
+    </p>
+    <p style="margin-top: 0">
+      &#201; utilizado quando a consulta f&#237;sica original n&#227;o necessita ser feita.
+    </p>
+  ]]></description>
+  <label>copyConsultPhysicalOriginal</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="ordem" type="rifp">
+      <mandatory>true</mandatory>
+      <type>order_FTTHOrder.FTTHOrder</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var documento = FTTHCommon.getDocument(ordem, "Facility Data", false);
+    var documentoOriginal = FTTHCommon.getDocument(ordem, "Facility Data", true);
+
+    //Campos retornados na consulta logica 1: LINEID1, CVLAN1, SVLAN1, QVLAN1
+
+    if(documento != null && documentoOriginal != null){
+        if(documento.LINEID1 == null && documentoOriginal.LINEID1 != null){
+            documento.LINEID1 = documentoOriginal.LINEID1;
+        }
+        if(documento.CVLAN1 == null && documentoOriginal.CVLAN1 != null){
+            documento.CVLAN1 = documentoOriginal.CVLAN1;
+        }
+        if(documento.SVLAN1 == null && documentoOriginal.SVLAN1 != null){
+            documento.SVLAN1 = documentoOriginal.SVLAN1;
+        }
+        if(documento.QVLAN1 == null && documentoOriginal.QVLAN1 != null){
+            documento.QVLAN1 = documentoOriginal.QVLAN1;
+        }
+        documento.save();
+        ordem.save();
+    }
+  ]]></script>
+</script>

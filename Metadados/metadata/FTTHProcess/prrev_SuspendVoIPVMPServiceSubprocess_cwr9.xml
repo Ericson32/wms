@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.SuspendVoIPVMPServiceSubprocess_cwr9">
+  <activity name="SuspendRestoreVoIPVMPServiceStart" type="seqActivity">
+    <guid>{d24c6b63-e8e9-4ec5-9e17-1f14e43d37e9}</guid>
+    <label>Supend Restore VoIP VMP Service Start</label>
+    <x>25.995705</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="SuspendRestoreVoIPVMPServiceAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.SuspendVoIPVMPServiceAutomaticTask</element>
+        <guid>{ef425702-d57c-477f-9196-e0a16f6ec158}</guid>
+        <label>Supend Restore VoIP VMP Service Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{bb8731bf-ec75-4d17-8ab3-0900a58671e9}</guid>
+        <label>Check Task Result</label>
+        <x>68.31006</x>
+        <y>518.0715</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{8cd1e6f8-8988-40ca-bf28-1cd2b1da27cd}</guid>
+            <label>Success</label>
+            <x>36.391846</x>
+            <y>644.175</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_VMP_SERVICO");
+                  activityId = '%' + activityId;
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{d03410fa-bee4-4357-a373-2f2cbe07fff2}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{8a496f98-8401-4034-893c-88ddb8f79020}</guid>
+                <label>Handle Error Start</label>
+                <x>121.06216</x>
+                <y>646.5256</y>
+                <childList>
+                  <child name="SuspendRestoreVoIPVMPServiceHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.SuspendVoIPVMPServiceHandleErrorTask_cwr6</element>
+                    <guid>{e7554991-dca8-4542-9e14-9502751f9163}</guid>
+                    <label>Supend Restore VoIP VMP Service Handle Error Task</label>
+                    <x>160.5719</x>
+                    <y>740.87616</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{adcd4f2d-ced7-45ca-afeb-31192a76c02d}</guid>
+                    <label>Check Error Handling</label>
+                    <x>121.80892</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{e0a932da-137a-49ed-9935-4cb5a8c486fb}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{406e6d5a-6725-48cf-af6b-a2c301664526}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>130.1041</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="SuspendRestoreVoIPVMPServiceSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.SuspendVoIPVMPServiceHandleIssueSubprocess_cwr12</element>
+                                <guid>{b9003544-6852-4800-a9c3-50559eccae84}</guid>
+                                <label>Supend Restore VoIP VMP Service Solve Issue Task</label>
+                                <x>133.3711</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.SuspendVoIPVMPServiceSubprocess_cwr9/seqActivity_SuspendRestoreVoIPVMPServiceStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{83d0d6d4-ceed-40d7-8262-adab55a99aea}</guid>
+                                <label>Repeat</label>
+                                <x>154.32373</x>
+                                <y>532.77264</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("BLOQUEAR_VOIP_VMP_SERVICO");
+                              activityId = '%' + activityId;
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{5e56cd2f-2748-45d6-b34b-5970e30285db}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.SuspendVoIPVMPServiceSubprocess_cwr9/seqActivity_SuspendRestoreVoIPVMPServiceStart</element>
+                            <guid>{17e6449c-0144-4f73-a741-b3831f529ce9}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <label>Suspend VoIP VMP Service Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.SuspendVoIPVMPServiceSubprocess</process>
+  <revision>9</revision>
+  <type>Sub-flow</type>
+</process__revision>

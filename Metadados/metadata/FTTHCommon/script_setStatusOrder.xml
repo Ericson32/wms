@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.setStatusOrder">
+  <label>Set Status Order</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="status" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    //set order status
+    var order = Order.getOrderById(orderId);
+    var state = null;
+
+
+    //Refatoração do código e inclusão de novos status da PRJ14008 - MS - marcossouza@br.ibm.com - 24/08/2017
+    switch(status){
+        case  Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR"):
+          state = "Em erro funcional";
+          break;
+        case Global.getConfigVariable("ACTIVITY_RETURN_TECHNICAL_ERROR"):
+          state = "Em erro técnico";
+          break;
+        case Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"):
+          state = "Em tratamento de pendência";
+          break;
+        case Global.getConfigVariable("ACTIVITY_MANUAL"):
+          state = "Em atividade manual";
+          break;
+        case Global.getConfigVariable("ACTIVITY_AUTOMATIC"):
+          state = "Em atividade automática";
+          break;
+        case Global.getConfigVariable("ACTIVITY_RETURN_RESEND"):
+          state = "Em atividade automática";
+          break;
+        case Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE"):
+          state = "Concluída";
+          break;
+        case Global.getConfigVariable("ACTIVITY_OPEN_BA_ERROR"):
+          state = "Em erro técnico";
+          break;
+        case Global.getConfigVariable("ACTIVITY_RETURN_CHANGE"):
+          state = "Em tratamento de pendência";
+          break;
+        default:
+
+    }
+    //end MS
+
+    /*
+    if(status == Global.getConfigVariable("ACTIVITY_RETURN_FUNCTIONAL_ERROR"))
+        state = "Em erro funcional";
+    if(status == Global.getConfigVariable("ACTIVITY_RETURN_TECHNICAL_ERROR"))
+        state = "Em erro técnico";
+    if(status == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+        state = "Em tratamento de pendência";
+    if(status == Global.getConfigVariable("ACTIVITY_MANUAL"))
+        state = "Em atividade manual";
+    if(status == Global.getConfigVariable("ACTIVITY_AUTOMATIC"))
+        state = "Em atividade automática";
+    if(status == Global.getConfigVariable("ACTIVITY_STATUS_COMPLETE"))
+        state = "Concluída";
+    */
+
+    if(state != null){
+        order.OrderHeader.estadoTramitacao = state;
+        order.save();
+    }
+    return;
+  ]]></script>
+</script>

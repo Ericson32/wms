@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.DesconfigureIPTVAPCSubprocess_cwr8">
+  <activity name="DesconfigureIPTVAPCStart" type="seqActivity">
+    <guid>{7dbf1218-63cc-4622-9dbb-0350c3c6d0db}</guid>
+    <label>Desconfigure IPTV APC Start</label>
+    <x>29.069725</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="DesconfigureIPTVAPCAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.DesconfigureIPTVAPCAutomaticTask</element>
+        <guid>{19df32cb-c5d8-4a53-a3f6-1c7d697709a9}</guid>
+        <label>Desconfigure IPTV APC Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>363.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{9eaba09c-7365-4a51-b440-1efc6af91971}</guid>
+        <label>Check Task Result</label>
+        <x>87.96236</x>
+        <y>503.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{305687b0-ffa5-45c6-b124-f915f9deeafa}</guid>
+            <label>Success</label>
+            <x>56.044144</x>
+            <y>629.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("DESCONFIGURAR_IPTV_APC");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{87ea5c1c-77f1-4ebc-81f1-ca73bd19cbd8}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{673af73d-9e6b-4b3b-9630-be0dcea330be}</guid>
+                <label>Handle Error Start</label>
+                <x>140.71445</x>
+                <y>631.8244</y>
+                <childList>
+                  <child name="DesconfigureIPTVAPCHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.DesconfigureIPTVAPCHandleErrorTask_cwr1</element>
+                    <guid>{424373fb-6a4d-454b-abec-0bdb06e2bfee}</guid>
+                    <label>Desconfigure IPTV APC Handle Error Task</label>
+                    <x>176.0582</x>
+                    <y>727.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{99efb6c6-0364-4a04-8a97-04f1714b4883}</guid>
+                    <label>Check Error Handling</label>
+                    <x>140.60286</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{04ddef6b-49c6-401f-a35d-b0dccb471eb6}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{a6c4c5b0-5484-4f40-966d-05a3d5e364d0}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>151.78964</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="DesconfigureIPTVAPCSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.DesconfigureIPTVAPCHandleIssueSubprocess_cwr9</element>
+                                <guid>{c021f8fb-cad9-4014-a4df-f051dd3d03a0}</guid>
+                                <label>Desconfigure IPTV APC Solve Issue Task</label>
+                                <x>148.7207</x>
+                                <y>362.5656</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.DesconfigureIPTVAPCSubprocess_cwr8/seqActivity_DesconfigureIPTVAPCStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{f8169a88-803d-49d4-bf90-86e830c9db1a}</guid>
+                                <label>Repeat</label>
+                                <x>173.97604</x>
+                                <y>518.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("DESCONFIGURAR_IPTV_APC");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{cbf84e70-2f26-41ae-a096-f2e2bebccc2c}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.DesconfigureIPTVAPCSubprocess_cwr8/seqActivity_DesconfigureIPTVAPCStart</element>
+                            <guid>{38dc425b-4caa-4c7c-a458-800a25145114}</guid>
+                            <label>Repeat</label>
+                            <x>46.012695</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela atividade &quot;Desconfigurar IPTV&quot;.
+      Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio sistema envia
+      para o sistema de Rede a solicita&#231;&#227;o de configurar IPTV. Caso a Rede
+      retorne algum erro, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de facilidades para o sistema de Rede. Ou
+      poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Desconfigure IPTV APC Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.DesconfigureIPTVAPCSubprocess</process>
+  <revision>8</revision>
+  <type>Sub-flow</type>
+</process__revision>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.ConfigureIPTVNASSSubprocess_cwr7">
+  <activity name="ConfigureIPTVNASSStart" type="seqActivity">
+    <guid>{ed2a8dc3-0a09-49be-9c27-65555b64a976}</guid>
+    <label>Configure IPTV NASS Start</label>
+    <x>27.870705</x>
+    <y>267.8047</y>
+    <childList>
+      <child name="ConfigureIPTVNASSAutomaticTask" type="spawnActivity">
+        <element>proc_FTTHActivationInterface.ConfigureIPTVNASSAutomaticTask</element>
+        <guid>{3c25e2bb-1735-466c-88cc-18ef1b772eba}</guid>
+        <label>Configure IPTV NASS Automatic Task</label>
+        <syc>true</syc>
+        <x>30.0</x>
+        <y>362.5656</y>
+      </child>
+      <child name="CheckTaskResult" type="switchActivity">
+        <guid>{5b43d9cc-1dd6-432e-8f9c-04c982fdb9d3}</guid>
+        <label>Check Task Result</label>
+        <x>67.09863</x>
+        <y>501.3703</y>
+        <childList>
+          <child name="Success" type="caseActivity">
+            <guid>{2bbdd20b-caf6-442d-9914-62512e465b24}</guid>
+            <label>Success</label>
+            <x>35.18042</x>
+            <y>627.4738</y>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var orderId = process.processOrder.OrderHeader.cwOrderId;
+                  var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_NASS");
+                  var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                  if(result == Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"))
+                  return true;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+          <child name="Error" type="caseActivity">
+            <guid>{47813e9d-c452-4343-b50b-fce4fad42e05}</guid>
+            <label>Error</label>
+            <x>103.00488</x>
+            <y>363.5656</y>
+            <childList>
+              <child name="HandleErrorStart" type="seqActivity">
+                <guid>{6e3e3381-d17e-4a6a-8882-30acf37c17b5}</guid>
+                <label>Handle Error Start</label>
+                <x>119.85073</x>
+                <y>629.8244</y>
+                <childList>
+                  <child name="ConfigureIPTVNASSHandleErrorTask" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ConfigureIPTVNASSHandleErrorTask_cwr4</element>
+                    <guid>{1f4c289c-efa9-4812-9431-e144be601713}</guid>
+                    <label>Configure IPTV NASS Handle Error Task</label>
+                    <x>159.16785</x>
+                    <y>724.175</y>
+                  </child>
+                  <child name="CheckErrorHandling" type="switchActivity">
+                    <guid>{4e3e0b6d-6d57-47be-85ae-88c0d873d790}</guid>
+                    <label>Check Error Handling</label>
+                    <x>120.80403</x>
+                    <y>30.0</y>
+                    <childList>
+                      <child name="Issue" type="caseActivity">
+                        <guid>{36fd261a-4a3f-4d08-9040-2214517b0510}</guid>
+                        <label>Issue</label>
+                        <x>96.663086</x>
+                        <y>712.4738</y>
+                        <childList>
+                          <child name="SolveIssueStart" type="seqActivity">
+                            <guid>{1b72cf70-3fbb-4e2d-8e09-961e66a38e1e}</guid>
+                            <label>Solve Issue Start</label>
+                            <x>129.09921</x>
+                            <y>269.18515</y>
+                            <childList>
+                              <child name="ConfigureIPTVNASSSolveIssueTask" type="subflowActivity">
+                                <element>prrev_FTTHHandleIssueProcess.ConfigureIPTVNASSHandleIssueSubprocess_cwr9</element>
+                                <guid>{be498737-8700-45ee-8076-d1f27f8f6769}</guid>
+                                <label>Configure IPTV NASS Solve Issue Task</label>
+                                <x>131.3711</x>
+                                <y>368.9162</y>
+                              </child>
+                              <child name="Repeat" type="repeatActivity">
+                                <element>prrev_FTTHProcess.ConfigureIPTVNASSSubprocess_cwr7/seqActivity_ConfigureIPTVNASSStart/switchActivity_CheckTaskResult/caseActivity_Error/seqActivity_HandleErrorStart</element>
+                                <guid>{216e5ea3-1a60-4be3-8cfd-f32a8a3d35ae}</guid>
+                                <label>Repeat</label>
+                                <x>153.1123</x>
+                                <y>516.0715</y>
+                              </child>
+                            </childList>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("CONFIGURAR_IPTV_NASS");
+                              var result = FTTHCommon.getStatusActivity(orderId, activityId);
+
+                              if(result == Global.getConfigVariable("ACTIVITY_RETURN_ISSUE"))
+                              return true;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="Resend" type="caseActivity">
+                        <guid>{7ef61b9e-52c0-49a8-b737-0af8c5c717d8}</guid>
+                        <label>Resend</label>
+                        <x>52.347656</x>
+                        <y>755.6291</y>
+                        <childList>
+                          <child name="Repeat" type="repeatActivity">
+                            <element>prrev_FTTHProcess.ConfigureIPTVNASSSubprocess_cwr7/seqActivity_ConfigureIPTVNASSStart</element>
+                            <guid>{f9b7c670-8f3f-4c66-ac16-ed54e18e9e71}</guid>
+                            <label>Repeat</label>
+                            <x>37.33789</x>
+                            <y>171.10352</y>
+                          </child>
+                        </childList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica
+      &quot;Configurar IPTV&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O
+      pr&#243;prio sistema envia para o sistema de Rede a solicita&#231;&#227;o de Configurar
+      IPTV. Caso a Rede retorne algum erro ou o WMS n&#227;o receba a resposta da
+      solicita&#231;&#227;o, uma atividade manual &#233; gerada para que o usu&#225;rio de
+      tratamento de erro possa definir uma solu&#231;&#227;o. O usu&#225;rio poder&#225; finalizar
+      a atividade com reenvio, nesse caso o sistema enviar&#225; uma nova
+      solicita&#231;&#227;o de configura&#231;&#227;o de IPTV autom&#225;tica para o sistema de Rede,
+      ou poder&#225; finalizar a atividade com pend&#234;ncia e ent&#227;o o subprocesso de
+      Configurar IPTV - Pend&#234;ncia ser&#225; executado.
+    </p>
+  ]]></description>
+  <label>Configure IPTV NASS Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.ConfigureIPTVNASSSubprocess</process>
+  <revision>7</revision>
+  <type>Sub-flow</type>
+</process__revision>

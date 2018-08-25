@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema targetNamespace="http://oi.com.br/ifaceCancel"
+		xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:ifaceCancel="http://oi.com.br/ifaceCancel"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"	
+xmlns:cwf_system="http://www.conceptwave.com/com/conceptwave/system">
+
+
+	<import namespace="http://www.conceptwave.com/com/conceptwave/system" schemaLocation="cwf_system.xsd"/>
+
+	<annotation>
+		<documentation>ifaceCancel</documentation>
+	</annotation>
+
+	<!-- Data types and elements -->
+
+	<simpleType name="idPedidoType">
+		<annotation>
+			<documentation>idPedidoType</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+			<maxLength value="16"/>
+		</restriction>
+	</simpleType>
+
+	<simpleType name="noReturnNotification">
+		<annotation>
+			<documentation>noReturnNotification</documentation>
+		</annotation>
+		<restriction base="xsd:string">
+		</restriction>
+	</simpleType>
+
+	<!-- Structures -->
+
+	<complexType name="cancelRequestFinalWMSType">
+		<annotation>
+			<documentation>cancelRequestFinalWMSType</documentation>
+		</annotation>
+			<sequence>
+				<element name="idPedido" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<element name="cancelRequest" type="ifaceCancel:requestType"/>
+
+	<complexType name="WMSCancelRequestFinal">
+		<annotation>
+			<documentation>WMSCancelRequestFinal</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="ifaceCancel:cancelRequestFinalWMSType">
+					<sequence>
+					</sequence>
+				</extension>
+			</complexContent>
+		</complexType>
+
+	<complexType name="requestType">
+		<annotation>
+			<documentation>requestType</documentation>
+		</annotation>
+			<sequence>
+				<element name="idPedido" minOccurs="1" maxOccurs="1" type="ifaceCancel:idPedidoType"/>
+				<element name="versao" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="timestamp" minOccurs="1" maxOccurs="1" type="xsd:dateTime"/>
+			</sequence>
+		</complexType>
+
+	<complexType name="WMSCancelRequest">
+		<annotation>
+			<documentation>WMSCancelRequest</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="ifaceCancel:cancelRequestWMSType">
+					<sequence>
+					</sequence>
+				</extension>
+			</complexContent>
+		</complexType>
+
+	<complexType name="cancelRequestWMSType">
+		<annotation>
+			<documentation>cancelRequestWMSType</documentation>
+		</annotation>
+			<sequence>
+				<element name="idPedido" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+				<element name="timestamp" minOccurs="1" maxOccurs="1" type="xsd:dateTime"/>
+				<element name="acao" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+			</sequence>
+		</complexType>
+
+	<!-- Documents -->
+
+	<complexType name="cancelOrderDoc">
+		<annotation>
+			<documentation>cancelOrderDoc</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="cwOrderId" type="xsd:string"/>
+						<element name="operationType" type="xsd:string"/>
+						<element name="productType" type="xsd:string"/>
+						<element name="group" type="xsd:string"/>
+						<element name="operationState" type="xsd:string"/>
+						<element name="billingState" type="xsd:string"/>
+						<element name="provisioningState" type="xsd:string"/>
+						<element name="ackProvisioning" type="xsd:string"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+	<complexType name="cancelDoc">
+		<annotation>
+			<documentation>cancelDoc</documentation>
+		</annotation>
+			<complexContent>
+				<extension base="cwf_system:Document">
+					<sequence>
+						<element name="orderID" type="xsd:string"/>
+						<element name="cwOrderID" type="xsd:string"/>
+					</sequence>
+						</extension>
+					</complexContent>
+				</complexType>
+
+</schema>

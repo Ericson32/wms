@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHProcess.RestoreFacilitySubprocess_cwr16">
+  <activity name="RestoreFacilityStart" type="seqActivity">
+    <guid>{20405cde-f33f-4c54-82a4-6a7c40036c39}</guid>
+    <label>Restore Facility Start</label>
+    <x>20.59668</x>
+    <y>30.0</y>
+    <childList>
+      <child name="RestoreHSI" type="subflowActivity">
+        <element>prrev_FTTHProcess.RestoreHSIPlatformsSubprocess_cwr8</element>
+        <guid>{7e4f5570-13f3-41d9-b057-8a4a78741aab}</guid>
+        <label>Restore HSI</label>
+        <x>30.0</x>
+        <y>124.76094</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var result = FTTHCommon.hasActivity(this.process.processOrderId,["DESBLOQUEAR_HSI_APC"],"NEW");
+
+              var ordem = this.process.processOrder;
+
+              if(ordem && ordem.OriginalData && ordem.OriginalData.length > 0 && ordem.OriginalData[0].ProductData){
+              return (process.processOrder.OriginalData[0].ProductData.identificadorHSI != null && result);
+              } else {
+                  return false;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="RestoreVoIP" type="subflowActivity">
+        <element>prrev_FTTHProcess.RestoreVOIPPlatformsSubprocess_cwr8</element>
+        <guid>{bee34b98-2fcd-4723-81fd-05b59f0455fe}</guid>
+        <label>Restore VoIP</label>
+        <x>30.0</x>
+        <y>250.86444</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var result = FTTHCommon.hasActivity(this.process.processOrderId,["DESBLOQUEAR_VOIP_IMS"],"NEW");
+
+              var ordem = this.process.processOrder;
+
+              if(ordem && ordem.OriginalData && ordem.OriginalData.length > 0 && ordem.OriginalData[0].ProductData){
+              return (process.processOrder.OriginalData[0].ProductData.identificadorVoIP != null && result);
+              } else {
+                  return false;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="RestoreIPTV" type="subflowActivity">
+        <element>prrev_FTTHProcess.RestoreIPTVPlatformsSubprocess_cwr10</element>
+        <guid>{e8e40fad-f228-45c3-84d2-31d0379a5cca}</guid>
+        <label>Restore IPTV</label>
+        <x>30.0</x>
+        <y>376.96796</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var result = FTTHCommon.hasActivity(this.process.processOrderId,["DESBLOQUEAR_IPTV_APC", "DESBLOQUEAR_IPTV_IESF"],"NEW");
+
+              var ordem = this.process.processOrder;
+
+              if(ordem && ordem.OriginalData && ordem.OriginalData.length > 0 && ordem.OriginalData[0].ProductData){
+                  return ((process.processOrder.OriginalData[0].ProductData.identificadorIPTV != null ||
+                  process.processOrder.OriginalData[0].ProductData.identificadorRFTV != null) &&
+                  result);
+              } else {
+                  return false;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+      <child name="SuspendRestoreOTT" type="subflowActivity">
+        <element>prrev_FTTHProcess.RestoreOTTPlatformsSubprocess_cwr8</element>
+        <guid>{c46e16e8-bbea-4e5a-a9c3-a3fae260ac38}</guid>
+        <label>Suspend Restore OTT</label>
+        <x>30.0</x>
+        <y>503.07147</y>
+        <methodList>
+          <method name="cwOnProcActCond" type="action">
+            <category>cond</category>
+            <system>true</system>
+            <script><![CDATA[
+              var result = FTTHCommon.hasActivity(this.process.processOrderId,["DESBLOQUEAR_OTT_IESF"],"NEW");
+
+              var ordem = this.process.processOrder;
+
+              if(ordem && ordem.OriginalData && ordem.OriginalData.length > 0 && ordem.OriginalData[0].ProductData){
+              return (process.processOrder.OriginalData[0].ProductData.identificadorOTT != null && result);
+              } else {
+                  return false;
+              }
+            ]]></script>
+          </method>
+        </methodList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pela realiza&#231;&#227;o das atividades autom&#225;ticas
+      Desbloquear HSI,
+    </p>
+    <p style="margin-top: 0">
+      Desbloquear IPTV, Desbloquear OTT e Desbloquear VoIP. As atividades s&#243;
+      dever&#227;o ser realizadas caso o cliente tenha o servi&#231;o associado a cada
+      uma.
+    </p>
+    <p style="margin-top: 0">
+      Para o caso da atividade Desbloquear OTT, a mesma s&#243; poder&#225; ser
+      realizada caso a Desbloquear do IPTV tenha sido realizada com sucesso
+      anteriormente.
+    </p>
+  ]]></description>
+  <label>Restore Facility Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHProcess.RestoreFacilitySubprocess</process>
+  <revision>16</revision>
+  <type>Sub-flow</type>
+</process__revision>

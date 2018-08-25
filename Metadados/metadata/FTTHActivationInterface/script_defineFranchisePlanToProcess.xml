@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHActivationInterface.defineFranchisePlanToProcess">
+  <label>Define Franchise Plan To Process</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="orderid" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="acao" type="rifp">
+      <type>dtype_FTTHOrderManagementInterface.acaoType</type>
+    </parameter>
+    <parameter name="processId" type="rifp">
+      <type>dtype_cwf_pm.PROCESS_ID</type>
+    </parameter>
+    <parameter name="flagIsOriginal" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    /*
+        REGRA atualização do processId de um Franchise Plan.
+        AUTOR: Manoella Cordeiro
+        DATA: 06/04/2017
+        DESCRICAO: atualização do processId de um Franchise Plan.
+
+    */
+
+    var franchisePlanDoc = null;
+    var franchisePlanFinder = null;
+    var result = true;
+    var error;
+    var franchisePlanToProcess = null;
+
+    franchisePlanDoc =  new Document('FTTHOrder:FranchisePlan');
+    franchisePlanDoc.cwOrderId = orderid;
+    franchisePlanDoc.statusAcao = "em processamento";
+    franchisePlanDoc.acao = acao;
+    franchisePlanDoc.tipoPlano = Global.getConfigVariable("PRE_PAGO");
+    franchisePlanDoc.flagIsOriginal = flagIsOriginal;
+
+    franchisePlanFinder = Finder.runSearch('FTTHActivationInterface.FrachisePlanFinder', franchisePlanDoc);
+
+    if (franchisePlanFinder.length > 0){
+        franchisePlanToProcess = franchisePlanFinder[0];
+        franchisePlanToProcess.PROCESS_ID = processId;
+        franchisePlanToProcess.save();
+    }
+    else{
+        franchisePlanDoc =  new Document('FTTHOrder:FranchisePlan');
+        franchisePlanDoc.cwOrderId = orderid;
+        franchisePlanDoc.statusAcao = 'pendente';
+        franchisePlanDoc.acao = acao;
+        franchisePlanDoc.flagIsOriginal = flagIsOriginal;
+        franchisePlanDoc.tipoPlano = Global.getConfigVariable("PRE_PAGO");
+
+        franchisePlanFinder = Finder.runSearch('FTTHActivationInterface.FrachisePlanFinder', franchisePlanDoc);
+
+        if (franchisePlanFinder.length > 0) {
+            franchisePlanToProcess = franchisePlanFinder[0];
+            franchisePlanToProcess.PROCESS_ID = processId;
+            franchisePlanToProcess.statusAcao = 'em processamento';
+            franchisePlanToProcess.save();
+        }
+    }
+  ]]></script>
+</script>

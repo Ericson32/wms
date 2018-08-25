@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHManterEquipamentoInventarioSAPInterface.updateStockChangeOfAddress">
+  <label>Update Stock Change Of Address</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="validateDoc" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Document ValidateExchangeEquipment&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+    </parameter>
+    <parameter name="ord" type="rifp">
+      <description>&lt;html&gt;&#xd;
+  &lt;head&gt;&#xd;
+&#xd;
+  &lt;/head&gt;&#xd;
+  &lt;body&gt;&#xd;
+    &lt;p style=&quot;margin-top: 0&quot;&gt;&#xd;
+      Objeto da Ordem&#xd;
+    &lt;/p&gt;&#xd;
+  &lt;/body&gt;&#xd;
+&lt;/html&gt;&#xd;
+</description>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc = new Document('FTTHCommon:ActivityClick');
+    var statusStock = "pendente";
+    var description = "Equipamento Removido no Inventário com sucesso";
+    var status = Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+
+    searchDoc.cwOrderId = ord.id;
+    searchDoc.operacao = "Trocar CPE";
+    searchDoc.activityClickId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+    //Verificando se já existe na tabela o equipamento que está sendo removido pelo updateStock!
+    var equip = FTTHProcess.getProcessingEquipment(ord, validateDoc);
+    var searchDoc = new Document("FTTHOrder:CPEValidationStatus");
+    searchDoc.clearData();
+    searchDoc.fkEquipment = equip.cwDocId;
+    searchDoc.equipmentType = validateDoc.tipoEquipamentoOriginal;
+    searchDoc.statusStock = "pendente";
+    searchDoc.isOriginal = true;
+    var result = Finder.runSearch("FTTHOrder:CPEValidationStatusFinder", searchDoc);
+    if(result.length < 1){
+        var flagDadoOriginal = true;
+        FTTHOrder.addValidateCPEStatus(description, ord.id, new Date(), status, equip.cwDocId, validateDoc.tipoEquipamentoOriginal, statusStock, flagDadoOriginal);
+    }
+  ]]></script>
+</script>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHUserInterface.ConsultOriginalFacilityHandleErrorTask_cwr6">
+  <activity name="ConsultOriginalFacilityHandleErrorTaskStart" type="seqActivity">
+    <guid>{0301ac12-c95f-4134-a16a-3476f05320a0}</guid>
+    <label>Consult Original Facility Handle Error Task Start</label>
+    <x>84.373535</x>
+    <y>30.0</y>
+    <childList>
+      <child name="ConsultOriginalFacilitiyHandleError" type="opActivity">
+        <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultOriginalFacilityHandleError</element>
+        <guid>{c975602b-6a8f-4436-9545-501ff23737cc}</guid>
+        <label>Consult Original Facilitiy Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>93.84717</x>
+        <y>130.6414</y>
+        <childList>
+          <child name="WaitingManualActivity" type="choiceActivity">
+            <guid>{ff30da4a-e3f5-43a3-87be-67d8fa3ad255}</guid>
+            <label>Waiting Manual Activity</label>
+            <x>30.0</x>
+            <y>286.14728</y>
+            <childList>
+              <child name="ConsultOriginalFacilitiyHandleErrorIssue" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultOriginalFacilityHandleErrorIssue</element>
+                <guid>{c53a82f0-402e-4514-98fd-31e78185130c}</guid>
+                <label>Consult Original Facilitiy Handle Error - Issue</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>161.2461</x>
+                <y>427.2508</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ord = process.processOrder;
+                      var orderId = ord.OrderHeader.cwOrderId;
+                      var atividade;
+
+
+                      var activityIdFisica = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+                      var statusFisica = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+                      FTTHCommon.setStatusActivity(orderId, activityIdFisica, statusFisica);
+
+                      atividade = "CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL";
+                      var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                      if(resultLogica1Necessity){
+                          var activityIdLogica1 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL");
+                          var statusLogica1 = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+                          FTTHCommon.setStatusActivity(orderId, activityIdLogica1, statusLogica1);
+                      }
+
+                      atividade = "CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL";
+                      var resultLogica2Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                      if(resultLogica2Necessity){
+                          var activityIdLogica2 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL");
+                          var statusLogica2 = Global.getConfigVariable("ACTIVITY_RETURN_ISSUE")
+                          FTTHCommon.setStatusActivity(orderId, activityIdLogica2, statusLogica2);
+                      }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+              <child name="ConsultOriginalFacilitiyHandleErrorResend" type="opActivity">
+                <element>iface_FTTHUserInterface.InventoryHandleErrorInterface/oper_ConsultOriginalFacilityHandleErrorResend</element>
+                <guid>{f2d7fd11-4a97-467f-b876-c89486d743e9}</guid>
+                <label>Consult Original Facilitiy Handle Error - Resend</label>
+                <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+                <x>47.163574</x>
+                <y>427.2508</y>
+                <methodList>
+                  <method name="cwOnProcActAfter" type="action">
+                    <category>script</category>
+                    <system>true</system>
+                    <script><![CDATA[
+                      var ord = process.processOrder;
+                      var orderId = ord.OrderHeader.cwOrderId;
+                      var atividade;
+
+
+                      var activityIdFisica = Global.getConfigVariable("CONSULTAR_FACILIDADE_FISICA_ORIGINAL");
+                      var statusFisica = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+                      FTTHCommon.setStatusActivity(orderId, activityIdFisica, statusFisica);
+
+                      atividade = "CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL";
+                      var resultLogica1Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                      if(resultLogica1Necessity){
+                          var activityIdLogica1 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_1_ORIGINAL");
+                          var statusLogica1 = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+                          FTTHCommon.setStatusActivity(orderId, activityIdLogica1, statusLogica1);
+                      }
+
+                      atividade = "CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL";
+                      var resultLogica2Necessity = FTTHCommon.defineActivityNecessity(orderId, atividade);
+                      if(resultLogica2Necessity){
+                          var activityIdLogica2 = Global.getConfigVariable("CONSULTAR_FACILIDADE_LOGICA_2_ORIGINAL");
+                          var statusLogica2 = Global.getConfigVariable("ACTIVITY_RETURN_RESEND")
+                          FTTHCommon.setStatusActivity(orderId, activityIdLogica2, statusLogica2);
+                      }
+                    ]]></script>
+                  </method>
+                </methodList>
+              </child>
+            </childList>
+          </child>
+        </childList>
+      </child>
+      <child name="InventoryHandleError" type="participantActivity">
+        <guid>{4b22b8db-ef0f-45e1-95bc-b44a8937174b}</guid>
+        <label>Inventory Handle Error</label>
+        <participant>part_FTTHUserInterface.InventoryHandleError</participant>
+        <x>122.0293</x>
+        <y>286.14728</y>
+      </child>
+    </childList>
+  </activity>
+  <curRevision>true</curRevision>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Atividade respons&#225;vel pela realiza&#231;&#227;o da atividade de tratamento de erro
+      manual. Caso a consulta de facilidades autom&#225;tica n&#227;o tenha sido
+      realizada com sucesso, essa atividade manual ser&#225; gerada e poder&#225; ser
+      finalizada com reenvio ou pend&#234;ncia.
+    </p>
+  ]]></description>
+  <label>Consult Original Facility Handle Error Task</label>
+  <metaVersion>3</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHUserInterface.ConsultOriginalFacilityHandleErrorTask</process>
+  <revision>6</revision>
+  <type>Sub-flow</type>
+</process__revision>

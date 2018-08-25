@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<process__revision name="FTTHHandleIssueProcess.ExecuteJumpertBAHandleIssueSubprocess_cwr12">
+  <activity name="ExecuteJumperBAHandleIssueStart" type="seqActivity">
+    <guid>{6db2c399-a277-4f3d-bca9-db711d7fb2db}</guid>
+    <label>Execute Jumper BA Handle Issue Start</label>
+    <x>122.27931</x>
+    <y>614.77277</y>
+    <childList>
+      <child name="NotifyOpenIssueStart" type="seqActivity">
+        <guid>{ff1238d9-c45b-42d0-96b0-9cb33907e630}</guid>
+        <label>Notify Open Issue Start</label>
+        <x>119.88165</x>
+        <y>716.4142</y>
+        <childList>
+          <child name="NotifyIssueAutomaticTask" type="scriptActivity">
+            <guid>{fdd449c5-3e8b-4d85-83f9-6c2d5e0f58d8}</guid>
+            <label>Notify Issue Automatic Task</label>
+            <x>240.69728</x>
+            <y>810.1752</y>
+            <methodList>
+              <method name="cwOnProcActBefore" type="action">
+                <category>before</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var ultimo =  process.processOrder.IssueData.length;
+                  var issueDoc = process.processOrder.IssueData[ultimo-1].IssueData;
+                  var ohs = new Document('FTTHOrderManagementInterface:OrderHeaderSearch');
+                  ohs.numeroOS = issueDoc.cwOrderId;
+                  var queryResult = Finder.runSearch('FTTHOrderManagementInterface:OrderProcessFinder', ohs);
+                  if(queryResult.size == 0) {
+                      Global.logInfo("Processo nao encontrado para orderId: " + issueDoc.cwOrderId);
+                  }
+
+                  //issueDoc.idProcesso = queryResult[0].idProcesso;
+                  //issueDoc.save();
+
+                  Process.sendMessageToQueue('FTTHOrderManagementInterface:ProcessMessages', 'Issue', issueDoc);
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+      <child name="checkIssueType" type="switchActivity">
+        <guid>{914ce065-8023-472a-a01f-f787d04cc781}</guid>
+        <label>Check Issue Type</label>
+        <x>235.36981</x>
+        <y>30.0</y>
+        <childList>
+          <child name="Technical" type="caseActivity">
+            <guid>{316bdef4-95c0-46a5-8bef-5336d944d2a4}</guid>
+            <label>Technical</label>
+            <x>31.677734</x>
+            <y>566.96796</y>
+            <childList>
+              <child name="SolveTechnicalIssue" type="seqActivity">
+                <guid>{068e49b8-1428-4036-abf8-da77929a89c4}</guid>
+                <label>Solve Technical Issue</label>
+                <x>76.14133</x>
+                <y>156.40234</y>
+                <childList>
+                  <child name="ExecuteJumperBASolveIssueTask2" type="subflowActivity">
+                    <element>prrev_FTTHUserInterface.ExecuteJumperBASolveIssueTask_cwr5</element>
+                    <guid>{385e9631-6bf6-4290-8f34-41e92b78a77e}</guid>
+                    <label>Execute Jumper BA Solve Issue Task</label>
+                    <x>75.008316</x>
+                    <y>251.1633</y>
+                  </child>
+                  <child name="AnyIssueOpen" type="switchActivity">
+                    <guid>{8f1f030f-d187-4bad-8782-3c3453b11095}</guid>
+                    <label>Any Issue Open?</label>
+                    <x>79.670425</x>
+                    <y>391.968</y>
+                    <childList>
+                      <child name="Yes" type="caseActivity">
+                        <guid>{f0522348-d5d2-43d7-a810-4af498e63386}</guid>
+                        <label>Yes</label>
+                        <x>201.73535</x>
+                        <y>803.99567</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.ExecuteJumpertBAHandleIssueSubprocess_cwr12/seqActivity_ExecuteJumperBAHandleIssueStart</element>
+                            <guid>{140d726c-d79e-45e5-b506-7a7a69f68009}</guid>
+                            <label>Repeat To Start</label>
+                            <x>30.000015</x>
+                            <y>503.37036</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var activityId = Global.getConfigVariable("REALIZAR_JUMPER");
+                              if(FTTHCommon.getStatusActivity(orderId, activityId) == "CHANGE")
+                              {
+                                  return true;
+                              }
+                              return false;
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                      <child name="No" type="caseActivity">
+                        <guid>{ba8550ac-02e7-440b-8081-06519292f44e}</guid>
+                        <label>No</label>
+                        <x>138.03322</x>
+                        <y>510.72095</y>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+          </child>
+          <child name="client_cancel" type="caseActivity">
+            <guid>{2daf6754-9a90-4655-86c3-bb3656e5ec8d}</guid>
+            <label>Client/Cancel</label>
+            <x>30.0</x>
+            <y>437.5656</y>
+            <childList>
+              <child name="ClientIssue" type="seqActivity">
+                <guid>{1edc3611-c0a4-4646-b4a3-7f712706c138}</guid>
+                <label>Client Issue</label>
+                <x>276.0581</x>
+                <y>157.7828</y>
+                <childList>
+                  <child name="CloseClientIssueAutomaticTask" type="spawnActivity">
+                    <element>proc_FTTHOrderManagementInterface.CloseIssueAutomaticTask</element>
+                    <guid>{6c67755c-75ea-41ac-bb3e-b55ae05cf193}</guid>
+                    <label>Close Client Issue Automatic Task</label>
+                    <syc>true</syc>
+                    <x>266.70264</x>
+                    <y>252.1633</y>
+                  </child>
+                  <child name="OpenIssue" type="switchActivity">
+                    <guid>{5af813c9-f68b-4a32-ae36-c64399a48ef5}</guid>
+                    <label>Open Issue</label>
+                    <x>267.37256</x>
+                    <y>399.31857</y>
+                    <childList>
+                      <child name="No" type="caseActivity">
+                        <guid>{3fc194fe-bb19-4f02-83c0-fc8be121f470}</guid>
+                        <label>No</label>
+                        <x>330.06644</x>
+                        <y>510.72095</y>
+                      </child>
+                      <child name="YEs" type="caseActivity">
+                        <guid>{400a4435-cdc8-4990-bcd0-53641e2e5390}</guid>
+                        <label>Yes</label>
+                        <x>222.1842</x>
+                        <y>799.9439</y>
+                        <childList>
+                          <child name="RepeatToStart" type="repeatActivity">
+                            <element>prrev_FTTHHandleIssueProcess.ExecuteJumpertBAHandleIssueSubprocess_cwr12/seqActivity_ExecuteJumperBAHandleIssueStart</element>
+                            <guid>{1799f340-966f-4d65-82cb-e1caac6fab58}</guid>
+                            <label>Repeat To Start</label>
+                            <x>222.03323</x>
+                            <y>503.37036</y>
+                          </child>
+                        </childList>
+                        <methodList>
+                          <method name="cwOnProcActCond" type="action">
+                            <category>cond</category>
+                            <system>true</system>
+                            <script><![CDATA[
+                              var orderId = process.processOrder.OrderHeader.cwOrderId;
+                              var pendencyFinder =  new Finder('FTTHOrder.orderIssueFinder');
+                              pendencyFinder.searchDocument.cwOrderId = orderId;
+                              var pendRes = pendencyFinder.search();
+                              var status;
+                                  for (var i =0;i < pendRes.length;i++){
+                                      if (pendRes[i].flagIssueStatus == 0){
+                                          return true;
+                                      }
+                                  }
+                            ]]></script>
+                          </method>
+                        </methodList>
+                      </child>
+                    </childList>
+                  </child>
+                </childList>
+              </child>
+            </childList>
+            <methodList>
+              <method name="cwOnProcActCond" type="action">
+                <category>cond</category>
+                <system>true</system>
+                <script><![CDATA[
+                  var count = process.processOrder.IssueData.length;
+                  var tipoPendencia = process.processOrder.IssueData[count - 1].IssueData.codigoPendencia.refData.tipoPendencia;
+                  if(tipoPendencia == 'cancelamento' || tipoPendencia == 'cliente')
+                      return true;
+                  return false;
+                ]]></script>
+              </method>
+            </methodList>
+          </child>
+        </childList>
+      </child>
+    </childList>
+  </activity>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Subprocesso respons&#225;vel pelo controle da atividade autom&#225;tica &quot;Executar
+      BA Jumper&quot;. Inicialmente atividade &#233; feita autom&#225;ticamente. O pr&#243;prio
+      sistema envia para o sistema de WFM a solicita&#231;&#227;o de Abertura de BA.
+      Caso o Click retorne algum erro o OM dever&#225; abrir uma pend&#234;ncia para
+      tratamento do erro.
+    </p>
+  ]]></description>
+  <label>Execute Jumper BA Handle Issue Subprocess</label>
+  <metaVersion>4</metaVersion>
+  <priority>8</priority>
+  <process>proc_FTTHHandleIssueProcess.ExecuteJumpertBAHandleIssueSubprocess</process>
+  <revision>12</revision>
+  <type>Sub-flow</type>
+</process__revision>

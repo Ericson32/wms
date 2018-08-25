@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHInventoryInterface.checkNeedJumpCeaseMessage">
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Checa se &#233; necess&#225;rio pular o subprocess que gera a mensagem de Cessar
+      de um equipamento para o invent&#225;rio
+    </p>
+  ]]></description>
+  <label>Check Need Jump Cease Message</label>
+  <metaVersion>4</metaVersion>
+  <parameterList>
+    <parameter name="isChangeOfAddress" type="rifp">
+      <type>dtype_com.conceptwave.system.Boolean</type>
+    </parameter>
+    <parameter name="orderId" type="rifp">
+      <type>dtype_cwf.cwOrderId</type>
+    </parameter>
+    <parameter name="equipmentType" type="rifp">
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    if (!isChangeOfAddress) return false;
+
+    var isBaseEquipment = equipmentType == "ONT" || equipmentType == "HGW";
+
+    if (!isBaseEquipment) return false;
+
+    if (!isPrimeiraTroca(orderId, equipmentType)) return false;
+
+    var searchDoc = new Document('FTTHCommon:ActivityClick');
+    searchDoc.cwOrderId = orderId;
+    searchDoc.activityClickId = Global.getConfigVariable("RETIRAR_EQUIPAMENTO_CLIENTE");
+    var result = Finder.runSearch("FTTHCommon.activityClickFinder", searchDoc);
+    var needCeaseEquipment = (result && result.length > 0 && result[0].status != Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS"));
+
+    if (needCeaseEquipment){
+        result[0].status =  Global.getConfigVariable("ACTIVITY_RETURN_SUCCESS");
+        result[0].save();
+    }
+
+    return needCeaseEquipment;
+
+
+    //========================================= METHODS ==================================================
+
+
+    function isPrimeiraTroca(orderId, equipmentType){
+
+        var houveTroca = false;
+
+        searchDoc = new Document("FTTHOrder:BaseEquipmentData");
+        searchDoc.clearData();
+        searchDoc.cwOrderId = orderId;
+        searchDoc.flagDadoOriginal = "N";
+
+        var equip = Finder.runSearch("FTTHOrder:equipamentoBaseFinder", searchDoc);
+
+        if ((equip) && (equip.length > 0) && (equipmentType == "ONT")){
+            houveTroca =  (equip[0].cpeHasChanged);
+        }else if ((equip) && (equip.length > 0) && (equipmentType == "HGW")){
+            houveTroca =  (equip[0].cpeHasChangedHGW);
+        }
+
+        return !houveTroca;
+    }
+  ]]></script>
+</script>

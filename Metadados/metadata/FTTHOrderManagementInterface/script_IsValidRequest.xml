@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHOrderManagementInterface.IsValidRequest">
+  <label>Is Valid Request</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="requisicao" type="rifp">
+      <mandatory>true</mandatory>
+      <type>dstruct_FTTHOrderManagementInterface.requisicao</type>
+    </parameter>
+    <parameter name="tipoOrdem" type="rifp">
+      <array>true</array>
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+    <parameter name="errorMsg" type="rifp">
+      <array>true</array>
+      <mandatory>true</mandatory>
+      <type>dtype_com.conceptwave.system.String</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    Global.logInfo('Script IsValidRequest');
+
+    var isTipoOrdemValida = true;
+    var isOiTotalOn = FTTHCommon.parseBoolean(Global.getConfigVariable('IS_OI_TOTAL_ON'));
+
+    if(isOiTotalOn){
+        if(!isTipoPromocaoValid(requisicao.tipoPromocao)) {
+            errorMsg[0] = "Tag <tipoPromocao> invalida ou nao foi informada. Valor esperado: 'Oi Total' ou 'Alone'.";
+            return false;
+        }
+    }else{
+        requisicao.tipoPromocao = 'Alone';
+    }
+    var qtOperacoes = requisicao.operacoes.operacao.length;
+
+    if(qtOperacoes == 0) {
+        errorMsg[0] = 'Ordem não possui operação';
+        return false;
+    }
+
+    for (var i = 0; i < qtOperacoes; i++) {
+
+        /****** CR2 ******/
+        tipoOrdem[i] = requisicao.operacoes.operacao[i].operacao;
+
+        if(qtOperacoes > 1) {
+            if(tipoOrdem[i] == 'instalacaoFTTH') {
+                isTipoOrdemValida = false;
+                errorMsg[0] = 'Ordem de instalação não pode ter mais de uma operação';
+                break;
+            } else if(tipoOrdem[i] == 'retiradaFTTH') {
+                isTipoOrdemValida = false;
+                errorMsg[0] = 'Ordem de retirada não pode ter mais de uma operação';
+                break;
+            } else if(tipoOrdem[i] == 'manterBloqueioFTTH') {
+                isTipoOrdemValida = false;
+                /*
+                RQF015 PRJ 14402
+                marcos souza - mpaiva
+                17/03/2017
+                */
+                // errorMsg[0] = 'Ordem de bloqueio/desbloqueio não pode ter mais de uma operação';
+                errorMsg[0] = 'Ordem de bloqueio não pode ter mais de uma operação';
+                break;
+            }
+            /*
+            RQF015 PRJ 14402
+            marcos souza - mpaiva
+            17/03/2017
+            */
+            else if(tipoOrdem[i] == 'removerBloqueioFTTH') {
+                isTipoOrdemValida = false;
+                errorMsg[0] = 'Ordem de desbloqueio não pode ter mais de uma operação';
+                break;
+            }
+            //Marcos Souza - marcossouza@ - 20/07/2017 - PRJ 17683
+            else if(tipoOrdem[i] == Global.getConfigVariable("REPAIR_OPERATION")){
+                isTipoOrdemValida = false;
+                errorMsg[0] = "Service Request não pode ter mais de uma operação";
+                break;
+            }
+
+            // PRJ21262 CR Troca de Titularidade - Matheus Mello de Lima - 21/06/2018
+            else if (tipoOrdem[i] == "trocaPerfilFTTH") {
+                isTipoOrdemValida = false;
+                errorMsg[0] = 'Ordem de troca perfil não pode ter mais de uma operação';
+                break;
+            }
+            // PRJ21262 CR Troca de Titularidade
+        }
+    }
+
+    return isTipoOrdemValida;
+
+    function isTipoPromocaoValid(tipoPromocao){
+        return tipoPromocao == 'Oi Total' || tipoPromocao == 'Alone';
+    }
+  ]]></script>
+</script>

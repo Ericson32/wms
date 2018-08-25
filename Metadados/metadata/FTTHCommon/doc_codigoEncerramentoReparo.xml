@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<document name="FTTHCommon.codigoEncerramentoReparo">
+  <dbSchema>ORDER</dbSchema>
+  <description><![CDATA[
+    <p style="margin-top: 0">
+      Tabela com a lista de c&#243;digos de encerramento poss&#237;veis no external
+      close de reparo
+    </p>
+  ]]></description>
+  <extends>doc_com.conceptwave.system.Document</extends>
+  <generatedKey>true</generatedKey>
+  <guid>{14303449-6581-4448-832b-9b67946865fe}</guid>
+  <label>Código Encerramento do Reparo</label>
+  <metaVersion>4</metaVersion>
+  <variableList>
+    <variable name="cwDocId" type="leaf">
+      <column>CWDOCID</column>
+      <key>1</key>
+      <table>TBI_CADASTRO_CODIGO_REPARO</table>
+      <valueType>dtype_cwf.cwDocId</valueType>
+    </variable>
+    <variable name="codEncerramento" type="leaf">
+      <column>COD_ENCERRAMENTO</column>
+      <table>TBI_CADASTRO_CODIGO_REPARO</table>
+      <valueType>dtype_FTTHClickInterface.codEncerramento</valueType>
+    </variable>
+    <variable name="descCodigoEncerramento" type="leaf">
+      <column>DESC_COD_ENCERRAMENTO</column>
+      <table>TBI_CADASTRO_CODIGO_REPARO</table>
+      <valueType>dtype_FTTHCommon.descCodEncerramentoReparo</valueType>
+    </variable>
+    <variable name="filtro" type="leaf">
+      <valueType>dtype_FTTHCommon.string100</valueType>
+    </variable>
+  </variableList>
+  <methodList>
+    <method name="cwOnDocVisualKey" type="action">
+      <system>true</system>
+      <valueType>dtype_com.conceptwave.system.String</valueType>
+      <script><![CDATA[
+        //return this.cw$super_cwOnDocVisualKey();
+        return this.codEncerramento + " - \ " +  this.descCodigoEncerramento;
+      ]]></script>
+    </method>
+  </methodList>
+  <UserInterface name="UserInterface" type="ui">
+    <extends>doc_com.conceptwave.system.Document/ui_UserInterface</extends>
+    <variableList>
+      <variable name="model" type="uivar">
+        <label>model</label>
+        <valueType>doc_FTTHCommon.codigoEncerramentoReparo</valueType>
+      </variable>
+    </variableList>
+    <vformList>
+      <vform name="Forms" type="frmui">
+        <extends>doc_com.conceptwave.system.Document/ui_UserInterface/frmui_Forms</extends>
+      </vform>
+    </vformList>
+    <methodList>
+      <method name="filtrar" type="uimthd">
+        <script><![CDATA[
+          var busca = new Document("FTTHCommon:codigoEncerramentoReparo");
+
+          if( this.model.filtro){
+              var filtro = this.model.filtro.trim();
+              filtro = filtro.toUpperCase();
+              busca.filtro       = '%' + filtro + '%';
+          }else{
+              busca.filtro = '';
+          }
+
+          var resultLocal = Finder.runSearch("FTTHCommon.codigoEncerramentoReparoSqlFinder", busca);
+          this.parent.result = resultLocal;
+        ]]></script>
+      </method>
+    </methodList>
+  </UserInterface>
+</document>

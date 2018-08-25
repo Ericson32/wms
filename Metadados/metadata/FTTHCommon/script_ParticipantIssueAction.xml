@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<script name="FTTHCommon.ParticipantIssueAction">
+  <label>Participant Issue Action</label>
+  <metaVersion>3</metaVersion>
+  <parameterList>
+    <parameter name="doc" type="rifp">
+      <type>doc_FTTHCommon.OpenIssuePopUp</type>
+    </parameter>
+  </parameterList>
+  <script><![CDATA[
+    var searchDoc = new Document ("FTTHCommon:Issues");
+    var codPendenciasResult;
+    var ord = Order.getOrderById(doc.cwOrderId);
+    searchDoc.cwDocId = doc.codPendencia;
+    var dadosPendenciaResult  = Finder.runSearch ("FTTHCommon.IssuesFinder", searchDoc);
+    if((dadosPendenciaResult != null) && (dadosPendenciaResult[0].tipoPendencia == "cancelamento") || (dadosPendenciaResult[0].tipoPendencia == "cliente"))
+    {
+        var issueDoc = Document.readDoc("FTTHCommon.Issues",dadosPendenciaResult[0].cwDocId);
+        var codigoPendencia = String(issueDoc.codPendencia);
+        if(issueDoc && !issueDoc.possuiListaIDAtivo) //possuiListaIDAtivo representa as pendencias de ponto adicional que fatalmente terão lista de idAtivo de equipamentos
+        ord.OrderHeader.permiteCancelamento = 1;
+    }
+
+    if (ord.IssueData == null) {
+        ord.createOrderItemByPath("IssueData");
+    }
+
+    ord.IssueData.newInstance();
+
+    ord.IssueData[ord.IssueData.count - 1].IssueData.codigoPendencia = doc.codPendencia;
+    ord.IssueData[ord.IssueData.count - 1].IssueData.BA = doc.ba;
+    ord.IssueData[ord.IssueData.count - 1].IssueData.ARS = doc.ars;
+    ord.IssueData[ord.IssueData.count - 1].IssueData.observacaoAbertura = doc.observacao;
+    ord.IssueData[ord.IssueData.count - 1].IssueData.dataAbertura = doc.dataAbertura;
+    ord.IssueData[ord.IssueData.count - 1].IssueData.nomeAtividade = doc.atividade;
+    ord.IssueData[ord.IssueData.count - 1].IssueData.matriculaUsuarioAbertura = doc.matriculaUsuario;
+    ord.IssueData[ord.IssueData.count - 1].IssueData.nomeUsuarioAbertura = doc.nomeUsuario;
+    ord.IssueData[ord.IssueData.count - 1].IssueData.idItem = doc.idItem;
+
+    (dadosPendenciaResult[0].possuiListaIDAtivo) ? ord.IssueData[ord.IssueData.count - 1].IssueData.associatedItens = 'YES' : ord.IssueData[ord.IssueData.count - 1].IssueData.associatedItens = 'NO';
+
+    if(ord.IssueData.count > 1)
+    {
+        if(ord.IssueData[ord.IssueData.count - 2].IssueData.flagIssueStatus == 0){
+
+            FTTHHandleIssueProcess.closeIssues(ord);
+        }
+    }
+
+    searchDoc = new Document("FTTHCommon:Issues");
+    if (doc.operationWorklist != null){
+        if(doc.operationWorklist.search("SolveIssue") != -1) {
+            searchDoc.atividadePendencia = doc.operationWorklist;
+        }
+        else{
+            searchDoc.atividade = doc.operationWorklist;
+        }
+        codPendenciasResult = Finder.runSearch ("FTTHCommon.IssuesFinder", searchDoc);
+        if(codPendenciasResult != null){
+            var resultFinderStart = codPendenciasResult.start;
+            ord.IssueData[ord.IssueData.count - 1].IssueData.operationWorklist = resultFinderStart.atividadePendencia;
+        }
+    }
+
+    ord.save();
+
+    return ord.IssueData[ord.IssueData.count - 1].IssueData;
+  ]]></script>
+</script>
